@@ -1,0 +1,6 @@
+bin/
+obj/
+.trash/
+*/.DS_Store
+*.mgcb
+.NULLSPACE_SOURCE
