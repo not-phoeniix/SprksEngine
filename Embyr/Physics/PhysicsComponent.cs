@@ -7,20 +7,22 @@ using Embyr.Scenes;
 namespace Embyr.Physics;
 
 /// <summary>
-/// The types of physics solvers used in position calculation
-/// </summary>
-public enum PhysicsSolver {
-    Euler,
-    Verlet
-}
-
-/// <summary>
 /// Component that represents a "physics object," does collision
 /// detection/resolution and gravity, as well as force-based movement.
 /// </summary>
 public class PhysicsComponent : IDebugDrawable {
+    /// <summary>
+    /// The types of physics solvers used in position calculation
+    /// </summary>
+    public enum PhysicsSolver {
+        Euler,
+        Verlet
+    }
+
     #region // Fields & Properties
 
+    private readonly Transform transform;
+    private Vector2 prevTransformPos;
     private Vector2 prevPos;
     private Vector2 prevVerletPos;
     private Vector2 position;
@@ -90,25 +92,9 @@ public class PhysicsComponent : IDebugDrawable {
     /// Gets/sets the non-lerped position ignoring frame interpolation,
     /// useful for accessing current position during physics updates externally
     /// </summary>
-    public Vector2 NonLerpedPosition {
+    internal Vector2 NonLerpedPosition {
         get => position;
         set => position = value;
-    }
-
-    /// <summary>
-    /// Position at center of physics object, not top left
-    /// </summary>
-    public Vector2 CenterPosition {
-        get { return Position + VerticalCollisionBox.Center.ToVector2(); }
-        set { Position = value - VerticalCollisionBox.Center.ToVector2(); }
-    }
-
-    /// <summary>
-    /// Gets/sets center-aligned position ignoring frame interpolation
-    /// </summary>
-    public Vector2 NonLerpedCenterPosition {
-        get => position + VerticalCollisionBox.Center.ToVector2();
-        set => position = value - VerticalCollisionBox.Center.ToVector2();
     }
 
     /// <summary>
@@ -193,18 +179,10 @@ public class PhysicsComponent : IDebugDrawable {
     }
 
     /// <summary>
-    /// Combined surrounding world-space rectangle of both
+    /// Gets combined surrounding world-space rectangle of both
     /// horizontal and vertical collision bounds
     /// </summary>
-    public Rectangle Bounds {
-        get {
-            int minX = Math.Min(VerticalBounds.X, HorizontalBounds.X);
-            int minY = Math.Min(VerticalBounds.Y, HorizontalBounds.Y);
-            int maxX = Math.Max(VerticalBounds.Right, HorizontalBounds.Right);
-            int maxY = Math.Max(VerticalBounds.Bottom, HorizontalBounds.Bottom);
-            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
-        }
-    }
+    public Rectangle Bounds => Rectangle.Union(VerticalBounds, HorizontalBounds);
 
     /// <summary>
     /// Callback executed when the component collides with a tile
@@ -219,6 +197,7 @@ public class PhysicsComponent : IDebugDrawable {
     /// Creates a new physics component
     /// </summary>
     /// <param name="position">Initial position</param>
+    /// <param name="transform">Transform of object to affect with physics</param>
     /// <param name="verticalCollisionBox">
     /// Local-to-sprite collision box that defines where/how
     /// vertical collision takes place with this object
@@ -230,13 +209,14 @@ public class PhysicsComponent : IDebugDrawable {
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
     public PhysicsComponent(
-        Vector2 position,
+        Transform transform,
         Rectangle verticalCollisionBox,
         Rectangle horizontalCollisionBox,
         float mass,
         float maxSpeed
     ) {
-        this.position = position;
+        this.transform = transform;
+        this.position = transform.GlobalPosition;
         this.prevPos = position;
         this.prevVerletPos = position;
         this.VerticalCollisionBox = verticalCollisionBox;
@@ -248,7 +228,7 @@ public class PhysicsComponent : IDebugDrawable {
     /// <summary>
     /// Creates a new physics component
     /// </summary>
-    /// <param name="position">Initial position</param>
+    /// <param name="transform">Transform of object to affect with physics</param>
     /// <param name="collisionBox">
     /// Local-to-sprite bounding rectangle of this object, used
     /// for collision and bounds calculations
@@ -257,13 +237,13 @@ public class PhysicsComponent : IDebugDrawable {
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
     public PhysicsComponent(
-        Vector2 position,
+        Transform transform,
         Rectangle collisionBox,
         int boxOffset,
         float mass,
         float maxSpeed
     ) : this(
-        position,
+        transform,
         new Rectangle(
             collisionBox.X + (Math.Max(boxOffset, 0) / 2),
             collisionBox.Y,
@@ -283,7 +263,7 @@ public class PhysicsComponent : IDebugDrawable {
     /// <summary>
     /// Creates a new physics component
     /// </summary>
-    /// <param name="position">Initial position</param>
+    /// <param name="transform">Transform of object to affect with physics</param>
     /// <param name="collisionBox">
     /// Local-to-sprite bounding rectangle of this object, used
     /// for collision and bounds calculations
@@ -291,12 +271,12 @@ public class PhysicsComponent : IDebugDrawable {
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
     public PhysicsComponent(
-        Vector2 position,
+        Transform transform,
         Rectangle collisionBox,
         float mass,
         float maxSpeed
     ) : this(
-        position,
+        transform,
         collisionBox,
         1,
         mass,
@@ -353,6 +333,27 @@ public class PhysicsComponent : IDebugDrawable {
             // direction of motion equals normalized velocity vector
             Direction = Vector2.Normalize(Velocity);
         }
+
+        // updates the value of the transform every update
+        transform.GlobalPosition = position;
+    }
+
+    /// <summary>
+    /// Updates the attached transform object, must be run every frame
+    /// </summary>
+    public void UpdateTransform() {
+        if (transform.GlobalPosition != prevTransformPos) {
+            // if transform position has changed since last
+            //   update, set physics component's position
+            position = transform.GlobalPosition;
+            prevPos = transform.GlobalPosition;
+        } else {
+            // otherwise, just normally update transform
+            //   position to current lerped position
+            transform.GlobalPosition = Position;
+        }
+
+        prevTransformPos = transform.GlobalPosition;
     }
 
     /// <summary>

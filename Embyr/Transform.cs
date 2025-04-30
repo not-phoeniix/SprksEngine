@@ -22,9 +22,23 @@ public sealed class Transform {
     public Transform? Parent {
         get => parent;
         set {
+            // apply offsets whenever changing what the parent is
+            if (dirty) Recalculate();
+            localPos += parentGlobalPos;
+            localRotation += parentGlobalRot;
+            localScale += parentGlobalScale;
+
+            // actually change parent, updating child refs
+            //   of old and new parents
+            parent?.children.Remove(this);
             parent = value;
-            MarkDirty();
-            parent?.RemoveChild(this);
+            parent?.children.Add(this);
+            Recalculate();
+
+            // re-remove offsets after new parent has been set
+            localPos -= parentGlobalPos;
+            localRotation -= parentGlobalRot;
+            localScale -= parentGlobalScale;
         }
     }
 
@@ -126,7 +140,13 @@ public sealed class Transform {
     }
 
     /// <summary>
-    /// Creates a new transform object at (0, 0) with default scale and rotation
+    /// Creates a new Transform object
+    /// </summary>
+    /// <param name="position">Position of transform</param>
+    public Transform(Vector2 position) : this(position, Vector2.One, 0) { }
+
+    /// <summary>
+    /// Creates a new Transform object at (0, 0) with default scale and rotation
     /// </summary>
     public Transform() {
         this.localPos = Vector2.Zero;
@@ -145,9 +165,6 @@ public sealed class Transform {
     /// <param name="child">Transform to add</param>
     public void AddChild(Transform child) {
         if (child != null) {
-            // remove child from previous parent
-            child.Parent?.RemoveChild(child);
-
             // give me the child.
             children.Add(child);
             child.Parent = this;

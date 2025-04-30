@@ -58,10 +58,10 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
         AverageVelocity = Vector2.Zero;
         AverageDirection = Vector2.Zero;
 
-        foreach (PhysicsComponent agent in agents) {
-            AverageCenterPos += agent.CenterPosition;
-            AverageVelocity += agent.Velocity;
-            AverageDirection += agent.Direction;
+        foreach (IAgent agent in agents) {
+            AverageCenterPos += agent.Transform.GlobalPosition;
+            AverageVelocity += agent.Physics.Velocity;
+            AverageDirection += agent.Physics.Direction;
         }
 
         AverageCenterPos /= agents.Count;

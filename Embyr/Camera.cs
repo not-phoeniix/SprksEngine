@@ -17,6 +17,7 @@ public class Camera {
     private Matrix invertedFlooredMatrix;
     private Vector2 position;
     private float zoom;
+    private float rotation;
     private bool dirty;
     private readonly int width;
     private readonly int height;
@@ -76,9 +77,20 @@ public class Camera {
     /// Gets/sets camera zoom level
     /// </summary>
     public float Zoom {
-        get { return zoom; }
+        get => zoom;
         set {
             zoom = value;
+            dirty = true;
+        }
+    }
+
+    /// <summary>
+    /// Gets/sets the rotation of the camera in radians
+    /// </summary>
+    public float Rotation {
+        get => rotation;
+        set {
+            rotation = value;
             dirty = true;
         }
     }
@@ -144,17 +156,17 @@ public class Camera {
     /// <param name="lerpAmt">Speed/amount of linear interpolation to apply, must be >= 0</param>
     /// <param name="dt">Time passed since last frame</param>
     public void SmoothFollow(IActor target, float lerpAmt, float dt) {
-        SmoothFollow(target.CenterPosition, lerpAmt, dt);
+        SmoothFollow(target.Transform.Position, lerpAmt, dt);
     }
 
     private void CalculateMatrices() {
         Vector2 halfSize = new(width / 2, height / 2);
         Vector3 pos3 = new((-position + halfSize) * zoom, 0);
 
-        matrix = Matrix.CreateScale(zoom) * Matrix.CreateTranslation(pos3);
+        matrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rotation) * Matrix.CreateTranslation(pos3);
         invertedMatrix = Matrix.Invert(matrix);
 
-        flooredMatrix = Matrix.CreateScale(zoom) * Matrix.CreateTranslation(Vector3.Floor(pos3));
+        flooredMatrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rotation) * Matrix.CreateTranslation(Vector3.Floor(pos3));
         invertedFlooredMatrix = Matrix.Invert(flooredMatrix);
     }
 }

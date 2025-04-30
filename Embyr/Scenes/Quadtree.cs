@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -34,6 +35,8 @@ internal class Quadtree<T> where T : class, ITransform {
         }
 
         public void Insert(T obj) {
+            if (obj.Transform == null) Debug.WriteLine("AHHHH!!!!");
+
             // if we can't fit into this node, try inserting into the parent!
             if (!InNode(obj, this) && parent != null) {
                 parent.Insert(obj);
@@ -106,7 +109,7 @@ internal class Quadtree<T> where T : class, ITransform {
         }
 
         private static bool InNode(T obj, Node node) {
-            return node.Bounds.Contains(obj.Position);
+            return node.Bounds.Contains(obj.Transform.GlobalPosition);
         }
 
         public bool Remove(T obj) {
@@ -126,7 +129,7 @@ internal class Quadtree<T> where T : class, ITransform {
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Position);
+                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
                 if (dSqr < closestDSqr) {
                     closest = obj;
                     closestDSqr = dSqr;
@@ -144,7 +147,7 @@ internal class Quadtree<T> where T : class, ITransform {
                     T subClosest = node.FindClosest(position);
 
                     if (subClosest != null) {
-                        dSqr = Vector2.DistanceSquared(subClosest.Position, position);
+                        dSqr = Vector2.DistanceSquared(subClosest.Transform.GlobalPosition, position);
                         if (dSqr < closestDSqr) {
                             closest = subClosest;
                             closestDSqr = dSqr;
@@ -161,7 +164,7 @@ internal class Quadtree<T> where T : class, ITransform {
             if (dSqrToThis > radius * radius) yield break;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Position);
+                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
                 if (dSqr <= radius * radius) {
                     yield return obj;
                 }
@@ -185,7 +188,7 @@ internal class Quadtree<T> where T : class, ITransform {
             if (!viewport.Intersects(Bounds)) yield break;
 
             foreach (T obj in data) {
-                if (viewport.Intersects(obj.Bounds)) {
+                if (viewport.Contains(obj.Transform.GlobalPosition)) {
                     yield return obj;
                 }
             }

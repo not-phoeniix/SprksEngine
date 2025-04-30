@@ -15,7 +15,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Vector2 force to apply that seeks target</returns>
     public static Vector2 Seek(this IAgent agent, Vector2 targetPos) {
-        Vector2 direction = targetPos - agent.CenterPosition;
+        Vector2 direction = targetPos - agent.Transform.GlobalPosition;
         if (direction != Vector2.Zero) direction.Normalize();
         Vector2 desiredVelocity = direction * agent.Physics.MaxSpeed;
         return desiredVelocity - agent.Physics.Velocity;
@@ -28,7 +28,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Vector2 force to apply that seeks target</returns>
     public static Vector2 Seek(this IAgent agent, IActor target) {
-        return Seek(agent, target.CenterPosition);
+        return Seek(agent, target.Transform.GlobalPosition);
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Vector2 force to apply that flees from target</returns>
     public static Vector2 Flee(this IAgent agent, Vector2 targetPos) {
-        Vector2 direction = agent.CenterPosition - targetPos;
+        Vector2 direction = agent.Transform.GlobalPosition - targetPos;
         if (direction != Vector2.Zero) direction.Normalize();
         Vector2 desiredVelocity = direction * agent.Physics.MaxSpeed;
         return desiredVelocity - agent.Physics.Velocity;
@@ -51,7 +51,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Vector2 force to apply that flees from target</returns>
     public static Vector2 Flee(this IAgent agent, IActor target) {
-        return Flee(agent, target.CenterPosition);
+        return Flee(agent, target.Transform.GlobalPosition);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public static class AgentBehaviors {
     /// <returns>Force to apply to arrive at position</returns>
     public static Vector2 Arrival(this IAgent agent, Vector2 targetPos, float slowingDistance) {
         // initial float calculations
-        float dSqr = Vector2.DistanceSquared(targetPos, agent.CenterPosition);
+        float dSqr = Vector2.DistanceSquared(targetPos, agent.Transform.GlobalPosition);
         float rampedSpeed = agent.Physics.MaxSpeed * (dSqr / (slowingDistance * slowingDistance));
         float clippedSpeed = MathF.Min(rampedSpeed, agent.Physics.MaxSpeed);
 
@@ -96,7 +96,7 @@ public static class AgentBehaviors {
         }
 
         // calculates force and returns
-        Vector2 targetOffset = targetPos - agent.CenterPosition;
+        Vector2 targetOffset = targetPos - agent.Transform.GlobalPosition;
         Vector2 desiredVelocity = vScale * targetOffset;
         return desiredVelocity - agent.Physics.Velocity;
     }
@@ -109,7 +109,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Force to apply to arrive at entity position</returns>
     public static Vector2 Arrival(this IAgent agent, IActor target, float slowingDistance) {
-        return Arrival(agent, target.CenterPosition, slowingDistance);
+        return Arrival(agent, target.Transform.GlobalPosition, slowingDistance);
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Force to apply to stay within a rectangle</returns>
     public static Vector2 StayInRect(this IAgent agent, Rectangle rect) {
-        if (!rect.Contains(agent.CenterPosition)) {
+        if (!rect.Contains(agent.Transform.GlobalPosition)) {
             return Seek(agent, rect.Center.ToVector2());
         }
 
@@ -139,7 +139,7 @@ public static class AgentBehaviors {
         Vector2 force = Vector2.Zero;
 
         foreach (IAgent neighbor in container) {
-            float dSqr = Vector2.DistanceSquared(agent.CenterPosition, neighbor.CenterPosition);
+            float dSqr = Vector2.DistanceSquared(agent.Transform.GlobalPosition, neighbor.Transform.GlobalPosition);
 
             if (dSqr > float.Epsilon && dSqr <= radius * radius) {
                 force += Flee(neighbor, agent) * (1 / dSqr);
@@ -157,7 +157,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Force to apply to separate from position</returns>
     public static Vector2 Separate(this IAgent agent, float radius, Vector2 position) {
-        float distSquared = Vector2.DistanceSquared(agent.CenterPosition, position);
+        float distSquared = Vector2.DistanceSquared(agent.Transform.GlobalPosition, position);
 
         if (distSquared > float.Epsilon && distSquared <= radius * radius) {
             return Flee(agent, position) * (1 / distSquared);
@@ -174,7 +174,7 @@ public static class AgentBehaviors {
     /// <param name="agent">Physics component agent to base forces upon</param>
     /// <returns>Force to apply to separate from entity</returns>
     public static Vector2 Separate(this IAgent agent, float radius, IActor target) {
-        return Separate(agent, radius, target.CenterPosition);
+        return Separate(agent, radius, target.Transform.GlobalPosition);
     }
 
     /// <summary>
@@ -191,10 +191,10 @@ public static class AgentBehaviors {
         Vector2 centerPoint = Vector2.Zero;
 
         foreach (IAgent target in container) {
-            float distSquared = Vector2.DistanceSquared(agent.CenterPosition, target.CenterPosition);
+            float distSquared = Vector2.DistanceSquared(agent.Transform.GlobalPosition, target.Transform.GlobalPosition);
 
             if (distSquared <= radius * radius) {
-                centerPoint += target.CenterPosition;
+                centerPoint += target.Transform.GlobalPosition;
                 numAgents++;
             }
         }
@@ -217,7 +217,7 @@ public static class AgentBehaviors {
         Vector2 direction = Vector2.Zero;
 
         foreach (IAgent target in container) {
-            float distSquared = Vector2.DistanceSquared(agent.CenterPosition, target.CenterPosition);
+            float distSquared = Vector2.DistanceSquared(agent.Transform.GlobalPosition, target.Transform.GlobalPosition);
 
             if (distSquared > float.Epsilon && distSquared <= radius * radius) {
                 direction += target.Physics.Direction;
@@ -268,7 +268,7 @@ public static class AgentBehaviors {
 
         // iteration across all agents in container for variable math
         foreach (IAgent target in container) {
-            float dSqr = Vector2.DistanceSquared(agent.CenterPosition, target.CenterPosition);
+            float dSqr = Vector2.DistanceSquared(agent.Transform.GlobalPosition, target.Transform.GlobalPosition);
 
             // skip iteration if distance is basically zero
             //   (skip flocking with self)
@@ -283,7 +283,7 @@ public static class AgentBehaviors {
 
             // cohesion radius check
             if (dSqr <= cohesionRadius * cohesionRadius) {
-                avgPosition += target.CenterPosition;
+                avgPosition += target.Transform.GlobalPosition;
                 numCohesion++;
             }
 
@@ -314,6 +314,6 @@ public static class AgentBehaviors {
     }
 
     private static Vector2 CalcFuturePosition(float time, IAgent agent) {
-        return agent.Physics.Velocity * time + agent.CenterPosition;
+        return agent.Physics.Velocity * time + agent.Transform.GlobalPosition;
     }
 }

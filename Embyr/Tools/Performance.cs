@@ -83,7 +83,7 @@ public static class Performance {
     /// <summary>
     /// Gets the fixed update lerp value from 0-1 to lerp between frame updates
     /// </summary>
-    public static float PhysicsLerpValue { get; private set; }
+    internal static float PhysicsLerpValue { get; private set; }
 
     /// <summary>
     /// Updates general performance logic

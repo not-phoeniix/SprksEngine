@@ -18,22 +18,9 @@ public class Light : ITransform {
     public bool IsGlobal { get; init; }
 
     /// <summary>
-    /// Gets/sets worldspace position of light
+    /// Gets the transform for this light
     /// </summary>
-    public Vector2 Position { get; set; }
-
-    /// <summary>
-    /// Gets/sets the center-aligned position of this light
-    /// </summary>
-    public Vector2 CenterPosition {
-        get => Position;
-        set => Position = value;
-    }
-
-    /// <summary>
-    /// Gets the bounds of this light
-    /// </summary>
-    public Rectangle Bounds => new Rectangle(Position.ToPoint(), new Point(1));
+    public Transform Transform { get; init; }
 
     /// <summary>
     /// Gets/sets the color of light
@@ -74,7 +61,7 @@ public class Light : ITransform {
     /// Creates a new Light with default values
     /// </summary>
     public Light() {
-        Position = Vector2.Zero;
+        Transform = new Transform();
         Color = Color.White;
         Intensity = 1;
         LinearFalloff = 20;

@@ -120,12 +120,12 @@ public class Rope : IDrawable, IDebugDrawable {
             Vector2 position = startPoint + (diff * i);
 
             nodes[i] = new PhysicsComponent(
-                position,
+                new Transform(position),
                 new Rectangle(0, 0, 1, 1),
                 1f,
                 1000
             ) {
-                Solver = PhysicsSolver.Verlet
+                Solver = PhysicsComponent.PhysicsSolver.Verlet
             };
         }
     }
@@ -139,7 +139,7 @@ public class Rope : IDrawable, IDebugDrawable {
         this.nodes = nodes;
         this.segmentLength = segmentLength;
         foreach (PhysicsComponent node in nodes) {
-            node.Solver = PhysicsSolver.Verlet;
+            node.Solver = PhysicsComponent.PhysicsSolver.Verlet;
         }
     }
 
@@ -185,22 +185,23 @@ public class Rope : IDrawable, IDebugDrawable {
     public void Update(float dt) {
         if (EnableStartAnchor) {
             nodes[0].Enabled = false;
-            nodes[0].CenterPosition = StartPos;
+            nodes[0].Position = StartPos;
         } else {
             nodes[0].Enabled = true;
-            StartPos = nodes[0].CenterPosition;
+            StartPos = nodes[0].Position;
         }
 
         if (EnableEndAnchor) {
             nodes[nodes.Length - 1].Enabled = false;
-            nodes[nodes.Length - 1].CenterPosition = EndPos;
+            nodes[nodes.Length - 1].Position = EndPos;
         } else {
             nodes[nodes.Length - 1].Enabled = true;
-            EndPos = nodes[nodes.Length - 1].CenterPosition;
+            EndPos = nodes[nodes.Length - 1].Position;
         }
 
         foreach (PhysicsComponent node in nodes) {
             node.EnableGravity = EnableGravity;
+            node.UpdateTransform();
         }
     }
 
@@ -229,8 +230,8 @@ public class Rope : IDrawable, IDebugDrawable {
         // draw entity and node together with a force
         if (endEntity != null) {
             PhysicsComponent node = nodes[nodes.Length - 1];
-            Vector2 toNode = node.NonLerpedCenterPosition - endEntity.NonLerpedCenterPosition;
-            Vector2 toEntity = endEntity.NonLerpedCenterPosition - node.NonLerpedCenterPosition;
+            Vector2 toNode = node.NonLerpedPosition - endEntity.NonLerpedPosition;
+            Vector2 toEntity = endEntity.NonLerpedPosition - node.NonLerpedPosition;
 
             float scale = 2000;
 
@@ -248,8 +249,8 @@ public class Rope : IDrawable, IDebugDrawable {
         // draw lines between nodes
         for (int i = 1; i < nodes.Length; i++) {
             sb.DrawLineCentered(
-                nodes[i].CenterPosition,
-                nodes[i - 1].CenterPosition,
+                nodes[i].Position,
+                nodes[i - 1].Position,
                 DrawThickness,
                 DrawColor
             );
@@ -264,8 +265,8 @@ public class Rope : IDrawable, IDebugDrawable {
         // draw lines between nodes
         for (int i = 1; i < nodes.Length; i++) {
             sb.DrawLine(
-                nodes[i].CenterPosition,
-                nodes[i - 1].CenterPosition,
+                nodes[i].Position,
+                nodes[i - 1].Position,
                 1f,
                 Color.DarkGray
             );
@@ -274,7 +275,7 @@ public class Rope : IDrawable, IDebugDrawable {
         // draw nodes themselves
         foreach (PhysicsComponent node in nodes) {
             sb.DrawCircleOutline(
-                node.CenterPosition,
+                node.Position,
                 2f,
                 10,
                 1f,
@@ -289,14 +290,14 @@ public class Rope : IDrawable, IDebugDrawable {
         float desiredDist
     ) {
         // direction vector
-        Vector2 dir = phys2.NonLerpedCenterPosition - phys1.NonLerpedCenterPosition;
+        Vector2 dir = phys2.NonLerpedPosition - phys1.NonLerpedPosition;
         if (dir != Vector2.Zero) dir.Normalize();
 
         // change in distance between current dist and desired dist
-        float deltaDist = Vector2.Distance(phys1.NonLerpedCenterPosition, phys2.NonLerpedCenterPosition) - desiredDist;
+        float deltaDist = Vector2.Distance(phys1.NonLerpedPosition, phys2.NonLerpedPosition) - desiredDist;
 
         // apply half of each dist to each component
-        if (phys1.Enabled) phys1.NonLerpedCenterPosition += dir * deltaDist / 2;
-        if (phys2.Enabled) phys2.NonLerpedCenterPosition -= dir * deltaDist / 2;
+        if (phys1.Enabled) phys1.NonLerpedPosition += dir * deltaDist / 2;
+        if (phys2.Enabled) phys2.NonLerpedPosition -= dir * deltaDist / 2;
     }
 }

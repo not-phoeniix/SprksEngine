@@ -244,7 +244,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
 
         void SaveLightInArr(Light light) {
             // set array values
-            Vector2 lightScreenPos = Vector2.Transform(light.Position, Camera.FlooredMatrix);
+            Vector2 lightScreenPos = Vector2.Transform(light.Transform.GlobalPosition, Camera.FlooredMatrix);
             lightScreenPos /= new Vector2(lightBuffer.Width, lightBuffer.Height);
             lightPositions[i] = new Vector3(
                 lightScreenPos,

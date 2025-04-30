@@ -1,4 +1,3 @@
-using System.Numerics;
 using Embyr.Physics;
 
 namespace Embyr.Scenes;

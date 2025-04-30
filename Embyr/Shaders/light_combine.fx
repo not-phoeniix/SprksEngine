@@ -39,11 +39,7 @@ float4 MainPS(VSOutput input) : COLOR {
     float4 finalColor = albedo * float4(AmbientColor + lightColor, 1.0);
     finalColor += float4(lightColor, 1.0) * VolumetricScalar;
 
-    // float4 dist = tex2D(DistanceFieldSampler, input.UV);
-
     return finalColor;
-    // return lerp(finalColor, float4(lightColor, 1.0), 0.99);
-    // return lerp(finalColor, dist, 0.99);
 }
 
 technique SpriteDrawing {
