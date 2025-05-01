@@ -8,7 +8,7 @@ namespace Embyr.Scenes;
 internal class Quadtree<T> where T : class, ITransform {
     // https://medium.com/@bpmw/quadtrees-for-2d-games-with-moving-elements-63360b08329f
 
-    private static readonly int splitThreshold = 4;
+    private static readonly int splitThreshold = 50;
 
     private class Node : IDebugDrawable {
         private readonly List<T> data;
