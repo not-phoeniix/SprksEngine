@@ -61,7 +61,7 @@ public static class AgentBehaviors {
     /// <param name="radius">Radius to seek, the bigger the more it'll turn</param>
     /// <returns>Force to apply to wander in random direction</returns>
     public static Vector2 Wander(this IAgent agent, float time, float radius, float angleRange = MathF.PI / 15) {
-        Vector2 targetPos = CalcFuturePosition(time, agent);
+        Vector2 targetPos = agent.CalcFuturePosition(time);
 
         // positive/negative values to randomize between each frame
         float randomValue = Random.Shared.NextSingle();
@@ -301,7 +301,13 @@ public static class AgentBehaviors {
                (alignStrength * alignment);
     }
 
-    private static Vector2 CalcFuturePosition(float time, IAgent agent) {
+    /// <summary>
+    /// Calculates a future position based on agent velocity
+    /// </summary>
+    /// <param name="time">Time in the future to calculate for</param>
+    /// <param name="agent">Agent to calculate with</param>
+    /// <returns>A future global position of this agent</returns>
+    public static Vector2 CalcFuturePosition(this IAgent agent, float time) {
         return agent.Physics.Velocity * time + agent.Transform.GlobalPosition;
     }
 }

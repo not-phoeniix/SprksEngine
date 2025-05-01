@@ -43,7 +43,7 @@ public class Boid : PhysicsActor, IAgent {
         }
 
         Vector2 flockingForce = this.Flock(5, 3, 15, 2, 40, 1) * 0.2f;
-        Vector2 wander = this.Wander(0.3f, 50) * 0.04f;
+        Vector2 wander = this.Wander(0.7f, 20) * 0.04f;
         Vector2 stayInRect = this.StayInRect(containingRect) * 0.5f;
 
         return flockingForce + wander + stayInRect;
@@ -59,5 +59,24 @@ public class Boid : PhysicsActor, IAgent {
         sb.DrawLineCentered(t, bl, 2, Color.White);
         sb.DrawLineCentered(bl, br, 2, Color.White);
         sb.DrawLineCentered(br, t, 2, Color.White);
+    }
+
+    public override void DebugDraw(SpriteBatch sb) {
+        base.DebugDraw(sb);
+
+        sb.DrawLine(
+            Transform.GlobalPosition,
+            this.CalcFuturePosition(0.7f),
+            1,
+            Color.White
+        );
+
+        sb.DrawCircleOutline(
+            this.CalcFuturePosition(0.7f),
+            20,
+            20,
+            1,
+            Color.White
+        );
     }
 }
