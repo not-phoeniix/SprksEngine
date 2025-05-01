@@ -28,6 +28,7 @@ public class PhysicsComponent : IDebugDrawable {
     private Vector2 position;
     private Vector2 velocity;
     private Vector2 acceleration;
+    private Vector2 gravityAccel;
     private Vector2 impulseAccel;
     private bool toChangeVelocity;
     private bool somethingCollidedPrev;
@@ -374,9 +375,15 @@ public class PhysicsComponent : IDebugDrawable {
         velocity += acceleration * deltaTime;
         velocity += impulseAccel;
         velocity = Utils.ClampMagnitude(velocity, MaxSpeed);
+        // apply gravity AFTER speed limiting
+        velocity += gravityAccel * deltaTime;
+
         position += velocity * deltaTime;
+
+        // reset fields
         acceleration = Vector2.Zero;
         impulseAccel = Vector2.Zero;
+        gravityAccel = Vector2.Zero;
         toChangeVelocity = false;
     }
 
@@ -393,13 +400,14 @@ public class PhysicsComponent : IDebugDrawable {
 
         // do verlet integration itself, apply impluse in addition to acceleration
         Vector2 tmpPos = position;
-        position = 2 * position - prevVerletPos + (acceleration * deltaTime + impulseAccel) * deltaTime;
+        position = 2 * position - prevVerletPos + ((acceleration + gravityAccel) * deltaTime + impulseAccel) * deltaTime;
         velocity = (position - prevVerletPos) / (2 * deltaTime);
         prevVerletPos = tmpPos;
+
+        // reset fields
         acceleration = Vector2.Zero;
         impulseAccel = Vector2.Zero;
-
-        // set velocity flag back to false
+        gravityAccel = Vector2.Zero;
         toChangeVelocity = false;
     }
 
@@ -424,7 +432,7 @@ public class PhysicsComponent : IDebugDrawable {
     /// </summary>
     /// <param name="gravity">Vector2 gravity force to apply</param>
     public void ApplyGravity(Vector2 gravity) {
-        acceleration += gravity;
+        gravityAccel += gravity;
     }
 
     /// <summary>

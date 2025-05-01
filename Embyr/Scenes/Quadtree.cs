@@ -12,6 +12,7 @@ internal class Quadtree<T> where T : class, ITransform {
 
     private class Node : IDebugDrawable {
         private readonly List<T> data;
+        private readonly List<(T, Node)> toMove;
         private Node[] childNodes;
         private readonly Node parent;
 
@@ -19,6 +20,7 @@ internal class Quadtree<T> where T : class, ITransform {
 
         public Node(Node parent, Rectangle bounds) {
             data = new List<T>();
+            toMove = new List<(T, Node)>();
             this.parent = parent;
             this.Bounds = bounds;
         }
@@ -52,7 +54,7 @@ internal class Quadtree<T> where T : class, ITransform {
                     // otherwise, split and reorganize...
                     Split();
                     data.Add(obj);
-                    Reorganize();
+                    // Reorganize();
                 }
 
             } else {
@@ -83,14 +85,14 @@ internal class Quadtree<T> where T : class, ITransform {
         }
 
         public void Reorganize() {
-            for (int i = data.Count - 1; i >= 0; i--) {
-                T obj = data[i];
-
+            // iterate across data and mark data that should be moved as "to move"
+            foreach (T obj in data) {
                 // if this actor no longer fits in this node,
                 //   remove it from this one and try to add to parent!
                 if (!InNode(obj, this) && parent != null) {
-                    data.RemoveAt(i);
-                    parent.Insert(obj);
+                    // data.RemoveAt(i);
+                    // parent.Insert(obj);
+                    toMove.Add((obj, parent));
                     continue;
                 }
 
@@ -99,13 +101,21 @@ internal class Quadtree<T> where T : class, ITransform {
                 if (childNodes != null) {
                     foreach (Node node in childNodes) {
                         if (InNode(obj, node)) {
-                            data.RemoveAt(i);
-                            node.Insert(obj);
+                            // data.RemoveAt(i);
+                            // node.Insert(obj);
+                            toMove.Add((obj, node));
                             break;
                         }
                     }
                 }
             }
+
+            // move all data that was marked as "to move"
+            foreach ((T, Node) objPair in toMove) {
+                data.Remove(objPair.Item1);
+                objPair.Item2.Insert(objPair.Item1);
+            }
+            toMove.Clear();
         }
 
         private static bool InNode(T obj, Node node) {

@@ -164,7 +164,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
         if (!Paused) {
             foreach (IActor actor in actors.GetData(Camera.Position, EngineSettings.SimulationDistance, false)) {
                 if (actor is IAgent agent) {
-                    agent.UpdateBehavior(dt);
+                    agent.Physics.ApplyForce(agent.UpdateBehavior(dt));
                 }
 
                 actor.PhysicsUpdate(dt);

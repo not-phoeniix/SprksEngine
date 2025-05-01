@@ -1,4 +1,5 @@
 using Embyr.Physics;
+using Microsoft.Xna.Framework;
 
 namespace Embyr.Scenes;
 
@@ -15,6 +16,7 @@ public interface IAgent : IActor {
     /// Method that calculates all steering forces for this agent
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
-    public void UpdateBehavior(float dt);
+    /// <returns>Sum of all behavior forces to apply</returns>
+    public Vector2 UpdateBehavior(float dt);
 }
 
