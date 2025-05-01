@@ -11,4 +11,17 @@
     <PackageReference Include="MonoGame.Aseprite" Version="5.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/bloom_blur_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/bloom_combine_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/bloom_threshold_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/color_quant_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/jump_flood_dist_render_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/jump_flood_step_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/jump_flood_seed_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/light_combine_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/light_render_gl.xnb" />
+    <EmbeddedResource Include="Shaders/PrecompiledBinaries/solid_color_gl.xnb" />
+  </ItemGroup>
+
 </Project>

@@ -216,6 +216,7 @@ public class PhysicsComponent : IDebugDrawable {
         float maxSpeed
     ) {
         this.transform = transform;
+        this.prevTransformPos = transform.GlobalPosition;
         this.position = transform.GlobalPosition;
         this.prevPos = position;
         this.prevVerletPos = position;
@@ -342,16 +343,19 @@ public class PhysicsComponent : IDebugDrawable {
     /// Updates the attached transform object, must be run every frame
     /// </summary>
     public void UpdateTransform() {
-        if (transform.GlobalPosition != prevTransformPos) {
-            // if transform position has changed since last
-            //   update, set physics component's position
-            position = transform.GlobalPosition;
-            prevPos = transform.GlobalPosition;
-        } else {
-            // otherwise, just normally update transform
-            //   position to current lerped position
-            transform.GlobalPosition = Position;
-        }
+        // TODO: this causes lots of rope instability, fix plz <3
+
+        // if (transform.GlobalPosition != prevTransformPos) {
+        //     // if transform position has changed since last
+        //     //   update, set physics component's position
+        //     position = transform.GlobalPosition;
+        //     prevPos = transform.GlobalPosition;
+        // } else {
+        //     // otherwise, just normally update transform
+        //     //   position to current lerped position
+        //     transform.GlobalPosition = Position;
+        // }
+        transform.GlobalPosition = Position;
 
         prevTransformPos = transform.GlobalPosition;
     }

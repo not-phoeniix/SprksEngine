@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Embyr.Tools;
 using System;
 using Embyr.UI;
+using Embyr.Shaders;
 
 namespace Embyr.Scenes;
 
@@ -90,7 +91,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// </summary>
     public virtual void LoadContent() {
         Camera = new Camera(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
-        fxLightRender = ContentHelper.I.LoadGlobal<Effect>("shaders/light_render");
+        fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
         Paused = false;
     }
 

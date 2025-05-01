@@ -181,8 +181,13 @@ public class Rope : IDrawable, IDebugDrawable {
     /// <summary>
     /// Updates general logic of this rope
     /// </summary>
-    /// <param name="dt"></param>
+    /// <param name="dt">Time passed since last frame</param>
     public void Update(float dt) {
+        foreach (PhysicsComponent node in nodes) {
+            node.EnableGravity = EnableGravity;
+            node.UpdateTransform();
+        }
+
         if (EnableStartAnchor) {
             nodes[0].Enabled = false;
             nodes[0].Position = StartPos;
@@ -197,11 +202,6 @@ public class Rope : IDrawable, IDebugDrawable {
         } else {
             nodes[nodes.Length - 1].Enabled = true;
             EndPos = nodes[nodes.Length - 1].Position;
-        }
-
-        foreach (PhysicsComponent node in nodes) {
-            node.EnableGravity = EnableGravity;
-            node.UpdateTransform();
         }
     }
 

@@ -55,6 +55,8 @@ public static class EngineSettings {
 
     public static bool ShowDebugDrawing { get; set; } = false;
 
+    public static Color RenderClearColor { get; set; } = Palette.Col2;
+
     /// <summary>
     /// Toggles the value of <c>EngineSettings.ShowDebugDrawing</c>
     /// </summary>

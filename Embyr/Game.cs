@@ -6,6 +6,8 @@ using Embyr.Scenes;
 using Embyr.Tools;
 using Embyr.UI;
 using Embyr.Data;
+using System.Reflection;
+using Embyr.Shaders;
 
 namespace Embyr;
 
@@ -126,6 +128,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         public Menu LoadingMenu { get; init; }
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
+        public Color RenderClearColor { get; init; }
         public string WindowTitle { get; init; }
         public bool EnableVSync { get; init; }
         public bool IsFullscreen { get; init; }
@@ -140,6 +143,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             LoadingMenu = null;
             CanvasRes = new Point(480, 270);
             WindowRes = new Point(1280, 720);
+            RenderClearColor = Palette.Col2;
             WindowTitle = "Embyr Project";
             EnableVSync = true;
             IsFullscreen = false;
@@ -186,6 +190,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         EngineSettings.EnableVSync = sp.EnableVSync;
         EngineSettings.IsFullscreen = sp.IsFullscreen;
         EngineSettings.IsBorderless = sp.IsBorderless;
+        EngineSettings.RenderClearColor = sp.RenderClearColor;
 
         loadingMenu = sp.LoadingMenu;
 
@@ -238,14 +243,14 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     protected override void LoadContent() {
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        fxLightCombine = ContentHelper.I.LoadGlobal<Effect>("shaders/light_combine");
-        fxJumpFloodSeed = ContentHelper.I.LoadGlobal<Effect>("shaders/jump_flood_seed");
-        fxJumpFloodStep = ContentHelper.I.LoadGlobal<Effect>("shaders/jump_flood_step");
-        fxJumpFloodDistRender = ContentHelper.I.LoadGlobal<Effect>("shaders/jump_flood_dist_render");
-        fxSolidColor = ContentHelper.I.LoadGlobal<Effect>("shaders/solid_color");
-        fxBloomThreshold = ContentHelper.I.LoadGlobal<Effect>("shaders/bloom_threshold");
-        fxBloomBlur = ContentHelper.I.LoadGlobal<Effect>("shaders/bloom_blur");
-        fxBloomCombine = ContentHelper.I.LoadGlobal<Effect>("shaders/bloom_combine");
+        fxLightCombine = ShaderManager.I.LoadShader("light_combine", ShaderManager.ShaderProfile.OpenGL);
+        fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
+        fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step", ShaderManager.ShaderProfile.OpenGL);
+        fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render", ShaderManager.ShaderProfile.OpenGL);
+        fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
+        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold", ShaderManager.ShaderProfile.OpenGL);
+        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur", ShaderManager.ShaderProfile.OpenGL);
+        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine", ShaderManager.ShaderProfile.OpenGL);
     }
 
     protected abstract SetupParams Setup();
@@ -358,11 +363,11 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             layers[GameLayer.UIDebug].DrawTo(currentScene.DebugDrawOverlays, spriteBatch);
 
             void DrawParallax(GameLayer gameLayer, ParallaxBackground bg) {
-                ParallaxLayer layer = bg.GetLayer(gameLayer);
+                ParallaxLayer? layer = bg?.GetLayer(gameLayer);
                 if (layer == null) return;  // don't draw if layer doesn't exist
-                layers[gameLayer].SmoothingOffset = bg.GetLayer(gameLayer).WorldLocation;
+                layers[gameLayer].SmoothingOffset = layer.WorldLocation;
                 layers[gameLayer].ColorTint = currentScene.GlobalLightTint;
-                layers[gameLayer].DrawTo(bg.GetLayer(gameLayer).Draw, spriteBatch, worldMatrix);
+                layers[gameLayer].DrawTo(layer.Draw, spriteBatch, worldMatrix);
             }
 
             ParallaxBackground parallax = currentScene.GetCurrentParallax();
@@ -383,7 +388,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         // draw different layers themselves to the screen
         GraphicsDevice.SetRenderTarget(null);
-        GraphicsDevice.Clear(Palette.Col0);
+        GraphicsDevice.Clear(EngineSettings.RenderClearColor);
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         foreach (GameLayer layer in Enum.GetValues<GameLayer>()) {
             // do not draw debug layers if debugging is not enabled

@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Aseprite;
 using MonoGame.Aseprite.Content.Processors;
 using MonoGame.Aseprite.Sprites;
+using System.Reflection;
 
 namespace Embyr;
 
