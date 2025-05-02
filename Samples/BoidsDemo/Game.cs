@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace BoidsDemo;
 
-public class BoidsDemo : Embyr.Game {
+public class Game : Embyr.Game {
     protected override SetupParams Setup() {
         MainScene scene = new("main_scene");
 
