@@ -110,10 +110,10 @@ public abstract class Scene : IResolution, IDebugDrawable {
     }
 
     /// <summary>
-    ///
+    /// Custom actor update logic, runs on every actor in the scene
     /// </summary>
-    /// <param name="actor"></param>
-    /// <param name="dt"></param>
+    /// <param name="actor">Actor to update</param>
+    /// <param name="fdt">Time passed since last frame</param>
     protected virtual void CustomActorUpdate(IActor actor, float dt) { }
 
     /// <summary>
@@ -149,7 +149,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// Custom actor update logic for physics updating, runs on every actor in the scene
     /// </summary>
     /// <param name="actor">Actor to update</param>
-    /// <param name="fdt">Time passed since last fixed update</param>
+    /// <param name="fdt">Time passed since last physics update</param>
     protected virtual void CustomActorPhysicsUpdate(IActor actor, float fdt) { }
 
     /// <summary>
@@ -219,7 +219,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// Gets the current parallax background set to draw this frame
     /// </summary>
     /// <returns></returns>
-    public abstract ParallaxBackground GetCurrentParallax();
+    public virtual ParallaxBackground? GetCurrentParallax() { return null; }
 
     /// <summary>
     /// Draws scene as a greyscale depth map
@@ -461,7 +461,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// </summary>
     /// <typeparam name="T">Type of actor to find</typeparam>
     /// <returns>Reference to actor, null if not found</returns>
-    public T FindActor<T>() where T : class, IActor {
+    public T? FindActor<T>() where T : class, IActor {
         foreach (IActor actor in GetActors()) {
             if (actor is T found) {
                 return found;

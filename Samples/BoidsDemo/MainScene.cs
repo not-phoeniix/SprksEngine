@@ -8,12 +8,6 @@ namespace BoidsDemo;
 
 public class MainScene(string name) : Scene(name) {
     public override void LoadContent() {
-        AddLight(new Light() {
-            IsGlobal = true,
-            Color = Color.White,
-            Intensity = 1.0f
-        });
-
         Rectangle boidBounds = new(
             -200,
             -100,
@@ -40,9 +34,5 @@ public class MainScene(string name) : Scene(name) {
         if (Input.IsKeyDownOnce(Keys.Space)) {
             EngineSettings.ShowDebugDrawing = !EngineSettings.ShowDebugDrawing;
         }
-    }
-
-    public override ParallaxBackground GetCurrentParallax() {
-        return null;
     }
 }

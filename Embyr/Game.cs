@@ -202,7 +202,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         graphics.IsFullScreen = EngineSettings.IsFullscreen;
         IsFixedTimeStep = false;
 
-        Window.AllowUserResizing = true;
+        // allowing user resizing seems to explode things <3 unsure why <3
+        // Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnResize;
         Window.Title = sp.WindowTitle;
 
@@ -229,10 +230,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         bloomFrontBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
 
         ResizeCanvasDestination();
-
-        // we don't have to apply changes because that happens
-        //   automatically in base.Initialize()
-        EngineSettings.ShouldApplyGraphicsChanges = false;
 
         // initialize scene stuff after everything is done !!
         SceneManager.I.Init(this, sp.InitialScene);

@@ -464,9 +464,9 @@ public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : 
     /// <summary>
     /// Creates a new Tile object, with given information
     /// </summary>
-    public Tile(Vector2 position, Texture2D texture, T type, bool usesTileset, Scene scene) {
+    public Tile(T type, Texture2D texture, bool usesTileset, Scene scene) {
         this.Scene = scene;
-        this.Transform = new Transform(position);
+        this.Transform = new Transform();
         this.usesTileset = usesTileset;
         this.texture = texture;
         this.components = new List<ITileComponent<T>>();
@@ -531,7 +531,7 @@ public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : 
     /// Checks 8 surrounding tiles and updates which edges are exposed to disconnected types
     /// </summary>
     /// <param name="disconnectedTypes">List of enum types which shouldn't be connected to this tile</param>
-    public void UpdateEdges(TileMap<T> mapContainer, List<T> disconnectedTypes) {
+    public void UpdateEdges(TileMap<T> mapContainer, List<T>? disconnectedTypes) {
         bool TileDirCheck(NeighborDirection direction) {
             // world pos for tile in inputted direction
             Point adjPos = TilespacePosition + direction switch {
@@ -553,10 +553,12 @@ public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : 
             // start as connecting but mark not connecting
             //   if any ignored types are detected
             bool connecting = true;
-            foreach (T type in disconnectedTypes) {
-                if (tile.Type.Equals(type)) {
-                    connecting = false;
-                    break;
+            if (disconnectedTypes != null) {
+                foreach (T type in disconnectedTypes) {
+                    if (tile.Type.Equals(type)) {
+                        connecting = false;
+                        break;
+                    }
                 }
             }
 

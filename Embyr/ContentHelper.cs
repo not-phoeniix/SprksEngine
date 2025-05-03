@@ -174,10 +174,20 @@ public class ContentHelper : Singleton<ContentHelper> {
     /// <param name="contentName">Content string path to the tileset aseprite file</param>
     /// <returns>Reference to cached Texture2D tileset</returns>
     private object GetContentTileset(string contentName) {
+        // TODO: figure out a better way to store and do this I BEG
         if (!tilesetCache.TryGetValue(contentName, out Texture2D tileset)) {
-            AsepriteFile file = localContent.Load<AsepriteFile>(contentName);
-            Sprite sprite = SpriteProcessor.Process(game.GraphicsDevice, file, 0);
-            tileset = sprite.TextureRegion.Texture;
+            try {
+                tileset = localContent.Load<Texture2D>(contentName);
+            } catch {
+                try {
+                    AsepriteFile file = localContent.Load<AsepriteFile>(contentName);
+                    Sprite sprite = SpriteProcessor.Process(game.GraphicsDevice, file, 0);
+                    tileset = sprite.TextureRegion.Texture;
+                } catch {
+                    throw;
+                }
+            }
+
             tilesetCache[contentName] = tileset;
         }
 

@@ -4,7 +4,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Tiles;
 
-public class TileMap<T> : IActor where T : Enum {
+/// <summary>
+/// A 2D grid/map of tiles, is an <c>IActor</c>
+/// </summary>
+/// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
+public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
     private readonly NList2D<Tile<T>> tiles;
 
     public Scene Scene { get; }
@@ -22,7 +26,14 @@ public class TileMap<T> : IActor where T : Enum {
         tiles.Max - tiles.Min
     );
 
+    /// <summary>
+    /// Event executed when this tile map is added to a scene
+    /// </summary>
     public event Action<Scene> OnAdded;
+
+    /// <summary>
+    /// Event executed when this tile map is removed from a scene
+    /// </summary>
     public event Action<Scene> OnRemoved;
 
     /// <summary>
@@ -40,8 +51,8 @@ public class TileMap<T> : IActor where T : Enum {
     /// </summary>
     public bool ShouldBeSaved => false;
 
-    public Tile<T> this[int x, int y] {
-        get => tiles[x, y];
+    public Tile<T>? this[int x, int y] {
+        get => tiles.InBounds(x, y) ? tiles[x, y] : null;
         set => tiles[x, y] = value;
     }
 
@@ -60,10 +71,17 @@ public class TileMap<T> : IActor where T : Enum {
         this.Transform = new Transform(position);
     }
 
+    /// <summary>
+    /// Updates general logic for this TileMap within its update radius, relative to scene camera
+    /// </summary>
+    /// <param name="dt">Time passed since last frame</param>
     public void Update(float dt) {
         Rectangle tilespaceSim = GetTilespaceSimulatedRect();
         for (int y = tilespaceSim.Top; y <= tilespaceSim.Bottom; y++) {
             for (int x = tilespaceSim.Left; x <= tilespaceSim.Right; x++) {
+                // don't update if index is out of bounds
+                if (!tiles.InBounds(x, y)) continue;
+
                 Tile<T> tile = tiles[x, y];
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
@@ -78,10 +96,17 @@ public class TileMap<T> : IActor where T : Enum {
         }
     }
 
+    /// <summary>
+    /// Updates physics logic of this TileMap within its update radius, relative to scene camera
+    /// </summary>
+    /// <param name="fdt">Time passed since last physics update</param>
     public void PhysicsUpdate(float fdt) {
         Rectangle tilespaceSim = GetTilespaceSimulatedRect();
         for (int y = tilespaceSim.Top; y <= tilespaceSim.Bottom; y++) {
             for (int x = tilespaceSim.Left; x <= tilespaceSim.Right; x++) {
+                // don't update if index is out of bounds
+                if (!tiles.InBounds(x, y)) continue;
+
                 Tile<T> tile = tiles[x, y];
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
@@ -96,13 +121,72 @@ public class TileMap<T> : IActor where T : Enum {
         }
     }
 
+    /// <summary>
+    /// Draws this tilemap to the screen
+    /// </summary>
+    /// <param name="sb">SpriteBatch to draw with</param>
     public void Draw(SpriteBatch sb) {
         Rectangle tilespaceView = GetTilespaceViewRect();
         for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
             for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
+                // don't draw if index is out of bounds
+                if (!tiles.InBounds(x, y)) continue;
+
                 tiles[x, y]?.Draw(sb);
             }
         }
+    }
+
+    /// <summary>
+    /// Draws debug information for this TileMap
+    /// </summary>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    public void DebugDraw(SpriteBatch sb) {
+        Rectangle tilespaceView = GetTilespaceViewRect();
+        for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
+            for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
+                if (!tiles.InBounds(x, y)) continue;
+
+                if (tiles[x, y] != null) {
+                    tiles[x, y].DebugDraw(sb);
+                    sb.DrawRectOutline(tiles[x, y].Bounds, 1, Color.Yellow);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a tile to this map
+    /// </summary>
+    /// <param name="tile">Tile to add</param>
+    /// <param name="x">X index to add, can be negative</param>
+    /// <param name="y">Y index to add, can be negative</param>
+    public void AddTile(Tile<T> tile, int x, int y) {
+        tiles.Add(tile, x, y);
+
+        if (tile != null) {
+            tile.Transform.Parent = Transform;
+            tile.Transform.Position = new Vector2(
+                x * Tile<T>.PixelSize,
+                y * Tile<T>.PixelSize
+            );
+        }
+
+        for (int x2 = x - 1; x2 <= x + 1; x2++) {
+            for (int y2 = y - 1; y2 <= y + 1; y2++) {
+                if (!tiles.InBounds(x2, y2)) continue;
+                tiles[x2, y2]?.UpdateEdges(this, null);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a tile to this map
+    /// </summary>
+    /// <param name="tile">Tile to add</param>
+    /// <param name="pos">X/Y index point to add tile to</param>
+    public void AddTile(Tile<T> tile, Point pos) {
+        AddTile(tile, pos.X, pos.Y);
     }
 
     public void InvokeOnAdded(Scene scene) {

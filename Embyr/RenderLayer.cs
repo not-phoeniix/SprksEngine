@@ -16,12 +16,12 @@ public class RenderLayer : IResolution {
     /// <summary>
     /// Gets/sets the effect applied to every item within the DrawTo instructions for this render layer
     /// </summary>
-    public Effect IndividualEffect { get; set; }
+    public Effect? IndividualEffect { get; set; }
 
     /// <summary>
     /// Gets/sets the screen-wide shader effect to apply to this render layer
     /// </summary>
-    public Effect ScreenSpaceEffect { get; set; }
+    public Effect? ScreenSpaceEffect { get; set; }
 
     /// <summary>
     /// Gets/sets the color tint to use when drawing layers to the screen
