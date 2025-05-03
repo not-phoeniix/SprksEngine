@@ -22,6 +22,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     // lighting fields!!
     private const int MaxLightsPerPass = 8;
     private Effect fxLightRender;
+    private Effect fxSolidColor;
     private readonly List<Light> globalLights;
     private readonly Quadtree<Light> localLights;
     private readonly Vector3[] lightPositions = new Vector3[MaxLightsPerPass];
@@ -92,6 +93,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     public virtual void LoadContent() {
         Camera = new Camera(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
         fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
+        fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
         Paused = false;
     }
 
@@ -106,6 +108,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
         menuStack.Clear();
         Camera = null;
         fxLightRender = null;
+        fxSolidColor = null;
         ContentHelper.I.LocalReset();
     }
 
@@ -224,10 +227,34 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// <summary>
     /// Draws scene as a greyscale depth map
     /// </summary>
-    /// <param name="fxSolidColor">Solid color effect, useful for drawing colors for depths</param>
-    /// <param name="depthBuffer">Depth buffer to draw heightmap to</param>
     /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DrawDepthmap(Effect fxSolidColor, RenderTarget2D depthBuffer, SpriteBatch sb) { }
+    public virtual void DrawDepthmap(SpriteBatch sb) { }
+
+    /// <summary>
+    /// Draws a layer to the depth map
+    /// </summary>
+    /// <param name="depth">Depth to draw to, from 0 to 1</param>
+    /// <param name="drawInstructions">Action of draw instructions to draw for layer</param>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    protected void DrawDepthLayer(float depth, Action drawInstructions, SpriteBatch sb) {
+        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
+        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
+        drawInstructions?.Invoke();
+        sb.End();
+    }
+
+    /// <summary>
+    /// Draws a layer to the depth map
+    /// </summary>
+    /// <param name="depth">Depth to draw to, from 0 to 1</param>
+    /// <param name="drawInstruction">Action of draw instruction to draw for layer</param>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    protected void DrawDepthLayer(float depth, Action<SpriteBatch> drawInstruction, SpriteBatch sb) {
+        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
+        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
+        drawInstruction?.Invoke(sb);
+        sb.End();
+    }
 
     /// <summary>
     /// Draws all lights in the scene to a render target

@@ -332,7 +332,9 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             Matrix worldMatrix = camera.FlooredMatrix;
 
             // draw to buffers, render lighting
-            currentScene.DrawDepthmap(fxSolidColor, depthBuffer, spriteBatch);
+            spriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
+            spriteBatch.GraphicsDevice.Clear(Color.White);
+            currentScene.DrawDepthmap(spriteBatch);
             RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
             RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
             currentScene.DrawLightsDeferred(spriteBatch, lightBuffer, worldLayerDistanceField, skyLayerDistanceField);
