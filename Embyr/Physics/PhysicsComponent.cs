@@ -225,6 +225,8 @@ public class PhysicsComponent : IDebugDrawable {
         this.HorizontalCollisionBox = horizontalCollisionBox;
         this.Mass = mass;
         this.MaxSpeed = maxSpeed;
+
+        WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
 
     /// <summary>

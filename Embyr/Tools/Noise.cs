@@ -139,6 +139,27 @@ public static class Noise {
         return mean + stdDev * gaussValue;
     }
 
+    /// <summary>
+    /// Generates a random float between a min and max bound
+    /// </summary>
+    /// <param name="min">Inclusive lower bound</param>
+    /// <param name="max">Exclusive upper bound</param>
+    /// <returns>Random float value inside a range</returns>
+    public static float NextSingle(float min, float max) {
+        return MathHelper.Lerp(min, max, Random.Shared.NextSingle());
+    }
+
+    /// <summary>
+    /// Generates a random float between a min and max bound
+    /// </summary>
+    /// <param name="rng">Random object to generate noise with</param>
+    /// <param name="min">Inclusive lower bound</param>
+    /// <param name="max">Exclusive upper bound</param>
+    /// <returns>Random float value inside a range</returns>
+    public static float NextSingle(this Random rng, float min, float max) {
+        return MathHelper.Lerp(min, max, rng.NextSingle());
+    }
+
     #region // Helper methods
 
     private static int[] GeneratePermutation(int seed) {
