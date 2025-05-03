@@ -22,8 +22,10 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
     /// Gets the total bounds of this TileMap
     /// </summary>
     public Rectangle Bounds => new(
-        tiles.Min,
-        tiles.Max - tiles.Min
+        tiles.Min.X * Tile<T>.PixelSize,
+        tiles.Min.Y * Tile<T>.PixelSize,
+        (tiles.Max.X - tiles.Min.X) * Tile<T>.PixelSize,
+        (tiles.Max.Y - tiles.Min.Y) * Tile<T>.PixelSize
     );
 
     /// <summary>
