@@ -15,7 +15,7 @@ public class MainScene(string name) : Scene(name) {
             200
         );
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 400; i++) {
             Vector2 randPos = new(
                 Random.Shared.Next(boidBounds.Left, boidBounds.Right),
                 Random.Shared.Next(boidBounds.Top, boidBounds.Bottom)
@@ -23,6 +23,29 @@ public class MainScene(string name) : Scene(name) {
 
             Boid boid = new(boidBounds, randPos, this);
             AddActor(boid);
+        }
+
+        AddLight(new Light() {
+            IsGlobal = true,
+            Intensity = 0.1f
+        });
+
+        for (int i = 0; i < 100; i++) {
+            Vector2 randPos = new(
+                Random.Shared.Next(boidBounds.Left, boidBounds.Right),
+                Random.Shared.Next(boidBounds.Top, boidBounds.Bottom)
+            );
+
+            AddLight(new Light() {
+                Transform = new Transform(randPos),
+                Color = new Color(
+                    Random.Shared.NextSingle() * 0.5f + 0.5f,
+                    Random.Shared.NextSingle() * 0.5f + 0.5f,
+                    Random.Shared.NextSingle() * 0.5f + 0.5f
+                ),
+                Radius = 100,
+                Intensity = 0.3f
+            });
         }
 
         base.LoadContent();
