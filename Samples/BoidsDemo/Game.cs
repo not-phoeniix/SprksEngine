@@ -7,6 +7,7 @@ public class Game : Embyr.Game {
         MainScene scene = new("main_scene");
 
         return new SetupParams() {
+            RenderPipeline = RenderPipeline.Deferred2D,
             InitialScene = scene,
             WindowTitle = "Boids :D",
             EnableVSync = true,

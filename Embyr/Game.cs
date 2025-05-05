@@ -6,8 +6,7 @@ using Embyr.Scenes;
 using Embyr.Tools;
 using Embyr.UI;
 using Embyr.Data;
-using System.Reflection;
-using Embyr.Shaders;
+using Embyr.Rendering;
 
 namespace Embyr;
 
@@ -64,61 +63,9 @@ public enum GameLayer {
 /// Game class that all the game runs within
 /// </summary>
 public abstract class Game : Microsoft.Xna.Framework.Game {
-    #region // Fields
-
-    internal static readonly int CanvasExpandSize = 32;
-
-    private GraphicsDeviceManager graphics;
-    private SpriteBatch spriteBatch;
-
-    private bool isActivePrev;
-    private Menu loadingMenu;
-    private Point prevWindowedSize;
-
-    private Dictionary<GameLayer, RenderLayer> layers;
-    private RenderTarget2D lightBuffer;
-    private RenderTarget2D depthBuffer;
-    private Effect fxLightCombine;
-    private Effect fxSolidColor;
-
-    // bloom things!
-    private RenderTarget2D bloomBackBuffer;
-    private RenderTarget2D bloomFrontBuffer;
-    private Effect fxBloomThreshold;
-    private Effect fxBloomBlur;
-    private Effect fxBloomCombine;
-
-    // distance field things!
-    private RenderTarget2D distanceBackBuffer;
-    private RenderTarget2D distanceFrontBuffer;
-    private RenderTarget2D worldLayerDistanceField;
-    private RenderTarget2D skyLayerDistanceField;
-    private Effect fxJumpFloodSeed;
-    private Effect fxJumpFloodStep;
-    private Effect fxJumpFloodDistRender;
-
-    private Rectangle canvasDestination;
-    private float canvasScaling;
-    private Matrix mouseMatrix;
-    private bool isResizing;
-
-    /// <summary>
-    /// Action called when focus is lost on window
-    /// </summary>
-    public Action OnLoseFocus;
-
-    /// <summary>
-    /// Action called when low res canvas resolution changes, parameters are width, height, and canvas expand size
-    /// </summary>
-    public Action<int, int, int> OnResolutionChange;
-
-    /// <summary>
-    /// Gets bounds of any menu to create
-    /// </summary>
-    protected static Rectangle MenuBounds => new(
-        new Point(CanvasExpandSize / 2),
-        EngineSettings.GameCanvasResolution
-    );
+    public enum RenderPipeline {
+        Deferred2D
+    }
 
     /// <summary>
     /// Simple readonly struct that contains all parameters to set up a new Embyr game, should be created in <c>Game.Setup</c>
@@ -129,6 +76,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
         public Color RenderClearColor { get; init; }
+        public RenderPipeline? RenderPipeline { get; init; }
         public string WindowTitle { get; init; }
         public bool EnableVSync { get; init; }
         public bool IsFullscreen { get; init; }
@@ -148,9 +96,45 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             EnableVSync = true;
             IsFullscreen = false;
             IsBorderless = false;
+            RenderPipeline = null;
             DefaultBindingPreset = ActionBindingPreset.Default;
         }
     }
+
+    #region // Fields
+
+    internal static readonly int CanvasExpandSize = 32;
+
+    private readonly GraphicsDeviceManager graphics;
+    private SetupParams setupParams;
+
+    private bool isActivePrev;
+    private Menu loadingMenu;
+    private Point prevWindowedSize;
+
+    private Rectangle canvasDestination;
+    private float canvasScaling;
+    private Matrix mouseMatrix;
+    private bool isResizing;
+    private Renderer renderer;
+
+    /// <summary>
+    /// Action called when focus is lost on window
+    /// </summary>
+    public Action OnLoseFocus;
+
+    /// <summary>
+    /// Action called when low res canvas resolution changes, parameters are width, height, and canvas expand size
+    /// </summary>
+    public Action<int, int, int> OnResolutionChange;
+
+    /// <summary>
+    /// Gets bounds of any menu to create
+    /// </summary>
+    protected static Rectangle MenuBounds => new(
+        new Point(CanvasExpandSize / 2),
+        EngineSettings.GameCanvasResolution
+    );
 
     #endregion
 
@@ -175,24 +159,20 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     protected override sealed void Initialize() {
         Debug.WriteLine("Setting up Embyr game...");
 
-        //! check if content helper being initialized here causes
-        //!   any errors vs in LoadContet() !!
-        ContentHelper.I.Init(this);
+        setupParams = Setup();
 
-        SetupParams sp = Setup();
-
-        if (sp.InitialScene == null) {
+        if (setupParams.InitialScene == null) {
             throw new Exception("Cannot set up game with null initial scene!");
         }
 
-        EngineSettings.GameCanvasResolution = sp.CanvasRes;
-        EngineSettings.CurrentBindingPreset = sp.DefaultBindingPreset;
-        EngineSettings.EnableVSync = sp.EnableVSync;
-        EngineSettings.IsFullscreen = sp.IsFullscreen;
-        EngineSettings.IsBorderless = sp.IsBorderless;
-        EngineSettings.RenderClearColor = sp.RenderClearColor;
+        EngineSettings.GameCanvasResolution = setupParams.CanvasRes;
+        EngineSettings.CurrentBindingPreset = setupParams.DefaultBindingPreset;
+        EngineSettings.EnableVSync = setupParams.EnableVSync;
+        EngineSettings.IsFullscreen = setupParams.IsFullscreen;
+        EngineSettings.IsBorderless = setupParams.IsBorderless;
+        EngineSettings.RenderClearColor = setupParams.RenderClearColor;
 
-        loadingMenu = sp.LoadingMenu;
+        loadingMenu = setupParams.LoadingMenu;
 
         graphics.PreferredBackBufferWidth = EngineSettings.GameWindowResolution.X;
         graphics.PreferredBackBufferHeight = EngineSettings.GameWindowResolution.Y;
@@ -205,49 +185,26 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         // allowing user resizing seems to explode things <3 unsure why <3
         // Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnResize;
-        Window.Title = sp.WindowTitle;
+        Window.Title = setupParams.WindowTitle;
 
         Point res = EngineSettings.GameCanvasResolution + new Point(CanvasExpandSize);
 
-        layers = new Dictionary<GameLayer, RenderLayer>() {
-            { GameLayer.World, new(res, GraphicsDevice) },
-            { GameLayer.WorldDebug, new(res, GraphicsDevice) },
-            { GameLayer.UI, new(res, GraphicsDevice) },
-            { GameLayer.UIDebug, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxNear, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxMid, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxFar, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxBg, new(res, GraphicsDevice) }
-        };
-
-        lightBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        depthBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        distanceFrontBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        distanceBackBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        worldLayerDistanceField = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        skyLayerDistanceField = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        bloomBackBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-        bloomFrontBuffer = new RenderTarget2D(GraphicsDevice, res.X, res.Y);
-
         ResizeCanvasDestination();
-
-        // initialize scene stuff after everything is done !!
-        SceneManager.I.Init(this, sp.InitialScene);
 
         base.Initialize();
     }
 
     protected override void LoadContent() {
-        spriteBatch = new SpriteBatch(GraphicsDevice);
+        ShaderManager.I.Init(GraphicsDevice);
+        ContentHelper.I.Init(this);
 
-        fxLightCombine = ShaderManager.I.LoadShader("light_combine", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render", ShaderManager.ShaderProfile.OpenGL);
-        fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine", ShaderManager.ShaderProfile.OpenGL);
+        renderer = setupParams.RenderPipeline switch {
+            RenderPipeline.Deferred2D => new RendererDeferred2D(GraphicsDevice, loadingMenu),
+            _ => throw new Exception("Inputted render pipeline not recognized!")
+        };
+
+        // set up scene when loading content !!
+        SceneManager.I.Init(this, setupParams.InitialScene);
     }
 
     protected abstract SetupParams Setup();
@@ -326,79 +283,12 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.DrawMeasureStart();
 
         if (!SceneManager.I.IsLoading) {
-            Scene currentScene = SceneManager.I.CurrentScene;
-
-            Camera camera = SceneManager.I.Camera;
-            Matrix worldMatrix = camera.FlooredMatrix;
-
-            // draw to buffers, render lighting
-            spriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
-            spriteBatch.GraphicsDevice.Clear(Color.White);
-            currentScene.DrawDepthmap(spriteBatch);
-            RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
-            RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
-            currentScene.DrawLightsDeferred(spriteBatch, lightBuffer, worldLayerDistanceField, skyLayerDistanceField);
-
-            // ~~~ draw all game layers to their respective RenderLayers ~~~
-
-            // Vector3 sunColorVec3 = currentScene.Sun.Color.ToVector3() * currentScene.Sun.Intensity;
-
-            fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-            fxLightCombine.Parameters["VolumetricScalar"].SetValue(currentScene.VolumetricScalar);
-            fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
-            fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
-            layers[GameLayer.World].SmoothingOffset = camera.Position;
-            layers[GameLayer.World].IndividualEffect = null;
-            layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
-            layers[GameLayer.World].DrawTo(currentScene.Draw, spriteBatch, worldMatrix);
-
-            // render bloom effect after world has been rendered
-            RenderBloom(0.98f, 4);
-
-            layers[GameLayer.WorldDebug].SmoothingOffset = camera.Position;
-            layers[GameLayer.WorldDebug].DrawTo(currentScene.DebugDraw, spriteBatch, worldMatrix);
-
-            layers[GameLayer.UI].DrawTo(currentScene.DrawOverlays, spriteBatch);
-            layers[GameLayer.UIDebug].DrawTo(currentScene.DebugDrawOverlays, spriteBatch);
-
-            void DrawParallax(GameLayer gameLayer, ParallaxBackground bg) {
-                ParallaxLayer? layer = bg?.GetLayer(gameLayer);
-                if (layer == null) return;  // don't draw if layer doesn't exist
-                layers[gameLayer].SmoothingOffset = layer.WorldLocation;
-                layers[gameLayer].ColorTint = currentScene.GlobalLightTint;
-                layers[gameLayer].DrawTo(layer.Draw, spriteBatch, worldMatrix);
-            }
-
-            ParallaxBackground parallax = currentScene.GetCurrentParallax();
-            DrawParallax(GameLayer.ParallaxBg, parallax);
-            DrawParallax(GameLayer.ParallaxFar, parallax);
-            DrawParallax(GameLayer.ParallaxMid, parallax);
-            DrawParallax(GameLayer.ParallaxNear, parallax);
-
+            renderer.RenderScene(SceneManager.I.CurrentScene);
         } else {
-            if (loadingMenu != null) {
-                layers[GameLayer.UI].DrawTo(loadingMenu.Draw, spriteBatch);
-
-                if (EngineSettings.ShowDebugDrawing) {
-                    layers[GameLayer.UIDebug].DrawTo(loadingMenu.DebugDraw, spriteBatch);
-                }
-            }
+            renderer.RenderLoading();
         }
 
-        // draw different layers themselves to the screen
-        GraphicsDevice.SetRenderTarget(null);
-        GraphicsDevice.Clear(EngineSettings.RenderClearColor);
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        foreach (GameLayer layer in Enum.GetValues<GameLayer>()) {
-            // do not draw debug layers if debugging is not enabled
-            bool isDebugLayer = layer == GameLayer.WorldDebug || layer == GameLayer.UIDebug;
-            if (isDebugLayer && !EngineSettings.ShowDebugDrawing) {
-                continue;
-            }
-
-            layers[layer].Draw(spriteBatch, canvasDestination, canvasScaling);
-        }
-        spriteBatch.End();
+        renderer.Render(canvasDestination, canvasScaling);
 
         base.Draw(gameTime);
 
@@ -497,158 +387,9 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     private void ChangeResolution(int width, int height) {
         SceneManager.I.ChangeResolution(width, height, CanvasExpandSize);
 
-        foreach (RenderLayer layer in layers.Values) {
-            layer.ChangeResolution(width, height, CanvasExpandSize);
-        }
-
-        void ResizeBuffer(ref RenderTarget2D buffer) {
-            buffer?.Dispose();
-            buffer = new RenderTarget2D(
-                GraphicsDevice,
-                width + CanvasExpandSize,
-                height + CanvasExpandSize
-            );
-        }
-
-        ResizeBuffer(ref lightBuffer);
-        ResizeBuffer(ref depthBuffer);
-        ResizeBuffer(ref distanceBackBuffer);
-        ResizeBuffer(ref distanceFrontBuffer);
-        ResizeBuffer(ref worldLayerDistanceField);
-        ResizeBuffer(ref skyLayerDistanceField);
-        ResizeBuffer(ref bloomBackBuffer);
-        ResizeBuffer(ref bloomFrontBuffer);
-
         OnResolutionChange?.Invoke(width, height, CanvasExpandSize);
 
         ResizeCanvasDestination();
-    }
-
-    /// <summary>
-    /// Renders a distance field to a render target based on a defined target depth
-    /// </summary>
-    /// <param name="destination">Final destination target for distance field</param>
-    /// <param name="depthBuffer">Depth buffer of world</param>
-    /// <param name="targetDepth">Target depth to generate distance from in buffer</param>
-    private void RenderDistanceField(RenderTarget2D destination, RenderTarget2D depthBuffer, float targetDepth) {
-        // https://blog.demofox.org/2016/02/29/fast-voronoi-diagrams-and-distance-dield-textures-on-the-gpu-with-the-jump-flooding-algorithm/
-
-        // render depth buffer initially as seed
-        fxJumpFloodSeed.Parameters["TargetDepth"].SetValue(targetDepth);
-        spriteBatch.GraphicsDevice.SetRenderTarget(distanceBackBuffer);
-        spriteBatch.GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin(effect: fxJumpFloodSeed);
-        spriteBatch.Draw(depthBuffer, new Rectangle(0, 0, distanceBackBuffer.Width, distanceBackBuffer.Height), Color.White);
-        spriteBatch.End();
-
-        bool drawToFrontBuffer = true;
-
-        void Step(int offset) {
-            RenderTarget2D target;
-            RenderTarget2D toDraw;
-
-            if (drawToFrontBuffer) {
-                target = distanceFrontBuffer;
-                toDraw = distanceBackBuffer;
-            } else {
-                target = distanceBackBuffer;
-                toDraw = distanceFrontBuffer;
-            }
-
-            spriteBatch.GraphicsDevice.SetRenderTarget(target);
-            spriteBatch.GraphicsDevice.Clear(Color.Black);
-            fxJumpFloodStep.Parameters["Offset"].SetValue((float)offset);
-            fxJumpFloodStep.Parameters["ScreenRes"].SetValue(new Vector2(toDraw.Width, toDraw.Height));
-            spriteBatch.Begin(effect: fxJumpFloodStep);
-            // spriteBatch.Draw(toDraw, Vector2.Zero, Color.White);
-            spriteBatch.Draw(toDraw, new Rectangle(0, 0, target.Width, target.Height), Color.White);
-            spriteBatch.End();
-
-            drawToFrontBuffer = !drawToFrontBuffer;
-        }
-
-        // offest should be: 2 ^ (ceil(log2(N)) – passIndex – 1),
-        int N = Math.Max(worldLayerDistanceField.Width / 2, worldLayerDistanceField.Height / 2);
-        int offset = 100;
-        int i = 0;
-        while (offset > 0) {
-            offset = (int)MathF.Pow(2, MathF.Ceiling(MathF.Log2(N)) - i - 1);
-            Step(offset);
-            i++;
-        }
-
-        // https://en.wikipedia.org/wiki/Jump_flooding_algorithm
-        //   JFA+1 can possibly increase accuracy!
-        Step(1);
-
-        // get the final buffer that was just drawn to
-        RenderTarget2D finalTarget;
-        if (drawToFrontBuffer) {
-            finalTarget = distanceBackBuffer;
-        } else {
-            finalTarget = distanceFrontBuffer;
-        }
-
-        // draw buffer to actual distance buffer using distance render shader
-        spriteBatch.GraphicsDevice.SetRenderTarget(destination);
-        spriteBatch.GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin(effect: fxJumpFloodDistRender);
-        // spriteBatch.Draw(finalTarget, Vector2.Zero, Color.White);
-        spriteBatch.Draw(finalTarget, new Rectangle(0, 0, destination.Width, destination.Height), Color.White);
-        spriteBatch.End();
-    }
-
-    private void RenderBloom(float bloomThreshold, int blurPasses) {
-        // pass data to shaders before drawing
-        Vector2 screenRes = (EngineSettings.GameCanvasResolution + new Point(CanvasExpandSize)).ToVector2();
-        fxBloomThreshold.Parameters["Threshold"].SetValue(bloomThreshold);
-        fxBloomBlur.Parameters["ScreenRes"].SetValue(screenRes);
-
-        // draw threshold pass
-        spriteBatch.GraphicsDevice.SetRenderTarget(bloomBackBuffer);
-        spriteBatch.GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin(effect: fxBloomThreshold);
-        layers[GameLayer.World].Draw(spriteBatch, Vector2.Zero);
-        spriteBatch.End();
-
-        bool drawToFrontBuffer = true;
-
-        do {
-            RenderTarget2D target;
-            RenderTarget2D toDraw;
-            if (drawToFrontBuffer) {
-                target = bloomFrontBuffer;
-                toDraw = bloomBackBuffer;
-            } else {
-                target = bloomBackBuffer;
-                toDraw = bloomFrontBuffer;
-            }
-
-            // draw blurring pass
-            spriteBatch.GraphicsDevice.SetRenderTarget(target);
-            spriteBatch.GraphicsDevice.Clear(Color.Black);
-            spriteBatch.Begin(effect: fxBloomBlur);
-            spriteBatch.Draw(toDraw, Vector2.Zero, Color.White);
-            spriteBatch.End();
-
-            drawToFrontBuffer = !drawToFrontBuffer;
-            blurPasses--;
-        } while (blurPasses > 0);
-
-        RenderTarget2D finalBuffer;
-        if (drawToFrontBuffer) {
-            finalBuffer = bloomBackBuffer;
-        } else {
-            finalBuffer = bloomFrontBuffer;
-        }
-
-        // combine dry and wet effects (heh music reference)
-        fxBloomCombine.Parameters["BloomTexture"].SetValue(finalBuffer);
-        layers[GameLayer.World].ScreenSpaceEffect = fxBloomCombine;
-        layers[GameLayer.World].DrawTo(
-            () => layers[GameLayer.World].Draw(spriteBatch, Vector2.Zero),
-            spriteBatch
-        );
     }
 
     #endregion

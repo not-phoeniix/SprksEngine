@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Embyr;
+namespace Embyr.Rendering;
 
 /// <summary>
 /// A render layer for smooth low-res parallax, handles drawing and auto smooth scrolling

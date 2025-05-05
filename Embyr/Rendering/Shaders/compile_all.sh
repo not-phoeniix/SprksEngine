@@ -6,7 +6,7 @@
 OUTPUT_EXTENSION=".xnb"
 PROFILE=$1
 SCRIPT_DIR=$(dirname -- "$(realpath -- "$0")")
-OUTPUT_DIR="$SCRIPT_DIR/PrecompiledBinaries"
+OUTPUT_DIR="$SCRIPT_DIR"
 
 # exit early if MGFXC isn't found
 if ! command -v mgfxc &> /dev/null; then
@@ -27,6 +27,7 @@ fi
 
 echo "removing files inside output dir '$OUTPUT_DIR'..."
 
+mkdir -p $OUTPUT_DIR
 rm -f $(find $OUTPUT_DIR/ -type f -name "*.xnb")
 
 echo "compiling shaders..."

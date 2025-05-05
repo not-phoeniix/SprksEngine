@@ -1,16 +1,24 @@
 using System.Diagnostics;
 using System.Reflection;
-using Embyr.Scenes;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Embyr.Shaders;
+namespace Embyr.Rendering;
 
 internal class ShaderManager : Singleton<ShaderManager> {
     private readonly Dictionary<string, Effect> shaderCache = new();
+    private GraphicsDevice gd;
 
     public enum ShaderProfile {
         OpenGL,
         DirectX
+    }
+
+    /// <summary>
+    /// Initializes the shader manager
+    /// </summary>
+    /// <param name="gd">Graphics device to create shaders with</param>
+    public void Init(GraphicsDevice gd) {
+        this.gd = gd;
     }
 
     /// <summary>
@@ -26,7 +34,8 @@ internal class ShaderManager : Singleton<ShaderManager> {
             _ => throw new Exception($"Shader profile {profile} not recognized when loading shader!")
         };
 
-        string resourceName = $"Embyr.Shaders.PrecompiledBinaries.{shaderName}_{profileSuffix}.xnb";
+        string namespaceName = typeof(ShaderManager).Namespace;
+        string resourceName = $"{namespaceName}.Shaders.{shaderName}_{profileSuffix}.xnb";
 
         if (!shaderCache.TryGetValue(resourceName, out Effect? shader)) {
             shader = CreateEmbeddedResourceShader(resourceName);
@@ -67,7 +76,7 @@ internal class ShaderManager : Singleton<ShaderManager> {
         stream.CopyTo(ms);
         byte[] byteCode = ms.ToArray();
 
-        Effect effect = new(SceneManager.I.GraphicsDevice, byteCode);
+        Effect effect = new(gd, byteCode);
 
         return effect;
     }

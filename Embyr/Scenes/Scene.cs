@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.Tools;
-using System;
 using Embyr.UI;
-using Embyr.Shaders;
+using Embyr.Rendering;
 
 namespace Embyr.Scenes;
 
