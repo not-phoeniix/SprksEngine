@@ -1,22 +1,9 @@
-﻿#if OPENGL
-#define SV_POSITION POSITION
-#define VS_SHADERMODEL vs_3_0
-#define PS_SHADERMODEL ps_3_0
-#else
-#define VS_SHADERMODEL vs_4_0_level_9_1
-#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+﻿#include "frag_header.fxh"
 
 Texture2D SpriteTexture;
 
 sampler2D SpriteTextureSampler = sampler_state {
     Texture = <SpriteTexture>;
-};
-
-struct VertexShaderOutput {
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR0;
-    float2 UV : TEXCOORD0;
 };
 
 //* ~~~ shader parameters ~~~
@@ -67,7 +54,7 @@ float4 NearestColor(float4 color) {
 //* ~~~ main shader things ~~~
 
 // main function
-float4 MainPS(VertexShaderOutput input) : COLOR {
+float4 MainPS(VSOutput input) : COLOR {
     int2 pixelPos = input.UV * ScreenRes;
 
     // grab coordinate by mod-ing screenspace coord

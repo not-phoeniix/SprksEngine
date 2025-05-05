@@ -1,11 +1,4 @@
-#if OPENGL
-#define SV_POSITION POSITION
-#define VS_SHADERMODEL vs_3_0
-#define PS_SHADERMODEL ps_3_0
-#else
-#define VS_SHADERMODEL vs_4_0_level_9_1
-#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#include "frag_header.fxh"
 
 //! jump flood algorithm conceptualized from this article:
 //!   https://blog.demofox.org/2016/02/29/fast-voronoi-diagrams-and-distance-dield-textures-on-the-gpu-with-the-jump-flooding-algorithm/
@@ -18,13 +11,7 @@ sampler2D SpriteTextureSampler = sampler_state {
 float Offset;
 float2 ScreenRes;
 
-struct VertexShaderOutput {
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR0;
-    float2 UV : TEXCOORD0;
-};
-
-float4 MainPS(VertexShaderOutput input) : COLOR {
+float4 MainPS(VSOutput input) : COLOR {
     float2 uv = input.UV;
     float2 uvOffset = Offset.xx / ScreenRes;
     float depth = tex2D(SpriteTextureSampler, uv).z;

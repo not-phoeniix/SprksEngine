@@ -18,15 +18,15 @@ sampler2D SpriteTextureSampler = sampler_state {
     Texture = <SpriteTexture>;
 };
 
-Texture2D BloomTexture;
-sampler2D BloomTextureSampler = sampler_state {
-    Texture = <BloomTexture>;
+Texture2D InitialTexture;
+sampler2D InitialTextureSampler = sampler_state {
+    Texture = <InitialTexture>;
 };
 
 float4 MainPS(VSOutput input) : COLOR {
-    float4 inputColor = tex2D(SpriteTextureSampler, input.UV);
-    float3 bloomBlur = tex2D(BloomTextureSampler, input.UV).rgb;
-    return float4(inputColor.rgb + bloomBlur, inputColor.a);
+    float4 blurColor = tex2D(SpriteTextureSampler, input.UV);
+    float4 initialColor = tex2D(InitialTextureSampler, input.UV);
+    return float4(initialColor.rgb + blurColor.rgb, initialColor.a);
 }
 
 technique SpriteDrawing {
