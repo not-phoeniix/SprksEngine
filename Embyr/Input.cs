@@ -163,7 +163,7 @@ public static class Input {
     /// <param name="invertedCameraTransform">Inverted transformation matrix that maps canvas positions into the world</param>
     /// <param name="bindingPreset">Action binding preset to grab logic for in state updating</param>
     /// <param name="dt">Time passed since last frame</param>
-    public static void Update(Matrix mouseCanvasTransform, Matrix invertedCameraTransform, ActionBindingPreset bindingPreset, float dt) {
+    internal static void Update(Matrix mouseCanvasTransform, Matrix invertedCameraTransform, ActionBindingPreset bindingPreset, float dt) {
         // update static fields
         Input.mouseCanvasTransform = mouseCanvasTransform;
         Input.canvasWorldTransform = invertedCameraTransform;

@@ -6,8 +6,8 @@ namespace Embyr;
 /// A sealed transform class holding 2D position, scaling, and rotation information
 /// </summary>
 public sealed class Transform2D {
-    private readonly List<Transform2D> children;
     private Transform2D? parent;
+    private readonly List<Transform2D> children;
     private bool dirty;
     private Vector2 localPos;
     private Vector2 parentGlobalPos;
@@ -26,7 +26,7 @@ public sealed class Transform2D {
             if (dirty) Recalculate();
             localPos += parentGlobalPos;
             localRotation += parentGlobalRot;
-            localScale += parentGlobalScale;
+            localScale *= parentGlobalScale;
 
             // actually change parent, updating child refs
             //   of old and new parents
@@ -38,7 +38,7 @@ public sealed class Transform2D {
             // re-remove offsets after new parent has been set
             localPos -= parentGlobalPos;
             localRotation -= parentGlobalRot;
-            localScale -= parentGlobalScale;
+            localScale /= parentGlobalScale;
         }
     }
 
@@ -86,12 +86,12 @@ public sealed class Transform2D {
     public Vector2 GlobalScale {
         get {
             if (dirty) Recalculate();
-            return localScale = parentGlobalScale;
+            return localScale * parentGlobalScale;
         }
 
         set {
             if (dirty) Recalculate();
-            localScale = value - parentGlobalScale;
+            localScale = value / parentGlobalScale;
             MarkDirty();
         }
     }

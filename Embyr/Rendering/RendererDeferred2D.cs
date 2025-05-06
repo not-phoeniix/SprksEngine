@@ -249,7 +249,7 @@ public class RendererDeferred2D : Renderer2D {
             );
             lightColors[i] = light.Color.ToVector3();
             lightIntensities[i] = light.Intensity;
-            lightRotations[i] = light.Rotation;
+            lightRotations[i] = light.Transform.Rotation;
             lightSizeParams[i] = new Vector4(
                 light.Radius,
                 light.AngularWidth,

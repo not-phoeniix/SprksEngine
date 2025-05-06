@@ -15,9 +15,7 @@ public class Camera2D {
     private Matrix flooredMatrix;
     private Matrix invertedMatrix;
     private Matrix invertedFlooredMatrix;
-    private Vector2 position;
-    private float zoom;
-    private float rotation;
+    private readonly Transform2D transform;
     private bool dirty;
     private readonly int width;
     private readonly int height;
@@ -66,9 +64,9 @@ public class Camera2D {
     /// Gets/sets the center-aligned position of camera in world
     /// </summary>
     public Vector2 Position {
-        get => position;
+        get => transform.GlobalPosition;
         set {
-            position = value;
+            transform.GlobalPosition = value;
             dirty = true;
         }
     }
@@ -77,9 +75,9 @@ public class Camera2D {
     /// Gets/sets camera zoom level
     /// </summary>
     public float Zoom {
-        get => zoom;
+        get => transform.GlobalScale.X;
         set {
-            zoom = value;
+            transform.GlobalScale = new Vector2(value, value);
             dirty = true;
         }
     }
@@ -88,9 +86,9 @@ public class Camera2D {
     /// Gets/sets the rotation of the camera in radians
     /// </summary>
     public float Rotation {
-        get => rotation;
+        get => transform.GlobalRotation;
         set {
-            rotation = value;
+            transform.GlobalRotation = value;
             dirty = true;
         }
     }
@@ -115,8 +113,7 @@ public class Camera2D {
         this.height = height;
         matrix = Matrix.Identity;
         invertedMatrix = Matrix.Identity;
-        Position = Vector2.Zero;
-        Zoom = 1f;
+        transform = new Transform2D();
         dirty = false;
     }
 
@@ -160,13 +157,17 @@ public class Camera2D {
     }
 
     private void CalculateMatrices() {
-        Vector2 halfSize = new(width / 2, height / 2);
-        Vector3 pos3 = new((-position + halfSize) * zoom, 0);
+        Vector2 pos = transform.GlobalPosition;
+        float rot = transform.GlobalRotation;
+        float zoom = transform.GlobalScale.X;
 
-        matrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rotation) * Matrix.CreateTranslation(pos3);
+        Vector2 halfSize = new(width / 2, height / 2);
+        Vector3 pos3 = new((-pos + halfSize) * zoom, 0);
+
+        matrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rot) * Matrix.CreateTranslation(pos3);
         invertedMatrix = Matrix.Invert(matrix);
 
-        flooredMatrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rotation) * Matrix.CreateTranslation(Vector3.Floor(pos3));
+        flooredMatrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rot) * Matrix.CreateTranslation(Vector3.Floor(pos3));
         invertedFlooredMatrix = Matrix.Invert(flooredMatrix);
     }
 }

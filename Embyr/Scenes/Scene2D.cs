@@ -8,8 +8,8 @@ namespace Embyr.Scenes;
 public abstract class Scene2D : Scene {
     private Effect fxSolidColor;
     private readonly Quadtree<IActor2D> actors;
-    private readonly List<Light2D> globalLights;
     private readonly Quadtree<Light2D> localLights;
+    private readonly List<Light2D> globalLights;
 
     /// <summary>
     /// Gets the 2D camera for this scene
