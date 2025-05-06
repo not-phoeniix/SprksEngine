@@ -31,7 +31,7 @@ public class Boid : PhysicsActor, IAgent {
             return this.Seek(Input.MouseWorldPos) * 0.4f;
         }
 
-        Vector2 flockingForce = this.Flock(5, 3, 20, cohesionStrength, 20, alignStrength) * 0.2f;
+        Vector2 flockingForce = this.Flock(5, 3, 20, cohesionStrength, 20, alignStrength) * 0.1f;
         Vector2 wander = this.Wander(wanderTime, wanderRadius, MathF.PI / 6) * 0.1f;
         Vector2 stayInRect = this.StayInRect(containingRect) * 0.5f;
 
