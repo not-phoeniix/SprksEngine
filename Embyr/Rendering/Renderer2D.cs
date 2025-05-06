@@ -7,7 +7,7 @@ public abstract class Renderer2D : Renderer {
     public readonly SpriteBatch SpriteBatch;
     protected readonly Dictionary<GameLayer, RenderLayer> Layers;
 
-    public Renderer2D(GraphicsDevice gd) : base(gd) {
+    public Renderer2D(RendererSettings settings, GraphicsDevice gd) : base(settings, gd) {
         SpriteBatch = new SpriteBatch(gd);
 
         Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);

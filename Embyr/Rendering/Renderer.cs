@@ -8,8 +8,11 @@ public abstract class Renderer : IResolution {
     protected readonly List<PostProcessingEffect> PostProcessingEffects;
     public readonly GraphicsDevice GraphicsDevice;
 
-    public Renderer(GraphicsDevice gd) {
-        GraphicsDevice = gd ?? throw new NullReferenceException("Cannot initialize render pipeline with null graphics device!");
+    public RendererSettings Settings { get; }
+
+    public Renderer(RendererSettings settings, GraphicsDevice gd) {
+        GraphicsDevice = gd ?? throw new NullReferenceException("Cannot initialize renderer with null graphics device!");
+        this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
     }
 

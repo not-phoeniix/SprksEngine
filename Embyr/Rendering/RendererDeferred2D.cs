@@ -29,12 +29,10 @@ public class RendererDeferred2D : Renderer2D {
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
     private readonly float[] lightRotations = new float[MaxLightsPerPass];
 
-    public float VolumetricScalar { get; set; }
-
     // other misc things!
     private readonly Menu? loadingMenu;
 
-    public RendererDeferred2D(GraphicsDevice gd, Menu? loadingMenu) : base(gd) {
+    public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu) : base(settings, gd) {
         this.loadingMenu = loadingMenu;
 
         fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
@@ -63,22 +61,32 @@ public class RendererDeferred2D : Renderer2D {
         currentScene.DrawDepthmap(SpriteBatch);
         RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
         RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
-        DrawLightsDeferred(currentScene, SpriteBatch);
+
+        if (Settings.EnableLighting) {
+            DrawLightsDeferred(currentScene, SpriteBatch);
+        }
 
         // ~~~ draw all game layers to their respective RenderLayers ~~~
 
         fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-        fxLightCombine.Parameters["VolumetricScalar"].SetValue(VolumetricScalar);
+        fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
         fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
         fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
         Layers[GameLayer.World].SmoothingOffset = camera.Position;
         Layers[GameLayer.World].IndividualEffect = null;
-        Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
+        if (Settings.EnableLighting) {
+            Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
+        } else {
+            Layers[GameLayer.World].ScreenSpaceEffect = null;
+        }
         Layers[GameLayer.World].DrawTo(currentScene.Draw, SpriteBatch, worldMatrix);
 
         // render all post processing effects !!
         RenderTarget2D prevTarget = Layers[GameLayer.World].RenderTarget;
         for (int i = 0; i < PostProcessingEffects.Count; i++) {
+            // just don't do any post processing if it's disabled!
+            if (!Settings.EnablePostProcessing) break;
+
             // grab reference to iteration effect, skip if disabled
             PostProcessingEffect fx = PostProcessingEffects[i];
             if (!fx.Enabled) continue;
@@ -316,5 +324,4 @@ public class RendererDeferred2D : Renderer2D {
 
         globalLightTint = new Color(globalSum);
     }
-
 }

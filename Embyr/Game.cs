@@ -70,7 +70,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// <summary>
     /// Simple readonly struct that contains all parameters to set up a new Embyr game, should be created in <c>Game.Setup</c>
     /// </summary>
-    public readonly struct SetupParams {
+    public readonly struct GameSetupParams {
         public Scene InitialScene { get; init; }
         public Menu LoadingMenu { get; init; }
         public Point CanvasRes { get; init; }
@@ -86,7 +86,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         /// <summary>
         /// Creates a new SetupParams instance with default values
         /// </summary>
-        public SetupParams() {
+        public GameSetupParams() {
             InitialScene = null;
             LoadingMenu = null;
             CanvasRes = new Point(480, 270);
@@ -101,12 +101,25 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
     }
 
+    /// <summary>
+    /// Readonly struct that describes initial setup parameters for the renderer
+    /// </summary>
+    public readonly struct RendererSetupParams {
+        public RendererSettings RendererSettings { get; init; }
+        public PostProcessingEffect[] PostProcessingEffects { get; init; }
+
+        public RendererSetupParams() {
+            RendererSettings = new RendererSettings();
+            PostProcessingEffects = Array.Empty<PostProcessingEffect>();
+        }
+    }
+
     #region // Fields
 
     internal static readonly int CanvasExpandSize = 32;
 
     private readonly GraphicsDeviceManager graphics;
-    private SetupParams setupParams;
+    private GameSetupParams setupParams;
 
     private bool isActivePrev;
     private Menu loadingMenu;
@@ -159,7 +172,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     protected override sealed void Initialize() {
         Debug.WriteLine("Setting up Embyr game...");
 
-        setupParams = Setup();
+        setupParams = SetupGame();
 
         if (setupParams.InitialScene == null) {
             throw new Exception("Cannot set up game with null initial scene!");
@@ -198,12 +211,14 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         ShaderManager.I.Init(GraphicsDevice);
         ContentHelper.I.Init(this);
 
+        RendererSetupParams rParams = SetupRenderer();
+
         renderer = setupParams.RenderPipeline switch {
-            RenderPipeline.Deferred2D => new RendererDeferred2D(GraphicsDevice, loadingMenu),
+            RenderPipeline.Deferred2D => new RendererDeferred2D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
             _ => throw new Exception("Inputted render pipeline not recognized!")
         };
 
-        foreach (PostProcessingEffect fx in SetupPostProcessingEffects()) {
+        foreach (PostProcessingEffect fx in rParams.PostProcessingEffects) {
             renderer.AddPostProcessingEffect(fx);
         }
 
@@ -214,16 +229,14 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// <summary>
     /// Sets up basic game parameters
     /// </summary>
-    /// <returns>SetupParams that describes the game to make</returns>
-    protected abstract SetupParams Setup();
+    /// <returns>GameSetupParams that describes the game to make</returns>
+    protected abstract GameSetupParams SetupGame();
 
     /// <summary>
-    /// Sets up all post processing effects to use in the game render pipeline
+    /// Sets up renderer parameters
     /// </summary>
-    /// <returns>Array of post processing effects to add to game</returns>
-    protected virtual PostProcessingEffect[] SetupPostProcessingEffects() {
-        return Array.Empty<PostProcessingEffect>();
-    }
+    /// <returns>RendererSetupParams that describes the renderer to create</returns>
+    protected abstract RendererSetupParams SetupRenderer();
 
     #endregion
 
