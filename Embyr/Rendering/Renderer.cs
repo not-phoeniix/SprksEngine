@@ -7,11 +7,13 @@ namespace Embyr.Rendering;
 public abstract class Renderer : IResolution {
     protected readonly List<PostProcessingEffect> PostProcessingEffects;
     public readonly GraphicsDevice GraphicsDevice;
+    public readonly SpriteBatch SpriteBatch;
 
     public RendererSettings Settings { get; }
 
     public Renderer(RendererSettings settings, GraphicsDevice gd) {
         GraphicsDevice = gd ?? throw new NullReferenceException("Cannot initialize renderer with null graphics device!");
+        SpriteBatch = new SpriteBatch(gd);
         this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
     }
