@@ -14,21 +14,11 @@ public abstract class Scene : IResolution, IDebugDrawable {
     private readonly Queue<IActor> actorsToRemove = new();
     private readonly Queue<IActor> actorsToAdd = new();
     private readonly Quadtree<IActor> actors;
-    private readonly Stack<Menu> menuStack = new();
-    private bool menuStackChanged;
-    private float volumetricScalar;
-
-    // lighting fields!!
-    private const int MaxLightsPerPass = 8;
-    private Effect fxLightRender;
-    private Effect fxSolidColor;
     private readonly List<Light> globalLights;
     private readonly Quadtree<Light> localLights;
-    private readonly Vector3[] lightPositions = new Vector3[MaxLightsPerPass];
-    private readonly Vector3[] lightColors = new Vector3[MaxLightsPerPass];
-    private readonly float[] lightIntensities = new float[MaxLightsPerPass];
-    private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
-    private readonly float[] lightRotations = new float[MaxLightsPerPass];
+    private readonly Stack<Menu> menuStack = new();
+    private bool menuStackChanged;
+    private Effect fxSolidColor;
 
     /// <summary>
     /// Gets the camera for this scene
@@ -47,27 +37,14 @@ public abstract class Scene : IResolution, IDebugDrawable {
     public string Name { get; }
 
     /// <summary>
-    /// Gets/sets a volumetric scalar value in this scene, used as lighting fog, clamped between 0 and 1
+    /// Gets the gravity strength for this scene
     /// </summary>
-    public float VolumetricScalar {
-        get => volumetricScalar;
-        set => volumetricScalar = Math.Clamp(value, 0, 1);
-    }
+    public float Gravity { get; protected set; }
 
     /// <summary>
     /// Gets/sets the ambient color of this scene for lighting shaders
     /// </summary>
     public Color AmbientColor { get; protected set; }
-
-    /// <summary>
-    /// Gets the opaque summed color of all global lights in this scene, used to tint background parallax
-    /// </summary>
-    public Color GlobalLightTint { get; private set; }
-
-    /// <summary>
-    /// Gets the gravity strength for this scene
-    /// </summary>
-    public float Gravity { get; protected set; }
 
     /// <summary>
     /// Creates a new unloaded scene
@@ -91,7 +68,6 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// </summary>
     public virtual void LoadContent() {
         Camera = new Camera(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
-        fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
         fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
         Paused = false;
     }
@@ -106,7 +82,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
         globalLights.Clear();
         menuStack.Clear();
         Camera = null;
-        fxLightRender = null;
+        fxSolidColor.Dispose();
         fxSolidColor = null;
         ContentHelper.I.LocalReset();
     }
@@ -253,101 +229,6 @@ public abstract class Scene : IResolution, IDebugDrawable {
         sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
         drawInstruction?.Invoke(sb);
         sb.End();
-    }
-
-    /// <summary>
-    /// Draws all lights in the scene to a render target
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    /// <param name="lightBuffer">Light render buffer to draw to</param>
-    /// <param name="tileDistanceField">Distance field for tile layer in rendered world</param>
-    /// <param name="skyDistanceField">Distance field for sky layer in rendered world</param>
-    public void DrawLightsDeferred(SpriteBatch sb, RenderTarget2D lightBuffer, RenderTarget2D tileDistanceField, RenderTarget2D skyDistanceField) {
-        sb.GraphicsDevice.SetRenderTarget(lightBuffer);
-        sb.GraphicsDevice.Clear(Color.Black);
-
-        Vector3 globalSum = Vector3.Zero;
-        int i = 0;
-
-        void SaveLightInArr(Light light) {
-            // set array values
-            Vector2 lightScreenPos = Vector2.Transform(light.Transform.GlobalPosition, Camera.FlooredMatrix);
-            lightScreenPos /= new Vector2(lightBuffer.Width, lightBuffer.Height);
-            lightPositions[i] = new Vector3(
-                lightScreenPos,
-                light.IsGlobal ? 1 : 0
-            );
-            lightColors[i] = light.Color.ToVector3();
-            lightIntensities[i] = light.Intensity;
-            lightRotations[i] = light.Rotation;
-            lightSizeParams[i] = new Vector4(
-                light.Radius,
-                light.AngularWidth,
-                light.LinearFalloff,
-                light.AngularFalloff
-            );
-
-            i++;
-        }
-
-        void Draw() {
-            // ~~~ PASS DATA ~~~
-
-            // "i" at this point should equal the total light
-            //   count since it was incremented before we got here
-            fxLightRender.Parameters["NumLights"].SetValue(i);
-            fxLightRender.Parameters["ScreenRes"].SetValue(new Vector2(lightBuffer.Width, lightBuffer.Height));
-            fxLightRender.Parameters["Positions"].SetValue(lightPositions);
-            fxLightRender.Parameters["Colors"].SetValue(lightColors);
-            fxLightRender.Parameters["Intensities"].SetValue(lightIntensities);
-            fxLightRender.Parameters["Rotations"].SetValue(lightRotations);
-            fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
-            fxLightRender.Parameters["SkyDistanceField"].SetValue(skyDistanceField);
-
-            // ~~~ DRAW TO BUFFER ~~~
-            sb.Begin(samplerState: SamplerState.PointClamp, effect: fxLightRender);
-            // lights draw on top of distance field, easier
-            //   than passing in a texture via parameters
-            sb.Draw(tileDistanceField, new Rectangle(0, 0, lightBuffer.Width, lightBuffer.Height), Color.White);
-            sb.End();
-        }
-
-        foreach (Light light in globalLights) {
-            if (light.Enabled) {
-                SaveLightInArr(light);
-                globalSum += light.Color.ToVector3() * light.Intensity;
-            }
-
-            // if max lights has been reached (or end of lights
-            //   list has been reached), draw to the deferred buffer!
-            if (i > 0 && i % MaxLightsPerPass == 0) {
-                Draw();
-                i = 0;
-            }
-        }
-
-        foreach (Light light in localLights.GetData(Utils.ExpandRect(Camera.ViewBounds, 100), true)) {
-            // grab reference to light and save values in temporary arrays!
-            // bool inView = Utils.ExpandRect(Camera.ViewBounds, (int)light.Radius * 2).Contains(light.Position);
-            if (light.Enabled) {
-                SaveLightInArr(light);
-            }
-
-            // if max lights has been reached (or end of lights
-            //   list has been reached), draw to the deferred buffer!
-            if (i > 0 && i % MaxLightsPerPass == 0) {
-                Draw();
-                i = 0;
-            }
-        }
-
-        // draw one final time to make sure everything is
-        //   rendered only if i has not yet been reset
-        if (i != 0) {
-            Draw();
-        }
-
-        GlobalLightTint = new Color(globalSum);
     }
 
     /// <summary>
@@ -552,5 +433,19 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// <returns>True if actor should be rendered, false if otherwise</returns>
     public bool ShouldBeRendered(IActor actor) {
         return actor.Bounds.Intersects(Camera.ViewBounds);
+    }
+
+    /// <summary>
+    /// Gets an enumerable to iterate across of all lights to render in a scene
+    /// </summary>
+    /// <returns>Enumerable of visible lights</returns>
+    internal IEnumerable<Light> GetAllLightsToRender() {
+        foreach (Light light in globalLights) {
+            yield return light;
+        }
+
+        foreach (Light light in localLights.GetData(Utils.ExpandRect(Camera.ViewBounds, 100), true)) {
+            yield return light;
+        }
     }
 }

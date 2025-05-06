@@ -11,6 +11,7 @@ public class RendererDeferred2D : Renderer2D {
     private readonly Effect fxJumpFloodSeed;
     private readonly Effect fxJumpFloodStep;
     private readonly Effect fxJumpFloodDistRender;
+    private readonly Effect fxLightRender;
 
     // render targets/layers
     private RenderTarget2D depthBuffer;
@@ -20,12 +21,23 @@ public class RendererDeferred2D : Renderer2D {
     private RenderTarget2D worldLayerDistanceField;
     private RenderTarget2D skyLayerDistanceField;
 
+    private const int MaxLightsPerPass = 8;
+    private Color globalLightTint;
+    private readonly Vector3[] lightPositions = new Vector3[MaxLightsPerPass];
+    private readonly Vector3[] lightColors = new Vector3[MaxLightsPerPass];
+    private readonly float[] lightIntensities = new float[MaxLightsPerPass];
+    private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
+    private readonly float[] lightRotations = new float[MaxLightsPerPass];
+
+    public float VolumetricScalar { get; set; }
+
     // other misc things!
     private readonly Menu? loadingMenu;
 
     public RendererDeferred2D(GraphicsDevice gd, Menu? loadingMenu) : base(gd) {
         this.loadingMenu = loadingMenu;
 
+        fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
         fxLightCombine = ShaderManager.I.LoadShader("light_combine", ShaderManager.ShaderProfile.OpenGL);
         fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
         fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step", ShaderManager.ShaderProfile.OpenGL);
@@ -38,6 +50,7 @@ public class RendererDeferred2D : Renderer2D {
         );
     }
 
+    /// <inheritdoc/>
     public override void RenderScene(Scene scene) {
         Scene currentScene = SceneManager.I.CurrentScene;
 
@@ -50,12 +63,12 @@ public class RendererDeferred2D : Renderer2D {
         currentScene.DrawDepthmap(SpriteBatch);
         RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
         RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
-        currentScene.DrawLightsDeferred(SpriteBatch, lightBuffer, worldLayerDistanceField, skyLayerDistanceField);
+        DrawLightsDeferred(currentScene, SpriteBatch);
 
         // ~~~ draw all game layers to their respective RenderLayers ~~~
 
         fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-        fxLightCombine.Parameters["VolumetricScalar"].SetValue(currentScene.VolumetricScalar);
+        fxLightCombine.Parameters["VolumetricScalar"].SetValue(VolumetricScalar);
         fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
         fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
         Layers[GameLayer.World].SmoothingOffset = camera.Position;
@@ -96,7 +109,7 @@ public class RendererDeferred2D : Renderer2D {
             ParallaxLayer? layer = bg?.GetLayer(gameLayer);
             if (layer == null) return;  // don't draw if layer doesn't exist
             Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
-            Layers[gameLayer].ColorTint = currentScene.GlobalLightTint;
+            Layers[gameLayer].ColorTint = globalLightTint;
             Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
         }
 
@@ -107,6 +120,7 @@ public class RendererDeferred2D : Renderer2D {
         DrawParallax(GameLayer.ParallaxNear, parallax);
     }
 
+    /// <inheritdoc/>
     public override void RenderLoading() {
         if (loadingMenu != null) {
             Layers[GameLayer.UI].DrawTo(loadingMenu.Draw, SpriteBatch);
@@ -115,6 +129,19 @@ public class RendererDeferred2D : Renderer2D {
                 Layers[GameLayer.UIDebug].DrawTo(loadingMenu.DebugDraw, SpriteBatch);
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public override void ChangeResolution(int width, int height, int canvasExpandSize) {
+        base.ChangeResolution(width, height, canvasExpandSize);
+
+        RecreateRenderTargets(width, height, canvasExpandSize);
+
+        foreach (RenderLayer layer in Layers.Values) {
+            layer.ChangeResolution(width, height, canvasExpandSize);
+        }
+
+        loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
     }
 
     private void RecreateRenderTargets(int width, int height, int canvasExpandSize) {
@@ -133,18 +160,6 @@ public class RendererDeferred2D : Renderer2D {
         ResizeBuffer(ref distanceFrontBuffer);
         ResizeBuffer(ref worldLayerDistanceField);
         ResizeBuffer(ref skyLayerDistanceField);
-    }
-
-    public override void ChangeResolution(int width, int height, int canvasExpandSize) {
-        base.ChangeResolution(width, height, canvasExpandSize);
-
-        RecreateRenderTargets(width, height, canvasExpandSize);
-
-        foreach (RenderLayer layer in Layers.Values) {
-            layer.ChangeResolution(width, height, canvasExpandSize);
-        }
-
-        loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
     }
 
     /// <summary>
@@ -220,4 +235,86 @@ public class RendererDeferred2D : Renderer2D {
         SpriteBatch.Draw(finalTarget, new Rectangle(0, 0, destination.Width, destination.Height), Color.White);
         SpriteBatch.End();
     }
+
+    /// <summary>
+    /// Draws all lights in the scene to a render target
+    /// </summary>
+    /// <param name="scene">Scene to grab and draw lights from<param>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    private void DrawLightsDeferred(Scene scene, SpriteBatch sb) {
+        sb.GraphicsDevice.SetRenderTarget(lightBuffer);
+        sb.GraphicsDevice.Clear(Color.Black);
+
+        Vector3 globalSum = Vector3.Zero;
+        int i = 0;
+
+        void SaveLightInArr(Light light) {
+            // set array values
+            Vector2 lightScreenPos = Vector2.Transform(light.Transform.GlobalPosition, scene.Camera.FlooredMatrix);
+            lightScreenPos /= new Vector2(lightBuffer.Width, lightBuffer.Height);
+            lightPositions[i] = new Vector3(
+                lightScreenPos,
+                light.IsGlobal ? 1 : 0
+            );
+            lightColors[i] = light.Color.ToVector3();
+            lightIntensities[i] = light.Intensity;
+            lightRotations[i] = light.Rotation;
+            lightSizeParams[i] = new Vector4(
+                light.Radius,
+                light.AngularWidth,
+                light.LinearFalloff,
+                light.AngularFalloff
+            );
+
+            i++;
+        }
+
+        void Draw() {
+            // ~~~ PASS DATA ~~~
+
+            // "i" at this point should equal the total light
+            //   count since it was incremented before we got here
+            fxLightRender.Parameters["NumLights"].SetValue(i);
+            fxLightRender.Parameters["ScreenRes"].SetValue(new Vector2(lightBuffer.Width, lightBuffer.Height));
+            fxLightRender.Parameters["Positions"].SetValue(lightPositions);
+            fxLightRender.Parameters["Colors"].SetValue(lightColors);
+            fxLightRender.Parameters["Intensities"].SetValue(lightIntensities);
+            fxLightRender.Parameters["Rotations"].SetValue(lightRotations);
+            fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
+            fxLightRender.Parameters["SkyDistanceField"].SetValue(skyLayerDistanceField);
+
+            // ~~~ DRAW TO BUFFER ~~~
+            sb.Begin(samplerState: SamplerState.PointClamp, effect: fxLightRender);
+            // lights draw on top of distance field, easier
+            //   than passing in a texture via parameters
+            sb.Draw(worldLayerDistanceField, new Rectangle(0, 0, lightBuffer.Width, lightBuffer.Height), Color.White);
+            sb.End();
+        }
+
+        foreach (Light light in scene.GetAllLightsToRender()) {
+            if (light.Enabled) {
+                SaveLightInArr(light);
+
+                if (light.IsGlobal) {
+                    globalSum += light.Color.ToVector3() * light.Intensity;
+                }
+            }
+
+            // if max lights has been reached (or end of lights
+            //   list has been reached), draw to the deferred buffer!
+            if (i > 0 && i % MaxLightsPerPass == 0) {
+                Draw();
+                i = 0;
+            }
+        }
+
+        // draw one final time to make sure everything is
+        //   rendered only if i has not yet been reset
+        if (i != 0) {
+            Draw();
+        }
+
+        globalLightTint = new Color(globalSum);
+    }
+
 }
