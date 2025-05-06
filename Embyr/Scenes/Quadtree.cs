@@ -13,7 +13,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
     private class Node : IDebugDrawable {
         private readonly List<T> data;
         private readonly List<(T, Node)> toMove;
-        private Node[] childNodes;
+        private Node[]? childNodes;
         private readonly Node parent;
 
         public Rectangle Bounds { get; private set; }

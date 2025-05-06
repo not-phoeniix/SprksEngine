@@ -8,7 +8,7 @@ namespace Embyr.Tiles;
 /// A 2D grid/map of tiles, is an <c>IActor</c>
 /// </summary>
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
-public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
+public class TileMap<T> : IActor2D, IDebugDrawable where T : Enum {
     private readonly NList2D<Tile<T>> tiles;
 
     public Scene Scene { get; }

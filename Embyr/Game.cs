@@ -71,8 +71,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// Simple readonly struct that contains all parameters to set up a new Embyr game, should be created in <c>Game.Setup</c>
     /// </summary>
     public readonly struct GameSetupParams {
-        public Scene InitialScene { get; init; }
-        public Menu LoadingMenu { get; init; }
+        public Scene? InitialScene { get; init; }
+        public Menu? LoadingMenu { get; init; }
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
         public Color RenderClearColor { get; init; }
@@ -247,9 +247,14 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.FrametimeMeasureStart();
         Performance.UpdateMeasureStart();
 
+        Matrix invertCam2DMat = Matrix.Identity;
+        if (SceneManager.I.CurrentScene is Scene2D scene) {
+            invertCam2DMat = scene.Camera.InvertedMatrix;
+        }
+
         Input.Update(
             mouseMatrix,
-            SceneManager.I.Camera?.InvertedMatrix ?? Matrix.Identity,
+            invertCam2DMat,
             EngineSettings.CurrentBindingPreset,
             Performance.DeltaTime
         );

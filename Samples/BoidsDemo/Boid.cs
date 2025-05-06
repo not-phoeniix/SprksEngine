@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BoidsDemo;
 
-public class Boid : PhysicsActor, IAgent2D {
+public class Boid : PhysicsActor2D, IAgent2D {
     private static readonly float wanderTime = 0.3f;
     private static readonly float wanderRadius = 50;
 

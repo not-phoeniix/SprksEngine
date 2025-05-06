@@ -98,8 +98,11 @@ public class ParallaxLayer : IDrawable {
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public void Draw(SpriteBatch sb) {
+        // TODO: make ParallaxLayer an actor so i don't have to reference scene manager to grab scene ref plz
+
         // don't draw parallax layer if camera cannot be found
-        Camera2D camera = SceneManager.I.Camera;
+        // this code sucks lmfao
+        Camera2D? camera = (SceneManager.I.CurrentScene as Scene2D)?.Camera;
         if (camera == null) return;
 
         // number of sprites to draw in the x/y direction

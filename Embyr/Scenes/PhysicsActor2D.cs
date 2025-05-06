@@ -5,9 +5,9 @@ using Embyr.Physics;
 namespace Embyr.Scenes;
 
 /// <summary>
-/// An abstract base class that implements all <c>IActor</c> members along with a physics component.
+/// An abstract base class that implements all <c>IActor2D</c> members along with a physics component.
 /// </summary>
-public abstract class PhysicsActor : Actor2D {
+public abstract class PhysicsActor2D : Actor2D {
     #region // Fields & Properties
 
     /// <summary>
@@ -38,7 +38,7 @@ public abstract class PhysicsActor : Actor2D {
     /// <param name="mass">Mass of actor</param>
     /// <param name="maxSpeed">Maximum velocity actor can achieve</param>
     /// <param name="scene">Scene to place this actor in</param>
-    public PhysicsActor(
+    public PhysicsActor2D(
         string name,
         Vector2 position,
         Rectangle verticalCollisionBox,
@@ -65,7 +65,7 @@ public abstract class PhysicsActor : Actor2D {
     /// <param name="mass">Mass of actor</param>
     /// <param name="maxSpeed">Maximum velocity actor can achieve</param>
     /// <param name="scene">Scene to place this actor in</param>
-    public PhysicsActor(
+    public PhysicsActor2D(
         string name,
         Vector2 position,
         Rectangle spriteBounds,

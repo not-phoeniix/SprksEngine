@@ -38,11 +38,6 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     }
 
     /// <summary>
-    /// Gets current camera of current scene in game, can be null
-    /// </summary>
-    public Camera2D? Camera => (CurrentScene as Scene2D)?.Camera;
-
-    /// <summary>
     /// Access to game graphics device, used for aseprite processing
     /// </summary>
     internal GraphicsDevice GraphicsDevice => game.GraphicsDevice;

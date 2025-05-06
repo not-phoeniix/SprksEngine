@@ -45,38 +45,37 @@ public class RendererDeferred2D : Renderer2D {
     }
 
     /// <inheritdoc/>
-    public override void RenderScene(Scene scene) {
+    public override void RenderScene(Scene inputScene) {
         // don't render non 2D scenes!
-        if (SceneManager.I.CurrentScene is not Scene2D currentScene) return;
+        if (inputScene is not Scene2D scene) return;
 
-        Camera2D camera = SceneManager.I.Camera;
-        Matrix worldMatrix = camera.FlooredMatrix;
+        Matrix worldMatrix = scene.Camera.FlooredMatrix;
 
         // draw to buffers, render lighting
         SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
         SpriteBatch.GraphicsDevice.Clear(Color.White);
-        currentScene.DrawDepthmap(SpriteBatch);
+        scene.DrawDepthmap(SpriteBatch);
         RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
         RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
 
         if (Settings.EnableLighting) {
-            DrawLightsDeferred(currentScene, SpriteBatch);
+            DrawLightsDeferred(scene, SpriteBatch);
         }
 
         // ~~~ draw all game layers to their respective RenderLayers ~~~
 
         fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
         fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
-        fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
+        fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
         fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
-        Layers[GameLayer.World].SmoothingOffset = camera.Position;
+        Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
         Layers[GameLayer.World].IndividualEffect = null;
         if (Settings.EnableLighting) {
             Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
         } else {
             Layers[GameLayer.World].ScreenSpaceEffect = null;
         }
-        Layers[GameLayer.World].DrawTo(currentScene.Draw, SpriteBatch, worldMatrix);
+        Layers[GameLayer.World].DrawTo(scene.Draw, SpriteBatch, worldMatrix);
 
         // render all post processing effects !!
         RenderTarget2D prevTarget = Layers[GameLayer.World].RenderTarget;
@@ -104,13 +103,13 @@ public class RendererDeferred2D : Renderer2D {
             );
         }
 
-        Layers[GameLayer.WorldDebug].SmoothingOffset = camera.Position;
-        Layers[GameLayer.WorldDebug].DrawTo(currentScene.DebugDraw, SpriteBatch, worldMatrix);
+        Layers[GameLayer.WorldDebug].SmoothingOffset = scene.Camera.Position;
+        Layers[GameLayer.WorldDebug].DrawTo(scene.DebugDraw, SpriteBatch, worldMatrix);
 
-        Layers[GameLayer.UI].DrawTo(currentScene.DrawOverlays, SpriteBatch);
-        Layers[GameLayer.UIDebug].DrawTo(currentScene.DebugDrawOverlays, SpriteBatch);
+        Layers[GameLayer.UI].DrawTo(scene.DrawOverlays, SpriteBatch);
+        Layers[GameLayer.UIDebug].DrawTo(scene.DebugDrawOverlays, SpriteBatch);
 
-        void DrawParallax(GameLayer gameLayer, ParallaxBackground bg) {
+        void DrawParallax(GameLayer gameLayer, ParallaxBackground? bg) {
             ParallaxLayer? layer = bg?.GetLayer(gameLayer);
             if (layer == null) return;  // don't draw if layer doesn't exist
             Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
@@ -118,7 +117,7 @@ public class RendererDeferred2D : Renderer2D {
             Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
         }
 
-        ParallaxBackground parallax = currentScene.GetCurrentParallax();
+        ParallaxBackground? parallax = scene.GetCurrentParallax();
         DrawParallax(GameLayer.ParallaxBg, parallax);
         DrawParallax(GameLayer.ParallaxFar, parallax);
         DrawParallax(GameLayer.ParallaxMid, parallax);

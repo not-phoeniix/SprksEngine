@@ -40,7 +40,7 @@ public class Light2D : Light, ITransform2D {
     /// <summary>
     /// Creates a new Light with default values
     /// </summary>
-    public Light2D() {
+    public Light2D() : base() {
         Transform = new Transform2D();
         LinearFalloff = 20;
         AngularWidth = MathF.PI * 2;
