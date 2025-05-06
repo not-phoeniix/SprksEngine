@@ -18,7 +18,7 @@ public class Boid : PhysicsActor, IAgent {
     public override bool ShouldBeSaved => false;
 
     public Boid(Rectangle containingRect, Vector2 position, Scene scene)
-    : base("boid", position, new Rectangle(-2, -2, 4, 4), 1, 200, scene) {
+    : base("boid", position, new Rectangle(-2, -2, 4, 4), 1, Random.Shared.NextSingle(180, 240), scene) {
         Physics.EnableGravity = false;
         Physics.EnableCollisions = false;
         this.containingRect = containingRect;
