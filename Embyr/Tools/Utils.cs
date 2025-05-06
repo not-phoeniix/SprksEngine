@@ -228,6 +228,21 @@ public static class Utils {
     }
 
     /// <summary>
+    /// Calculates shortest squre distance between a 3D vector point and a bounding box, avoids square roots
+    /// </summary>
+    /// <param name="p">Point to check for distance</param>
+    /// <param name="b">Bounding box to check for distance</param>
+    /// <returns>Closest square distance between point and bounding box</returns>
+    public static float DistanceSquared(Vector3 p, BoundingBox b) {
+        // https://stackoverflow.com/questions/5254838/calculating-distance-between-a-point-and-a-rectangular-box-nearest-point#18157551
+
+        float dx = MathF.Max(b.Min.X - p.X, MathF.Max(0, p.X - b.Max.X));
+        float dy = MathF.Max(b.Min.Y - p.Y, MathF.Max(0, p.Y - b.Max.Y));
+        float dz = MathF.Max(b.Min.Z - p.Z, MathF.Max(0, p.Z - b.Max.Z));
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    /// <summary>
     /// Calculates shortest squre distance between a 2D point and a rectangle, avoids square roots
     /// </summary>
     /// <param name="p">Point to check for distance</param>

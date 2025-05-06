@@ -99,7 +99,7 @@ public class ParallaxLayer : IDrawable {
     /// <param name="sb">SpriteBatch to draw with</param>
     public void Draw(SpriteBatch sb) {
         // don't draw parallax layer if camera cannot be found
-        Camera camera = SceneManager.I.Camera;
+        Camera2D camera = SceneManager.I.Camera;
         if (camera == null) return;
 
         // number of sprites to draw in the x/y direction

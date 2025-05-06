@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BoidsDemo;
 
-public class Boid : PhysicsActor, IAgent {
+public class Boid : PhysicsActor, IAgent2D {
     private static readonly float wanderTime = 0.3f;
     private static readonly float wanderRadius = 50;
 
@@ -17,7 +17,7 @@ public class Boid : PhysicsActor, IAgent {
 
     public override bool ShouldBeSaved => false;
 
-    public Boid(Rectangle containingRect, Vector2 position, Scene scene)
+    public Boid(Rectangle containingRect, Vector2 position, Scene2D scene)
     : base("boid", position, new Rectangle(-2, -2, 4, 4), 1, Random.Shared.NextSingle(180, 240), scene) {
         Physics.EnableGravity = false;
         Physics.EnableCollisions = false;

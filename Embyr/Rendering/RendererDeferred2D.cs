@@ -29,12 +29,8 @@ public class RendererDeferred2D : Renderer2D {
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
     private readonly float[] lightRotations = new float[MaxLightsPerPass];
 
-    // other misc things!
-    private readonly Menu? loadingMenu;
-
-    public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu) : base(settings, gd) {
-        this.loadingMenu = loadingMenu;
-
+    public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
+    : base(settings, gd, loadingMenu) {
         fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
         fxLightCombine = ShaderManager.I.LoadShader("light_combine", ShaderManager.ShaderProfile.OpenGL);
         fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
@@ -50,9 +46,10 @@ public class RendererDeferred2D : Renderer2D {
 
     /// <inheritdoc/>
     public override void RenderScene(Scene scene) {
-        Scene currentScene = SceneManager.I.CurrentScene;
+        // don't render non 2D scenes!
+        if (SceneManager.I.CurrentScene is not Scene2D currentScene) return;
 
-        Camera camera = SceneManager.I.Camera;
+        Camera2D camera = SceneManager.I.Camera;
         Matrix worldMatrix = camera.FlooredMatrix;
 
         // draw to buffers, render lighting
@@ -129,17 +126,6 @@ public class RendererDeferred2D : Renderer2D {
     }
 
     /// <inheritdoc/>
-    public override void RenderLoading() {
-        if (loadingMenu != null) {
-            Layers[GameLayer.UI].DrawTo(loadingMenu.Draw, SpriteBatch);
-
-            if (EngineSettings.ShowDebugDrawing) {
-                Layers[GameLayer.UIDebug].DrawTo(loadingMenu.DebugDraw, SpriteBatch);
-            }
-        }
-    }
-
-    /// <inheritdoc/>
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         base.ChangeResolution(width, height, canvasExpandSize);
 
@@ -148,8 +134,6 @@ public class RendererDeferred2D : Renderer2D {
         foreach (RenderLayer layer in Layers.Values) {
             layer.ChangeResolution(width, height, canvasExpandSize);
         }
-
-        loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
     }
 
     private void RecreateRenderTargets(int width, int height, int canvasExpandSize) {
@@ -249,14 +233,14 @@ public class RendererDeferred2D : Renderer2D {
     /// </summary>
     /// <param name="scene">Scene to grab and draw lights from<param>
     /// <param name="sb">SpriteBatch to draw with</param>
-    private void DrawLightsDeferred(Scene scene, SpriteBatch sb) {
+    private void DrawLightsDeferred(Scene2D scene, SpriteBatch sb) {
         sb.GraphicsDevice.SetRenderTarget(lightBuffer);
         sb.GraphicsDevice.Clear(Color.Black);
 
         Vector3 globalSum = Vector3.Zero;
         int i = 0;
 
-        void SaveLightInArr(Light light) {
+        void SaveLightInArr(Light2D light) {
             // set array values
             Vector2 lightScreenPos = Vector2.Transform(light.Transform.GlobalPosition, scene.Camera.FlooredMatrix);
             lightScreenPos /= new Vector2(lightBuffer.Width, lightBuffer.Height);
@@ -299,7 +283,7 @@ public class RendererDeferred2D : Renderer2D {
             sb.End();
         }
 
-        foreach (Light light in scene.GetAllLightsToRender()) {
+        foreach (Light2D light in scene.GetAllLightsToRender()) {
             if (light.Enabled) {
                 SaveLightInArr(light);
 

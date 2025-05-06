@@ -5,7 +5,7 @@ namespace Embyr.Scenes;
 /// <summary>
 /// Interface that represents an actor object within the world, depends on IDrawable
 /// </summary>
-public interface IActor : IDrawable, ITransform {
+public interface IActor : IDrawable {
     /// <summary>
     /// Event called when actor is removed from scene
     /// </summary>
@@ -17,12 +17,7 @@ public interface IActor : IDrawable, ITransform {
     public event Action<Scene> OnAdded;
 
     /// <summary>
-    /// Gets the bounds of this actor
-    /// </summary>
-    public Rectangle Bounds { get; }
-
-    /// <summary>
-    /// Gets/sets reference to scene actor is spawned in
+    /// Gets reference to scene actor is spawned in
     /// </summary>
     public Scene Scene { get; }
 

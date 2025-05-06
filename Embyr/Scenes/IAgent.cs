@@ -6,11 +6,11 @@ namespace Embyr.Scenes;
 /// <summary>
 /// Interface to describe any autonomous agent actor
 /// </summary>
-public interface IAgent : IActor {
+public interface IAgent2D : IActor2D {
     /// <summary>
     /// Gets the physics component of this agent
     /// </summary>
-    public PhysicsComponent Physics { get; }
+    public PhysicsComponent2D Physics { get; }
 
     /// <summary>
     /// Method that calculates all steering forces for this agent

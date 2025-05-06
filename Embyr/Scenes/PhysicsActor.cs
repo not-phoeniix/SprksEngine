@@ -7,13 +7,13 @@ namespace Embyr.Scenes;
 /// <summary>
 /// An abstract base class that implements all <c>IActor</c> members along with a physics component.
 /// </summary>
-public abstract class PhysicsActor : Actor {
+public abstract class PhysicsActor : Actor2D {
     #region // Fields & Properties
 
     /// <summary>
     /// Entity's physics component
     /// </summary>
-    public PhysicsComponent Physics { get; }
+    public PhysicsComponent2D Physics { get; }
 
     /// <summary>
     /// Gets the bounds of this physics actor in the world
@@ -45,9 +45,9 @@ public abstract class PhysicsActor : Actor {
         Rectangle horizontalCollisionBox,
         float mass,
         float maxSpeed,
-        Scene scene
+        Scene2D scene
     ) : base(name, position, scene) {
-        Physics = new PhysicsComponent(
+        Physics = new PhysicsComponent2D(
             Transform,
             verticalCollisionBox,
             horizontalCollisionBox,
@@ -71,9 +71,9 @@ public abstract class PhysicsActor : Actor {
         Rectangle spriteBounds,
         float mass,
         float maxSpeed,
-        Scene scene
+        Scene2D scene
     ) : base(name, position, scene) {
-        Physics = new PhysicsComponent(
+        Physics = new PhysicsComponent2D(
             Transform,
             spriteBounds,
             mass,
@@ -96,7 +96,7 @@ public abstract class PhysicsActor : Actor {
     /// </summary>
     /// <param name="deltaTime">Time passed since last fixed update call</param>
     public override void PhysicsUpdate(float deltaTime) {
-        Physics.Update(Scene, deltaTime);
+        Physics.Update((Scene2D)Scene, deltaTime);
     }
 
     /// <summary>

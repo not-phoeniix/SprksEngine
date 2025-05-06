@@ -13,17 +13,8 @@ namespace Embyr.Scenes;
 public abstract class Scene : IResolution, IDebugDrawable {
     private readonly Queue<IActor> actorsToRemove = new();
     private readonly Queue<IActor> actorsToAdd = new();
-    private readonly Quadtree<IActor> actors;
-    private readonly List<Light> globalLights;
-    private readonly Quadtree<Light> localLights;
     private readonly Stack<Menu> menuStack = new();
     private bool menuStackChanged;
-    private Effect fxSolidColor;
-
-    /// <summary>
-    /// Gets the camera for this scene
-    /// </summary>
-    public Camera Camera { get; private set; }
 
     /// <summary>
     /// Gets/sets whether or not scene is paused,
@@ -56,9 +47,6 @@ public abstract class Scene : IResolution, IDebugDrawable {
         }
 
         AmbientColor = Color.Black;
-        actors = new Quadtree<IActor>(new Point(-10_000), new Point(10_000));
-        localLights = new Quadtree<Light>(new Point(-10_000), new Point(10_000));
-        globalLights = new List<Light>();
         Name = name;
         Gravity = 670;
     }
@@ -67,8 +55,6 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// Marks scene as "loaded", should be called last in child override methods
     /// </summary>
     public virtual void LoadContent() {
-        Camera = new Camera(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
-        fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
         Paused = false;
     }
 
@@ -77,13 +63,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// content helper, should be called last in child override methods
     /// </summary>
     public virtual void Unload() {
-        actors.Clear();
-        localLights.Clear();
-        globalLights.Clear();
         menuStack.Clear();
-        Camera = null;
-        fxSolidColor.Dispose();
-        fxSolidColor = null;
         ContentHelper.I.LocalReset();
     }
 
@@ -109,7 +89,7 @@ public abstract class Scene : IResolution, IDebugDrawable {
         // deal with actor and scene updating only when not paused
         if (!Paused) {
             // update all actors, reorganize them in the update loop!!
-            foreach (IActor actor in actors.GetData(Camera.Position, EngineSettings.SimulationDistance, true)) {
+            foreach (IActor actor in GetUpdatableActors(true)) {
                 actor.Update(dt);
                 CustomActorUpdate(actor, dt);
             }
@@ -122,6 +102,25 @@ public abstract class Scene : IResolution, IDebugDrawable {
 
         menuStackChanged = false;
     }
+
+    /// <summary>
+    /// Gets an enumerable to iterate across of all actors to update in this scene
+    /// </summary>
+    /// <param name="reorganize">Whether or not to reorganize containers when updating</param>
+    /// <returns>Enumerable of updateable actors</returns>
+    protected abstract IEnumerable<IActor> GetUpdatableActors(bool reorganize);
+
+    /// <summary>
+    /// Gets an enumerable to iterate across of all actors to draw in this scene
+    /// </summary>
+    /// <returns>Enumerable of drawable actors</returns>
+    protected abstract IEnumerable<IActor> GetDrawableActors();
+
+    /// <summary>
+    /// Gets an enumerable to iterate across of all lights to render in a scene
+    /// </summary>
+    /// <returns>Enumerable of visible lights</returns>
+    internal abstract IEnumerable<Light2D> GetAllLightsToRender();
 
     /// <summary>
     /// Custom actor update logic for physics updating, runs on every actor in the scene
@@ -140,8 +139,8 @@ public abstract class Scene : IResolution, IDebugDrawable {
         }
 
         if (!Paused) {
-            foreach (IActor actor in actors.GetData(Camera.Position, EngineSettings.SimulationDistance, false)) {
-                if (actor is IAgent agent) {
+            foreach (IActor actor in GetUpdatableActors(false)) {
+                if (actor is IAgent2D agent) {
                     agent.Physics.ApplyForce(agent.UpdateBehavior(dt));
                 }
 
@@ -156,10 +155,8 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public virtual void Draw(SpriteBatch sb) {
-        foreach (IActor actor in GetActorsInViewport(Camera.ViewBounds)) {
-            if (ShouldBeRendered(actor)) {
-                actor.Draw(sb);
-            }
+        foreach (IActor actor in GetDrawableActors()) {
+            actor.Draw(sb);
         }
     }
 
@@ -168,13 +165,11 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public virtual void DebugDraw(SpriteBatch sb) {
-        foreach (IActor actor in GetActorsInViewport(Camera.ViewBounds)) {
+        foreach (IActor actor in GetDrawableActors()) {
             if (actor is IDebugDrawable debug) {
                 debug.DebugDraw(sb);
             }
         }
-
-        actors.DebugDraw(sb);
     }
 
     /// <summary>
@@ -194,82 +189,24 @@ public abstract class Scene : IResolution, IDebugDrawable {
     }
 
     /// <summary>
-    /// Gets the current parallax background set to draw this frame
-    /// </summary>
-    /// <returns></returns>
-    public virtual ParallaxBackground? GetCurrentParallax() { return null; }
-
-    /// <summary>
-    /// Draws scene as a greyscale depth map
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DrawDepthmap(SpriteBatch sb) { }
-
-    /// <summary>
-    /// Draws a layer to the depth map
-    /// </summary>
-    /// <param name="depth">Depth to draw to, from 0 to 1</param>
-    /// <param name="drawInstructions">Action of draw instructions to draw for layer</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    protected void DrawDepthLayer(float depth, Action drawInstructions, SpriteBatch sb) {
-        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
-        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
-        drawInstructions?.Invoke();
-        sb.End();
-    }
-
-    /// <summary>
-    /// Draws a layer to the depth map
-    /// </summary>
-    /// <param name="depth">Depth to draw to, from 0 to 1</param>
-    /// <param name="drawInstruction">Action of draw instruction to draw for layer</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    protected void DrawDepthLayer(float depth, Action<SpriteBatch> drawInstruction, SpriteBatch sb) {
-        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
-        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
-        drawInstruction?.Invoke(sb);
-        sb.End();
-    }
-
-    /// <summary>
     /// Changes the resolution of this scene
     /// </summary>
     /// <param name="width">New resolution width in pixels</param>
     /// <param name="height">New resolution height in pixels</param>
     /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) {
-        Camera = new Camera(width + canvasExpandSize, height + canvasExpandSize) {
-            Position = Camera.Position
-        };
-    }
+    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) { }
 
     /// <summary>
     /// Adds an actor to this scene immediately (MAY CRASH WITH UPDATE LOOP)
     /// </summary>
     /// <param name="actor">Actor to add</param>
-    protected void AddActor(IActor actor) {
-        if (actor != null) {
-            if (actor.Scene != this) {
-                throw new Exception("Cannot add actor that has already been added to a prior scene!");
-            }
-
-            actors.Insert(actor);
-            actor.InvokeOnAdded(this);
-        }
-    }
+    protected abstract void AddActor(IActor actor);
 
     /// <summary>
-    /// Removes an actor to this scene immediately (MAY CRASH WITH UPDATE LOOP)
+    /// Removes an actor from this scene immediately (MAY CRASH WITH UPDATE LOOP)
     /// </summary>
     /// <param name="actor">Actor to remove</param>
-    protected bool RemoveActor(IActor actor) {
-        if (actors.Remove(actor)) {
-            actor?.InvokeOnRemoved(this);
-            return true;
-        }
-
-        return false;
-    }
+    protected abstract bool RemoveActor(IActor actor);
 
     /// <summary>
     /// Queues an actor to be added at the end of update cycle
@@ -315,26 +252,14 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// Adds a light to the scene
     /// </summary>
     /// <param name="light">Light to add</param>
-    public void AddLight(Light light) {
-        if (light.IsGlobal) {
-            globalLights.Add(light);
-        } else {
-            localLights.Insert(light);
-        }
-    }
+    public abstract void AddLight(Light light);
 
     /// <summary>
     /// Removes a light from this scene
     /// </summary>
     /// <param name="light">Light to remove</param>
     /// <returns>True if successfully removed, false if not</returns>
-    public bool RemoveLight(Light light) {
-        if (light.IsGlobal) {
-            return globalLights.Remove(light);
-        } else {
-            return localLights.Remove(light);
-        }
-    }
+    public abstract bool RemoveLight(Light light);
 
     /// <summary>
     /// Pushes a menu onto the menu stack
@@ -406,46 +331,5 @@ public abstract class Scene : IResolution, IDebugDrawable {
     /// Gets enumerable of all actors in this scene to iterate across
     /// </summary>
     /// <returns>Enumerable of actors, to be iterated across</returns>
-    public IEnumerable<IActor> GetActors() {
-        return actors.GetData(false);
-    }
-
-    /// <summary>
-    /// Gets enumerable of all actors within a given radius in this scene to iterate across
-    /// </summary>
-    /// <returns>Enumerable of actors within a given radius, to be iterated across</returns>
-    public IEnumerable<IActor> GetActorsInRadius(Vector2 center, float radius) {
-        return actors.GetData(center, radius, false);
-    }
-
-    /// <summary>
-    /// Gets enumerable of all actors within a given viewport in this scene to iterate across
-    /// </summary>
-    /// <returns>Enumerable of actors within a given viewport, to be iterated across</returns>
-    public IEnumerable<IActor> GetActorsInViewport(Rectangle viewport) {
-        return actors.GetData(viewport, false);
-    }
-
-    /// <summary>
-    /// Calculates whether or not an actor should be rendered to the screen
-    /// </summary>
-    /// <param name="actor">Actor to check if should be rendered</param>
-    /// <returns>True if actor should be rendered, false if otherwise</returns>
-    public bool ShouldBeRendered(IActor actor) {
-        return actor.Bounds.Intersects(Camera.ViewBounds);
-    }
-
-    /// <summary>
-    /// Gets an enumerable to iterate across of all lights to render in a scene
-    /// </summary>
-    /// <returns>Enumerable of visible lights</returns>
-    internal IEnumerable<Light> GetAllLightsToRender() {
-        foreach (Light light in globalLights) {
-            yield return light;
-        }
-
-        foreach (Light light in localLights.GetData(Utils.ExpandRect(Camera.ViewBounds, 100), true)) {
-            yield return light;
-        }
-    }
+    public abstract IEnumerable<IActor> GetActors();
 }

@@ -10,7 +10,7 @@ namespace Embyr;
 /// call, and methods/properties that can tweak the aspects of
 /// the camera itself.
 /// </summary>
-public class Camera {
+public class Camera2D {
     private Matrix matrix;
     private Matrix flooredMatrix;
     private Matrix invertedMatrix;
@@ -110,7 +110,7 @@ public class Camera {
     /// </summary>
     /// <param name="width">Width of camera viewport in pixels</param>
     /// <param name="height">Height of camera viewport in pixels</param>
-    public Camera(int width, int height) {
+    public Camera2D(int width, int height) {
         this.width = width;
         this.height = height;
         matrix = Matrix.Identity;
@@ -124,7 +124,7 @@ public class Camera {
     /// Creates a new camera object at (0, 0) with zoom of 1
     /// </summary>
     /// <param name="resolution">X/Y resolution of camera viewport in pixels</param>
-    public Camera(Point resolution) : this(resolution.X, resolution.Y) { }
+    public Camera2D(Point resolution) : this(resolution.X, resolution.Y) { }
 
     /// <summary>
     /// Transforms local camera-space position to a world-space position
@@ -155,7 +155,7 @@ public class Camera {
     /// <param name="target">Target actor to follow</param>
     /// <param name="lerpAmt">Speed/amount of linear interpolation to apply, must be >= 0</param>
     /// <param name="dt">Time passed since last frame</param>
-    public void SmoothFollow(IActor target, float lerpAmt, float dt) {
+    public void SmoothFollow(IActor2D target, float lerpAmt, float dt) {
         SmoothFollow(target.Transform.Position, lerpAmt, dt);
     }
 

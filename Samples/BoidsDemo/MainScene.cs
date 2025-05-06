@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BoidsDemo;
 
-public class MainScene(string name) : Scene(name) {
+public class MainScene(string name) : Scene2D(name) {
     public override void LoadContent() {
         Rectangle boidBounds = new(
             -200,
@@ -25,7 +25,7 @@ public class MainScene(string name) : Scene(name) {
             AddActor(boid);
         }
 
-        AddLight(new Light() {
+        AddLight(new Light2D() {
             IsGlobal = true,
             Intensity = 0.1f
         });
@@ -36,8 +36,8 @@ public class MainScene(string name) : Scene(name) {
                 Random.Shared.Next(boidBounds.Top, boidBounds.Bottom)
             );
 
-            AddLight(new Light() {
-                Transform = new Transform(randPos),
+            AddLight(new Light2D() {
+                Transform = new Transform2D(randPos),
                 Color = new Color(
                     Random.Shared.NextSingle() * 0.5f + 0.5f,
                     Random.Shared.NextSingle() * 0.5f + 0.5f,

@@ -6,13 +6,13 @@ namespace Embyr.Scenes;
 /// <summary>
 /// An abstract base class that implements all <c>IActor</c> members.
 /// </summary>
-public abstract class Actor : IActor, IDebugDrawable {
+public abstract class Actor2D : IActor2D, IDebugDrawable {
     #region // Fields & Properties
 
     /// <summary>
     /// Gets the transform of this actor
     /// </summary>
-    public Transform Transform { get; init; }
+    public Transform2D Transform { get; init; }
 
     /// <summary>
     /// Gets the scene this actor is created within
@@ -52,12 +52,12 @@ public abstract class Actor : IActor, IDebugDrawable {
     /// <param name="name">Name of this actor</param>
     /// <param name="position">Initial position</param>
     /// <param name="scene">Scene to place this actor in</param>
-    public Actor(
+    public Actor2D(
         string name,
         Vector2 position,
-        Scene scene
+        Scene2D scene
     ) {
-        this.Transform = new Transform(position);
+        this.Transform = new Transform2D(position);
         this.Name = name;
         this.Scene = scene;
     }

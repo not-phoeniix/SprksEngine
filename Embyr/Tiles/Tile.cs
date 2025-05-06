@@ -8,7 +8,7 @@ namespace Embyr.Tiles;
 /// <summary>
 /// Immovable tile struct, collides with other actors and can be instantiated within a <c>TileMap</c>
 /// </summary>
-public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : Enum {
+public abstract class Tile<T> : ITransform2D, IDrawable, IDebugDrawable where T : Enum {
     #region // Static members
 
     /// <summary>
@@ -423,7 +423,7 @@ public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : 
     /// <summary>
     /// Gets the transform for this tile
     /// </summary>
-    public Transform Transform { get; }
+    public Transform2D Transform { get; }
 
     /// <summary>
     /// Gets/sets the scene this tile is spawned in
@@ -466,7 +466,7 @@ public abstract class Tile<T> : ITransform, IDrawable, IDebugDrawable where T : 
     /// </summary>
     public Tile(T type, Texture2D texture, bool usesTileset, Scene scene) {
         this.Scene = scene;
-        this.Transform = new Transform();
+        this.Transform = new Transform2D();
         this.usesTileset = usesTileset;
         this.texture = texture;
         this.components = new List<ITileComponent<T>>();

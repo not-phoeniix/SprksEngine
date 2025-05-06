@@ -5,20 +5,20 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Scenes;
 
-internal class Quadtree<T> where T : class, ITransform2D {
+internal class Octree<T> where T : class, ITransform3D {
     // https://medium.com/@bpmw/quadtrees-for-2d-games-with-moving-elements-63360b08329f
 
     private static readonly int splitThreshold = 50;
 
-    private class Node : IDebugDrawable {
+    private class Node {
         private readonly List<T> data;
         private readonly List<(T, Node)> toMove;
         private Node[] childNodes;
         private readonly Node parent;
 
-        public Rectangle Bounds { get; private set; }
+        public BoundingBox Bounds { get; private set; }
 
-        public Node(Node parent, Rectangle bounds) {
+        public Node(Node parent, BoundingBox bounds) {
             data = new List<T>();
             toMove = new List<(T, Node)>();
             this.parent = parent;
@@ -73,14 +73,35 @@ internal class Quadtree<T> where T : class, ITransform2D {
         }
 
         private void Split() {
-            int h = Bounds.Height / 2;
-            int w = Bounds.Width / 2;
+            Node MakeChild(int xOffset, int yOffset, int zOffset) {
+                Vector3 halfSize = (Bounds.Max - Bounds.Min) / 2.0f;
 
-            childNodes = new Node[4] {
-                new Node(this, new Rectangle(Bounds.Left, Bounds.Top, w, h)),
-                new Node(this, new Rectangle(Bounds.Left, Bounds.Center.Y, w, h)),
-                new Node(this, new Rectangle(Bounds.Center.X, Bounds.Top, w, h)),
-                new Node(this, new Rectangle(Bounds.Center.X, Bounds.Center.Y, w, h))
+                return new Node(
+                    this,
+                    new BoundingBox(
+                        Bounds.Min + new Vector3(
+                            halfSize.X * xOffset,
+                            halfSize.Y * yOffset,
+                            halfSize.Z * zOffset
+                        ),
+                        Bounds.Max + new Vector3(
+                            halfSize.X * (xOffset + 1),
+                            halfSize.Y * (yOffset + 1),
+                            halfSize.Z * (zOffset + 1)
+                        )
+                    )
+                );
+            }
+
+            childNodes = new Node[8] {
+                MakeChild(0, 0, 0),
+                MakeChild(1, 0, 0),
+                MakeChild(0, 0, 1),
+                MakeChild(1, 0, 1),
+                MakeChild(0, 1, 0),
+                MakeChild(1, 1, 0),
+                MakeChild(0, 1, 1),
+                MakeChild(1, 1, 1),
             };
         }
 
@@ -119,7 +140,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
         }
 
         private static bool InNode(T obj, Node node) {
-            return node.Bounds.Contains(obj.Transform.GlobalPosition);
+            return node.Bounds.Contains(obj.Transform.GlobalPosition) == ContainmentType.Contains;
         }
 
         public bool Remove(T obj) {
@@ -134,12 +155,12 @@ internal class Quadtree<T> where T : class, ITransform2D {
             return data.Remove(obj);
         }
 
-        public T FindClosest(Vector2 position) {
+        public T FindClosest(Vector3 position) {
             T closest = null;
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
                 if (dSqr < closestDSqr) {
                     closest = obj;
                     closestDSqr = dSqr;
@@ -157,7 +178,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
                     T subClosest = node.FindClosest(position);
 
                     if (subClosest != null) {
-                        dSqr = Vector2.DistanceSquared(subClosest.Transform.GlobalPosition, position);
+                        dSqr = Vector3.DistanceSquared(subClosest.Transform.GlobalPosition, position);
                         if (dSqr < closestDSqr) {
                             closest = subClosest;
                             closestDSqr = dSqr;
@@ -169,12 +190,12 @@ internal class Quadtree<T> where T : class, ITransform2D {
             return closest;
         }
 
-        public IEnumerable<T> GetData(Vector2 position, float radius, bool reorganize) {
+        public IEnumerable<T> GetData(Vector3 position, float radius, bool reorganize) {
             float dSqrToThis = Utils.DistanceSquared(position, Bounds);
             if (dSqrToThis > radius * radius) yield break;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
                 if (dSqr <= radius * radius) {
                     yield return obj;
                 }
@@ -194,11 +215,11 @@ internal class Quadtree<T> where T : class, ITransform2D {
             }
         }
 
-        public IEnumerable<T> GetData(Rectangle viewport, bool reorganize) {
+        public IEnumerable<T> GetData(BoundingFrustum viewport, bool reorganize) {
             if (!viewport.Intersects(Bounds)) yield break;
 
             foreach (T obj in data) {
-                if (viewport.Contains(obj.Transform.GlobalPosition)) {
+                if (viewport.Contains(obj.Transform.GlobalPosition) == ContainmentType.Contains) {
                     yield return obj;
                 }
             }
@@ -235,62 +256,32 @@ internal class Quadtree<T> where T : class, ITransform2D {
                 Reorganize();
             }
         }
-
-        public void DebugDraw(SpriteBatch sb) {
-            sb.DrawRectOutline(Bounds, 1, Color.White);
-
-            if (childNodes != null) {
-                foreach (Node node in childNodes) {
-                    node.DebugDraw(sb);
-                }
-            }
-        }
-
-        public void DebugDraw(Rectangle viewport, SpriteBatch sb) {
-            if (!Bounds.Intersects(viewport)) return;
-
-            sb.DrawRectOutline(Bounds, 1, Color.White);
-
-            if (childNodes != null) {
-                foreach (Node node in childNodes) {
-                    node.DebugDraw(viewport, sb);
-                }
-            }
-        }
     }
 
     private readonly Node root;
 
-    public Quadtree(Point min, Point max) {
-        root = new Node(null, new Rectangle(min, max - min));
+    public Octree(Vector3 min, Vector3 max) {
+        root = new Node(null, new BoundingBox(min, max - min));
     }
 
     public void Insert(T obj) {
         root.Insert(obj);
     }
 
-    public T FindClosest(Vector2 position) {
+    public T FindClosest(Vector3 position) {
         return root.FindClosest(position);
     }
 
-    public IEnumerable<T> GetData(Vector2 position, float radius, bool reorganize) {
+    public IEnumerable<T> GetData(Vector3 position, float radius, bool reorganize) {
         return root.GetData(position, radius, reorganize);
     }
 
-    public IEnumerable<T> GetData(Rectangle viewport, bool reorganize) {
+    public IEnumerable<T> GetData(BoundingFrustum viewport, bool reorganize) {
         return root.GetData(viewport, reorganize);
     }
 
     public IEnumerable<T> GetData(bool reorganize) {
         return root.GetData(reorganize);
-    }
-
-    public void DebugDraw(Rectangle viewport, SpriteBatch sb) {
-        root.DebugDraw(viewport, sb);
-    }
-
-    public void DebugDraw(SpriteBatch sb) {
-        root.DebugDraw(sb);
     }
 
     public bool Remove(T obj) {

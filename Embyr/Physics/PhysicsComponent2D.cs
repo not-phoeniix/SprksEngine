@@ -7,10 +7,9 @@ using Embyr.Scenes;
 namespace Embyr.Physics;
 
 /// <summary>
-/// Component that represents a "physics object," does collision
-/// detection/resolution and gravity, as well as force-based movement.
+/// Component that deals with physics handling, both with integration and collision
 /// </summary>
-public class PhysicsComponent : IDebugDrawable {
+public class PhysicsComponent2D : IDebugDrawable {
     /// <summary>
     /// The types of physics solvers used in position calculation
     /// </summary>
@@ -21,7 +20,7 @@ public class PhysicsComponent : IDebugDrawable {
 
     #region // Fields & Properties
 
-    private readonly Transform transform;
+    private readonly Transform2D transform;
     private Vector2 prevTransformPos;
     private Vector2 prevPos;
     private Vector2 prevVerletPos;
@@ -209,8 +208,8 @@ public class PhysicsComponent : IDebugDrawable {
     /// </param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent(
-        Transform transform,
+    public PhysicsComponent2D(
+        Transform2D transform,
         Rectangle verticalCollisionBox,
         Rectangle horizontalCollisionBox,
         float mass,
@@ -240,8 +239,8 @@ public class PhysicsComponent : IDebugDrawable {
     /// <param name="boxOffset">Unsigned integer offset of vertical/horizontal collision box modification</param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent(
-        Transform transform,
+    public PhysicsComponent2D(
+        Transform2D transform,
         Rectangle collisionBox,
         int boxOffset,
         float mass,
@@ -274,8 +273,8 @@ public class PhysicsComponent : IDebugDrawable {
     /// </param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent(
-        Transform transform,
+    public PhysicsComponent2D(
+        Transform2D transform,
         Rectangle collisionBox,
         float mass,
         float maxSpeed
@@ -296,7 +295,7 @@ public class PhysicsComponent : IDebugDrawable {
     /// </summary>
     /// <param name="scene">Scene that physics component exists in</param>
     /// <param name="deltaTime">Time passed since last PhysicsUpdate</param>
-    public void Update(Scene scene, float deltaTime) {
+    public void Update(Scene2D scene, float deltaTime) {
         // update prev pos before anything changes first
         prevPos = position;
 
@@ -450,7 +449,7 @@ public class PhysicsComponent : IDebugDrawable {
 
     #region // Collisions !!
 
-    private void CollisionCorrection(Scene scene) {
+    private void CollisionCorrection(Scene2D scene) {
         OnGround = false;
         bool somethingCollided = false;
 
@@ -460,7 +459,7 @@ public class PhysicsComponent : IDebugDrawable {
             // at the end of collision loop
             bool anythingColliding = false;
 
-            foreach (IActor actor in scene.GetActorsInViewport(Utils.ExpandRect(Bounds, 5))) {
+            foreach (IActor2D actor in scene.GetActorsInViewport(Utils.ExpandRect(Bounds, 5))) {
                 // don't collide with perfect matching bounds (probably the same object)
                 if (actor.Bounds == Bounds) continue;
 

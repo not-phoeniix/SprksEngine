@@ -8,8 +8,8 @@ namespace Embyr.Scenes;
 /// Represents container structure of autonomous agents that deals with
 /// internal calculations to help with steering behavior efficiency
 /// </summary>
-public sealed class AgentContainer : IEnumerable<IAgent> {
-    private readonly List<IAgent> agents;
+public sealed class AgentContainer : IEnumerable<IAgent2D> {
+    private readonly List<IAgent2D> agents;
 
     /// <summary>
     /// Gets the number of agents stored in this container
@@ -35,7 +35,7 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
     /// Gets the enumerable contents of agent type <c>T</c> objects inside this container
     /// </summary>
     /// <returns>Enumerable of agent objects</returns>
-    public IEnumerator<IAgent> GetEnumerator() {
+    public IEnumerator<IAgent2D> GetEnumerator() {
         return agents.GetEnumerator();
     }
 
@@ -47,7 +47,7 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
     /// Creates a new empty AgentContainer
     /// </summary>
     public AgentContainer() {
-        agents = new List<IAgent>();
+        agents = new List<IAgent2D>();
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
         AverageVelocity = Vector2.Zero;
         AverageDirection = Vector2.Zero;
 
-        foreach (IAgent agent in agents) {
+        foreach (IAgent2D agent in agents) {
             AverageCenterPos += agent.Transform.GlobalPosition;
             AverageVelocity += agent.Physics.Velocity;
             AverageDirection += agent.Physics.Direction;
@@ -73,7 +73,7 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
     /// Adds a new agent to this container
     /// </summary>
     /// <param name="agent">Agent to add</param>
-    public void Add(IAgent agent) {
+    public void Add(IAgent2D agent) {
         agents.Add(agent);
     }
 
@@ -82,7 +82,7 @@ public sealed class AgentContainer : IEnumerable<IAgent> {
     /// </summary>
     /// <param name="agent">Agent to remove</param>
     /// <returns>True if successfully removed, false if not</returns>
-    public bool Remove(IAgent agent) {
+    public bool Remove(IAgent2D agent) {
         return agents.Remove(agent);
     }
 

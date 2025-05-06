@@ -5,9 +5,9 @@ namespace Embyr;
 /// <summary>
 /// A sealed transform class holding 2D position, scaling, and rotation information
 /// </summary>
-public sealed class Transform {
-    private readonly List<Transform> children;
-    private Transform? parent;
+public sealed class Transform2D {
+    private readonly List<Transform2D> children;
+    private Transform2D? parent;
     private bool dirty;
     private Vector2 localPos;
     private Vector2 parentGlobalPos;
@@ -19,7 +19,7 @@ public sealed class Transform {
     /// <summary>
     /// Gets/sets the parent for this transform
     /// </summary>
-    public Transform? Parent {
+    public Transform2D? Parent {
         get => parent;
         set {
             // apply offsets whenever changing what the parent is
@@ -130,12 +130,12 @@ public sealed class Transform {
     /// <param name="scale">Scale of transform</param>
     /// <param name="rotation">Rotation of transform</param>
     /// <param name="parent">Reference to parent transform object</param>
-    public Transform(Vector2 position, Vector2 scale, float rotation, Transform? parent = null) {
+    public Transform2D(Vector2 position, Vector2 scale, float rotation, Transform2D? parent = null) {
         this.localPos = position;
         this.localScale = scale;
         this.localRotation = rotation;
         this.parent = parent;
-        this.children = new List<Transform>();
+        this.children = new List<Transform2D>();
         Recalculate();
     }
 
@@ -143,19 +143,19 @@ public sealed class Transform {
     /// Creates a new Transform object
     /// </summary>
     /// <param name="position">Position of transform</param>
-    public Transform(Vector2 position) : this(position, Vector2.One, 0) { }
+    public Transform2D(Vector2 position) : this(position, Vector2.One, 0) { }
 
     /// <summary>
     /// Creates a new Transform object at (0, 0) with default scale and rotation
     /// </summary>
-    public Transform() {
+    public Transform2D() {
         this.localPos = Vector2.Zero;
         this.localScale = Vector2.One;
         this.localRotation = 0;
         this.parentGlobalPos = Vector2.Zero;
         this.parentGlobalScale = Vector2.One;
         this.parentGlobalRot = 0;
-        this.children = new List<Transform>();
+        this.children = new List<Transform2D>();
         this.parent = null;
     }
 
@@ -163,7 +163,7 @@ public sealed class Transform {
     /// Adds a child to this transform
     /// </summary>
     /// <param name="child">Transform to add</param>
-    public void AddChild(Transform child) {
+    public void AddChild(Transform2D child) {
         if (child != null) {
             // give me the child.
             children.Add(child);
@@ -175,7 +175,7 @@ public sealed class Transform {
     /// Removes a child from this transform
     /// </summary>
     /// <param name="child">Tranform to remove</param>
-    public void RemoveChild(Transform child) {
+    public void RemoveChild(Transform2D child) {
         if (child != null) {
             children.Remove(child);
             child.Parent = null;
@@ -186,7 +186,7 @@ public sealed class Transform {
     /// Clears all children from this transform
     /// </summary>
     public void ClearChildren() {
-        foreach (Transform child in children) {
+        foreach (Transform2D child in children) {
             child.Parent = null;
         }
 
@@ -213,7 +213,7 @@ public sealed class Transform {
     private void MarkDirty() {
         // recursively go DOWN the transform tree and
         //   mark all children dirty
-        foreach (Transform child in children) {
+        foreach (Transform2D child in children) {
             child.MarkDirty();
         }
 

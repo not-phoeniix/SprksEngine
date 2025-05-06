@@ -14,11 +14,11 @@ public class Rope : IDrawable, IDebugDrawable {
     //
     // HI UPDATE IT WORKS
 
-    private PhysicsComponent[] nodes;
+    private PhysicsComponent2D[] nodes;
     private float segmentLength;
 
-    private PhysicsComponent endEntity;
-    private PhysicsComponent startEntity;
+    private PhysicsComponent2D endEntity;
+    private PhysicsComponent2D startEntity;
 
     /// <summary>
     /// Color to draw rope
@@ -82,7 +82,7 @@ public class Rope : IDrawable, IDebugDrawable {
     public float GravityScale {
         get { return nodes[0].GravityScale; }
         set {
-            foreach (PhysicsComponent node in nodes) {
+            foreach (PhysicsComponent2D node in nodes) {
                 node.GravityScale = value;
             }
         }
@@ -106,7 +106,7 @@ public class Rope : IDrawable, IDebugDrawable {
         int numNodes = segments + 1;
 
         // initialize arrays
-        nodes = new PhysicsComponent[numNodes];
+        nodes = new PhysicsComponent2D[numNodes];
 
         // calculate distances
         float totalLength = Vector2.Distance(startPoint, endPoint) + 10;
@@ -119,13 +119,13 @@ public class Rope : IDrawable, IDebugDrawable {
         for (int i = 0; i < numNodes; i++) {
             Vector2 position = startPoint + (diff * i);
 
-            nodes[i] = new PhysicsComponent(
-                new Transform(position),
+            nodes[i] = new PhysicsComponent2D(
+                new Transform2D(position),
                 new Rectangle(0, 0, 1, 1),
                 1f,
                 1000
             ) {
-                Solver = PhysicsComponent.PhysicsSolver.Verlet
+                Solver = PhysicsComponent2D.PhysicsSolver.Verlet
             };
         }
     }
@@ -135,11 +135,11 @@ public class Rope : IDrawable, IDebugDrawable {
     /// </summary>
     /// <param name="nodes">Pre-existing array of nodes</param>
     /// <param name="segmentLength">Length of each rope segment</param>
-    public Rope(PhysicsComponent[] nodes, float segmentLength) {
+    public Rope(PhysicsComponent2D[] nodes, float segmentLength) {
         this.nodes = nodes;
         this.segmentLength = segmentLength;
-        foreach (PhysicsComponent node in nodes) {
-            node.Solver = PhysicsComponent.PhysicsSolver.Verlet;
+        foreach (PhysicsComponent2D node in nodes) {
+            node.Solver = PhysicsComponent2D.PhysicsSolver.Verlet;
         }
     }
 
@@ -147,7 +147,7 @@ public class Rope : IDrawable, IDebugDrawable {
     /// Attaches an entity to the end of this rope
     /// </summary>
     /// <param name="entity">Entity to attach</param>
-    public void AttachEnd(PhysicsComponent entity) {
+    public void AttachEnd(PhysicsComponent2D entity) {
         endEntity = entity;
     }
 
@@ -163,7 +163,7 @@ public class Rope : IDrawable, IDebugDrawable {
     /// </summary>
     /// <param name="force">Force vector to apply</param>
     public void ApplyForce(Vector2 force) {
-        foreach (PhysicsComponent node in nodes) {
+        foreach (PhysicsComponent2D node in nodes) {
             node.ApplyForce(force);
         }
     }
@@ -173,7 +173,7 @@ public class Rope : IDrawable, IDebugDrawable {
     /// </summary>
     /// <param name="coeff">Coefficient of friction to apply</param>
     public void ApplyFriction(float coeff) {
-        foreach (PhysicsComponent node in nodes) {
+        foreach (PhysicsComponent2D node in nodes) {
             node.ApplyFriction(coeff);
         }
     }
@@ -183,7 +183,7 @@ public class Rope : IDrawable, IDebugDrawable {
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
     public void Update(float dt) {
-        foreach (PhysicsComponent node in nodes) {
+        foreach (PhysicsComponent2D node in nodes) {
             node.EnableGravity = EnableGravity;
             node.UpdateTransform();
         }
@@ -209,9 +209,9 @@ public class Rope : IDrawable, IDebugDrawable {
     /// Updates rope movement logic/physics
     /// </summary>
     /// <param name="deltaTime">Time passed since last frame</param>
-    public void PhysicsUpdate(Scene scene, float deltaTime) {
+    public void PhysicsUpdate(Scene2D scene, float deltaTime) {
         // update physics
-        foreach (PhysicsComponent node in nodes) {
+        foreach (PhysicsComponent2D node in nodes) {
             node.Update(scene, deltaTime);
         }
 
@@ -229,7 +229,7 @@ public class Rope : IDrawable, IDebugDrawable {
 
         // draw entity and node together with a force
         if (endEntity != null) {
-            PhysicsComponent node = nodes[nodes.Length - 1];
+            PhysicsComponent2D node = nodes[nodes.Length - 1];
             Vector2 toNode = node.NonLerpedPosition - endEntity.NonLerpedPosition;
             Vector2 toEntity = endEntity.NonLerpedPosition - node.NonLerpedPosition;
 
@@ -273,7 +273,7 @@ public class Rope : IDrawable, IDebugDrawable {
         }
 
         // draw nodes themselves
-        foreach (PhysicsComponent node in nodes) {
+        foreach (PhysicsComponent2D node in nodes) {
             sb.DrawCircleOutline(
                 node.Position,
                 2f,
@@ -285,8 +285,8 @@ public class Rope : IDrawable, IDebugDrawable {
     }
 
     private static void RelaxConstraint(
-        PhysicsComponent phys1,
-        PhysicsComponent phys2,
+        PhysicsComponent2D phys1,
+        PhysicsComponent2D phys2,
         float desiredDist
     ) {
         // direction vector

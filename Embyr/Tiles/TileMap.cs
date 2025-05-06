@@ -16,7 +16,7 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
     /// <summary>
     /// Gets the transform of this TileMap
     /// </summary>
-    public Transform Transform { get; }
+    public Transform2D Transform { get; }
 
     /// <summary>
     /// Gets the total bounds of this TileMap
@@ -70,7 +70,7 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
         this.Name = name;
         this.SimulationDistance = simulationDistance;
         this.tiles = new NList2D<Tile<T>>();
-        this.Transform = new Transform(position);
+        this.Transform = new Transform2D(position);
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
                         tile.Transform.GlobalPosition,
-                        Scene.Camera.Position
+                        ((Scene2D)Scene).Camera.Position
                     );
                     if (dSqr >= SimulationDistance * SimulationDistance) {
                         tile.Update(dt);
@@ -113,7 +113,7 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
                         tile.Transform.GlobalPosition,
-                        Scene.Camera.Position
+                        ((Scene2D)Scene).Camera.Position
                     );
                     if (dSqr >= SimulationDistance * SimulationDistance) {
                         tile.PhysicsUpdate(fdt);
@@ -200,13 +200,13 @@ public class TileMap<T> : IActor, IDebugDrawable where T : Enum {
     }
 
     private Rectangle GetTilespaceViewRect() {
-        Rectangle camView = Scene.Camera.ViewBounds;
+        Rectangle camView = ((Scene2D)Scene).Camera.ViewBounds;
         return PixelToTileSpace(camView);
     }
 
     private Rectangle GetTilespaceSimulatedRect() {
         Rectangle simView = new(
-            Scene.Camera.Position.ToPoint() - new Point((int)SimulationDistance),
+            ((Scene2D)Scene).Camera.Position.ToPoint() - new Point((int)SimulationDistance),
             new Point((int)SimulationDistance * 2)
         );
 
