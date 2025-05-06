@@ -194,7 +194,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         base.Initialize();
     }
 
-    protected override void LoadContent() {
+    protected override sealed void LoadContent() {
         ShaderManager.I.Init(GraphicsDevice);
         ContentHelper.I.Init(this);
 
@@ -203,17 +203,33 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             _ => throw new Exception("Inputted render pipeline not recognized!")
         };
 
+        foreach (PostProcessingEffect fx in SetupPostProcessingEffects()) {
+            renderer.AddPostProcessingEffect(fx);
+        }
+
         // set up scene when loading content !!
         SceneManager.I.Init(this, setupParams.InitialScene);
     }
 
+    /// <summary>
+    /// Sets up basic game parameters
+    /// </summary>
+    /// <returns>SetupParams that describes the game to make</returns>
     protected abstract SetupParams Setup();
+
+    /// <summary>
+    /// Sets up all post processing effects to use in the game render pipeline
+    /// </summary>
+    /// <returns>Array of post processing effects to add to game</returns>
+    protected virtual PostProcessingEffect[] SetupPostProcessingEffects() {
+        return Array.Empty<PostProcessingEffect>();
+    }
 
     #endregion
 
     #region // Game loop
 
-    protected override sealed void Update(GameTime gameTime) {
+    protected override void Update(GameTime gameTime) {
         Performance.Update(gameTime);
         Performance.FrametimeMeasureStart();
         Performance.UpdateMeasureStart();

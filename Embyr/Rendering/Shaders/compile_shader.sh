@@ -4,7 +4,8 @@
 # https://docs.monogame.net/articles/getting_started/tools/mgfxc.html
 
 OUTPUT_EXTENSION=".xnb"
-PROFILE=$1
+TARGET=$1
+PROFILE=$2
 SCRIPT_DIR=$(dirname -- "$(realpath -- "$0")")
 OUTPUT_DIR="$SCRIPT_DIR"
 
@@ -25,21 +26,25 @@ else
 	exit 1
 fi
 
-echo "removing files inside output dir '$OUTPUT_DIR'..."
-
 mkdir -p $OUTPUT_DIR
-rm -f $(find $OUTPUT_DIR/ -type f -name "*.xnb")
 
-echo "compiling shaders..."
+compile_shader() {
+	OUTPUT=$OUTPUT_DIR/$(echo $(basename -- $1) | sed "s/\.fx$/\_$PROFILE_SUFFIX$OUTPUT_EXTENSION/")
+	rm -f $OUTPUT
 
-for file in $(find "$SCRIPT_DIR/" -type f -name "*.fx"); do
-	OUTPUT=$OUTPUT_DIR/$(echo $(basename -- $file) | sed "s/\.fx$/\_$PROFILE_SUFFIX$OUTPUT_EXTENSION/")
+	echo "compiling '$1' into '$OUTPUT'..."
 
-	echo "compiling '$file' into '$OUTPUT'..."
-	# echo "mgfxc $file $OUTPUT /Profile:$PROFILE"
+	mgfxc $1 $OUTPUT /Profile:$PROFILE
+}
 
-	mgfxc $file $OUTPUT /Profile:$PROFILE
-done
+if [[ $TARGET == "all" ]]; then
+	echo "compiling all shaders..."
+
+	for file in $(find "$SCRIPT_DIR/" -type f -name "*.fx"); do
+		compile_shader $file
+	done
+else
+	compile_shader $TARGET
+fi
 
 echo "shaders compiled :D"
-

@@ -28,6 +28,7 @@ public abstract class Renderer2D : Renderer {
         GraphicsDevice.SetRenderTarget(null);
         GraphicsDevice.Clear(EngineSettings.RenderClearColor);
         SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
         foreach (GameLayer layer in Enum.GetValues<GameLayer>()) {
             // do not draw debug layers if debugging is not enabled
             bool isDebugLayer = layer == GameLayer.WorldDebug || layer == GameLayer.UIDebug;
@@ -37,6 +38,7 @@ public abstract class Renderer2D : Renderer {
 
             Layers[layer].Draw(SpriteBatch, canvasDestination, canvasScale);
         }
+
         SpriteBatch.End();
     }
 }

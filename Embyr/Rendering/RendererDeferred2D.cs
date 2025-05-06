@@ -11,15 +11,10 @@ public class RendererDeferred2D : Renderer2D {
     private readonly Effect fxJumpFloodSeed;
     private readonly Effect fxJumpFloodStep;
     private readonly Effect fxJumpFloodDistRender;
-    private readonly Effect fxBloomThreshold;
-    private readonly Effect fxBloomBlur;
-    private readonly Effect fxBloomCombine;
 
     // render targets/layers
     private RenderTarget2D depthBuffer;
     private RenderTarget2D lightBuffer;
-    private RenderTarget2D bloomBackBuffer;
-    private RenderTarget2D bloomFrontBuffer;
     private RenderTarget2D distanceBackBuffer;
     private RenderTarget2D distanceFrontBuffer;
     private RenderTarget2D worldLayerDistanceField;
@@ -35,9 +30,6 @@ public class RendererDeferred2D : Renderer2D {
         fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
         fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step", ShaderManager.ShaderProfile.OpenGL);
         fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine", ShaderManager.ShaderProfile.OpenGL);
 
         RecreateRenderTargets(
             EngineSettings.GameCanvasResolution.X,
@@ -47,58 +39,72 @@ public class RendererDeferred2D : Renderer2D {
     }
 
     public override void RenderScene(Scene scene) {
-        if (!SceneManager.I.IsLoading) {
-            Scene currentScene = SceneManager.I.CurrentScene;
+        Scene currentScene = SceneManager.I.CurrentScene;
 
-            Camera camera = SceneManager.I.Camera;
-            Matrix worldMatrix = camera.FlooredMatrix;
+        Camera camera = SceneManager.I.Camera;
+        Matrix worldMatrix = camera.FlooredMatrix;
 
-            // draw to buffers, render lighting
-            SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
-            SpriteBatch.GraphicsDevice.Clear(Color.White);
-            currentScene.DrawDepthmap(SpriteBatch);
-            RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
-            RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
-            currentScene.DrawLightsDeferred(SpriteBatch, lightBuffer, worldLayerDistanceField, skyLayerDistanceField);
+        // draw to buffers, render lighting
+        SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
+        SpriteBatch.GraphicsDevice.Clear(Color.White);
+        currentScene.DrawDepthmap(SpriteBatch);
+        RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
+        RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
+        currentScene.DrawLightsDeferred(SpriteBatch, lightBuffer, worldLayerDistanceField, skyLayerDistanceField);
 
-            // ~~~ draw all game layers to their respective RenderLayers ~~~
+        // ~~~ draw all game layers to their respective RenderLayers ~~~
 
-            // Vector3 sunColorVec3 = currentScene.Sun.Color.ToVector3() * currentScene.Sun.Intensity;
+        fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
+        fxLightCombine.Parameters["VolumetricScalar"].SetValue(currentScene.VolumetricScalar);
+        fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
+        fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
+        Layers[GameLayer.World].SmoothingOffset = camera.Position;
+        Layers[GameLayer.World].IndividualEffect = null;
+        Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
+        Layers[GameLayer.World].DrawTo(currentScene.Draw, SpriteBatch, worldMatrix);
 
-            fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-            fxLightCombine.Parameters["VolumetricScalar"].SetValue(currentScene.VolumetricScalar);
-            fxLightCombine.Parameters["AmbientColor"].SetValue(currentScene.AmbientColor.ToVector3());
-            fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
-            Layers[GameLayer.World].SmoothingOffset = camera.Position;
-            Layers[GameLayer.World].IndividualEffect = null;
-            Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
-            Layers[GameLayer.World].DrawTo(currentScene.Draw, SpriteBatch, worldMatrix);
+        // render all post processing effects !!
+        RenderTarget2D prevTarget = Layers[GameLayer.World].RenderTarget;
+        for (int i = 0; i < PostProcessingEffects.Count; i++) {
+            // grab reference to iteration effect, skip if disabled
+            PostProcessingEffect fx = PostProcessingEffects[i];
+            if (!fx.Enabled) continue;
 
-            // render bloom effect after world has been rendered
-            RenderBloom(0.98f, 4);
+            fx.InputRenderTarget = prevTarget;
+            fx.Draw(SpriteBatch);
 
-            Layers[GameLayer.WorldDebug].SmoothingOffset = camera.Position;
-            Layers[GameLayer.WorldDebug].DrawTo(currentScene.DebugDraw, SpriteBatch, worldMatrix);
-
-            Layers[GameLayer.UI].DrawTo(currentScene.DrawOverlays, SpriteBatch);
-            Layers[GameLayer.UIDebug].DrawTo(currentScene.DebugDrawOverlays, SpriteBatch);
-
-            void DrawParallax(GameLayer gameLayer, ParallaxBackground bg) {
-                ParallaxLayer? layer = bg?.GetLayer(gameLayer);
-                if (layer == null) return;  // don't draw if layer doesn't exist
-                Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
-                Layers[gameLayer].ColorTint = currentScene.GlobalLightTint;
-                Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
-            }
-
-            ParallaxBackground parallax = currentScene.GetCurrentParallax();
-            DrawParallax(GameLayer.ParallaxBg, parallax);
-            DrawParallax(GameLayer.ParallaxFar, parallax);
-            DrawParallax(GameLayer.ParallaxMid, parallax);
-            DrawParallax(GameLayer.ParallaxNear, parallax);
-
-        } else {
+            prevTarget = fx.FinalRenderTarget;
         }
+
+        // draw final post process layer BACK to world layer
+        //   (if any post processes were used in the first place)
+        if (prevTarget != Layers[GameLayer.World].RenderTarget) {
+            Layers[GameLayer.World].ScreenSpaceEffect = null;
+            Layers[GameLayer.World].DrawTo(
+                () => SpriteBatch.Draw(prevTarget, Vector2.Zero, Color.White),
+                SpriteBatch
+            );
+        }
+
+        Layers[GameLayer.WorldDebug].SmoothingOffset = camera.Position;
+        Layers[GameLayer.WorldDebug].DrawTo(currentScene.DebugDraw, SpriteBatch, worldMatrix);
+
+        Layers[GameLayer.UI].DrawTo(currentScene.DrawOverlays, SpriteBatch);
+        Layers[GameLayer.UIDebug].DrawTo(currentScene.DebugDrawOverlays, SpriteBatch);
+
+        void DrawParallax(GameLayer gameLayer, ParallaxBackground bg) {
+            ParallaxLayer? layer = bg?.GetLayer(gameLayer);
+            if (layer == null) return;  // don't draw if layer doesn't exist
+            Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
+            Layers[gameLayer].ColorTint = currentScene.GlobalLightTint;
+            Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
+        }
+
+        ParallaxBackground parallax = currentScene.GetCurrentParallax();
+        DrawParallax(GameLayer.ParallaxBg, parallax);
+        DrawParallax(GameLayer.ParallaxFar, parallax);
+        DrawParallax(GameLayer.ParallaxMid, parallax);
+        DrawParallax(GameLayer.ParallaxNear, parallax);
     }
 
     public override void RenderLoading() {
@@ -123,8 +129,6 @@ public class RendererDeferred2D : Renderer2D {
 
         ResizeBuffer(ref lightBuffer);
         ResizeBuffer(ref depthBuffer);
-        ResizeBuffer(ref bloomBackBuffer);
-        ResizeBuffer(ref bloomFrontBuffer);
         ResizeBuffer(ref distanceBackBuffer);
         ResizeBuffer(ref distanceFrontBuffer);
         ResizeBuffer(ref worldLayerDistanceField);
@@ -132,6 +136,8 @@ public class RendererDeferred2D : Renderer2D {
     }
 
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
+        base.ChangeResolution(width, height, canvasExpandSize);
+
         RecreateRenderTargets(width, height, canvasExpandSize);
 
         foreach (RenderLayer layer in Layers.Values) {
@@ -214,58 +220,4 @@ public class RendererDeferred2D : Renderer2D {
         SpriteBatch.Draw(finalTarget, new Rectangle(0, 0, destination.Width, destination.Height), Color.White);
         SpriteBatch.End();
     }
-
-    private void RenderBloom(float bloomThreshold, int blurPasses) {
-        // pass data to shaders before drawing
-        Vector2 screenRes = (EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize)).ToVector2();
-        fxBloomThreshold.Parameters["Threshold"].SetValue(bloomThreshold);
-        fxBloomBlur.Parameters["ScreenRes"].SetValue(screenRes);
-
-        // draw threshold pass
-        SpriteBatch.GraphicsDevice.SetRenderTarget(bloomBackBuffer);
-        SpriteBatch.GraphicsDevice.Clear(Color.Black);
-        SpriteBatch.Begin(effect: fxBloomThreshold);
-        Layers[GameLayer.World].Draw(SpriteBatch, Vector2.Zero);
-        SpriteBatch.End();
-
-        bool drawToFrontBuffer = true;
-
-        do {
-            RenderTarget2D target;
-            RenderTarget2D toDraw;
-            if (drawToFrontBuffer) {
-                target = bloomFrontBuffer;
-                toDraw = bloomBackBuffer;
-            } else {
-                target = bloomBackBuffer;
-                toDraw = bloomFrontBuffer;
-            }
-
-            // draw blurring pass
-            SpriteBatch.GraphicsDevice.SetRenderTarget(target);
-            SpriteBatch.GraphicsDevice.Clear(Color.Black);
-            SpriteBatch.Begin(effect: fxBloomBlur);
-            SpriteBatch.Draw(toDraw, Vector2.Zero, Color.White);
-            SpriteBatch.End();
-
-            drawToFrontBuffer = !drawToFrontBuffer;
-            blurPasses--;
-        } while (blurPasses > 0);
-
-        RenderTarget2D finalBuffer;
-        if (drawToFrontBuffer) {
-            finalBuffer = bloomBackBuffer;
-        } else {
-            finalBuffer = bloomFrontBuffer;
-        }
-
-        // combine dry and wet effects (heh music reference)
-        fxBloomCombine.Parameters["BloomTexture"].SetValue(finalBuffer);
-        Layers[GameLayer.World].ScreenSpaceEffect = fxBloomCombine;
-        Layers[GameLayer.World].DrawTo(
-            () => Layers[GameLayer.World].Draw(SpriteBatch, Vector2.Zero),
-            SpriteBatch
-        );
-    }
-
 }

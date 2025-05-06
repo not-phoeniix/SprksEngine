@@ -39,6 +39,11 @@ public class RenderLayer : IResolution {
     public Color ClearColor { get; set; } = Color.Transparent;
 
     /// <summary>
+    /// Gets the render target of this render layer
+    /// </summary>
+    public RenderTarget2D RenderTarget => effectTarget;
+
+    /// <summary>
     /// Creates a new RenderLayer
     /// </summary>
     /// <param name="resolution">Resolution of layer</param>
