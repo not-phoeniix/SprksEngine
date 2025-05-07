@@ -1,0 +1,50 @@
+### Overall stuff ===============================
+
+root = true
+
+# For all files
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+### XML files ===================================
+
+[*.xml]
+indent_style = tab
+indent_size = 2
+
+### JSON files ==================================
+
+[*.json]
+[*.npl]
+indent_style = space
+indent_size = 4
+
+### C# files ====================================
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# Space formatting
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+
+# New line formatting
+csharp_new_line_before_open_brace = none
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_before_members_in_anonymous_types = false
+csharp_new_line_between_query_expression_clauses = false
+
+# Wrapping formatting
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+
+# Organize usings
+dotnet_sort_system_directives_first = true

@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DTest", "3DTest.csproj", "{51780127-C320-66E4-FB3E-0854A35EF523}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{51780127-C320-66E4-FB3E-0854A35EF523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51780127-C320-66E4-FB3E-0854A35EF523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51780127-C320-66E4-FB3E-0854A35EF523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51780127-C320-66E4-FB3E-0854A35EF523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {55A2E825-0A07-4935-9403-304BFC1A29F0}
+	EndGlobalSection
+EndGlobal
