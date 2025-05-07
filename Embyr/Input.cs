@@ -102,6 +102,17 @@ public static class Input {
     }
 
     /// <summary>
+    /// Gets the change in mouse positions in pixels from last frame
+    /// </summary>
+    public static Vector2 MousePosDelta {
+        get {
+            Vector2 pos = Vector2.Transform(mState.Position.ToVector2(), mouseCanvasTransform);
+            Vector2 prevPos = Vector2.Transform(mStatePrev.Position.ToVector2(), mouseCanvasTransform);
+            return pos - prevPos;
+        }
+    }
+
+    /// <summary>
     /// Gets position of mouse in world-space
     /// </summary>
     public static Vector2 MouseWorldPos {

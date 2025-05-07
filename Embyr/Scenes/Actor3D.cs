@@ -6,13 +6,15 @@ namespace Embyr.Scenes;
 /// <summary>
 /// An abstract base class that implements all <c>IActor</c> members.
 /// </summary>
-public abstract class Actor2D : IActor2D, IDebugDrawable {
+public abstract class Actor3D : IActor3D {
     #region // Fields & Properties
+
+    private readonly Model model;
 
     /// <summary>
     /// Gets the transform of this actor
     /// </summary>
-    public Transform2D Transform { get; init; }
+    public Transform3D Transform { get; init; }
 
     /// <summary>
     /// Gets the scene this actor is created within
@@ -42,22 +44,25 @@ public abstract class Actor2D : IActor2D, IDebugDrawable {
     /// <summary>
     /// Gets the bounds of this actor in the world
     /// </summary>
-    public abstract Rectangle Bounds { get; }
+    public abstract BoundingBox Bounds { get; }
 
     #endregion
 
     /// <summary>
-    /// Creates a new Actor2D object
+    /// Creates a new Actor3D object
     /// </summary>
     /// <param name="name">Name of this actor</param>
+    /// <param name="model">Model of actor to render</param>
     /// <param name="position">Initial position</param>
     /// <param name="scene">Scene to place this actor in</param>
-    public Actor2D(
+    public Actor3D(
         string name,
-        Vector2 position,
-        Scene2D scene
+        Vector3 position,
+        Model model,
+        Scene3D scene
     ) {
-        this.Transform = new Transform2D(position);
+        this.model = model;
+        this.Transform = new Transform3D(position);
         this.Name = name;
         this.Scene = scene;
     }
@@ -76,17 +81,18 @@ public abstract class Actor2D : IActor2D, IDebugDrawable {
     /// <param name="deltaTime">Time passed since last fixed update call</param>
     public virtual void PhysicsUpdate(float deltaTime) { }
 
-    /// <summary>
-    /// Draws this actor into the scene, must be defined in child classes
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public abstract void Draw(SpriteBatch sb);
+    /// <inheritdoc/>
+    public virtual void Draw(Camera3D camera) {
+        foreach (ModelMesh mesh in model.Meshes) {
+            foreach (BasicEffect e in mesh.Effects) {
+                e.World = Transform.WorldMatrix;
+                e.View = camera.ViewMatrix;
+                e.Projection = camera.ProjectionMatrix;
+            }
 
-    /// <summary>
-    /// Draws debug information for this actor
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DebugDraw(SpriteBatch sb) { }
+            mesh.Draw();
+        }
+    }
 
     /// <summary>
     /// Executes method group for when this actor is added to a scene

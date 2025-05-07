@@ -20,7 +20,8 @@ public class Camera3D {
     }
 
     private Matrix viewProjMat;
-    private float aspectRatio;
+    private Projection projectionType;
+    private float prevAspectRatio;
     private bool projectionDirty;
     private float fov;
     private float orthoWidth;
@@ -36,7 +37,13 @@ public class Camera3D {
     /// <summary>
     /// Gets/sets projection type for this camera
     /// </summary>
-    public Projection ProjectionType { get; set; }
+    public Projection ProjectionType {
+        get => projectionType;
+        set {
+            projectionType = value;
+            projectionDirty = true;
+        }
+    }
 
     /// <summary>
     /// Gets the view matrix of this camera
@@ -117,6 +124,7 @@ public class Camera3D {
     public Camera3D(Vector3 position, float nearPlane, float farPlane) {
         ProjectionType = Projection.Perspective;
         Transform = new Transform3D(position);
+        LookAt(position + new Vector3(0, 0, 1));
         this.NearPlaneDist = nearPlane;
         this.FarPlaneDist = farPlane;
         this.PerspectiveFOV = MathHelper.ToRadians(65);
@@ -129,12 +137,23 @@ public class Camera3D {
     /// Updates camera matrices
     /// </summary>
     public void Update(float aspectRatio) {
-        this.aspectRatio = aspectRatio;
-
-        if (projectionDirty) UpdateProjection();
         UpdateView();
+        if (projectionDirty || aspectRatio != prevAspectRatio) {
+            UpdateProjection(aspectRatio);
+        }
 
         viewProjMat = ViewMatrix * ProjectionMatrix;
+        prevAspectRatio = aspectRatio;
+    }
+
+    /// <summary>
+    /// Rotates camera to look at a world position
+    /// </summary>
+    /// <param name="targetPosition">Position to look at</param>
+    public void LookAt(Vector3 targetPosition) {
+        Transform.GlobalRotation = Quaternion.CreateFromRotationMatrix(
+            Matrix.CreateLookAt(Transform.GlobalPosition, targetPosition, Vector3.Up)
+        );
     }
 
     // /// <summary>
@@ -169,7 +188,7 @@ public class Camera3D {
         );
     }
 
-    private void UpdateProjection() {
+    private void UpdateProjection(float aspectRatio) {
         switch (ProjectionType) {
             case Projection.Perspective:
                 ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(
@@ -190,6 +209,6 @@ public class Camera3D {
                 break;
         }
 
-        projectionDirty = true;
+        projectionDirty = false;
     }
 }

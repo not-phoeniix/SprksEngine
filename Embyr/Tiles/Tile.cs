@@ -8,7 +8,7 @@ namespace Embyr.Tiles;
 /// <summary>
 /// Immovable tile struct, collides with other actors and can be instantiated within a <c>TileMap</c>
 /// </summary>
-public abstract class Tile<T> : ITransform2D, IDrawable, IDebugDrawable where T : Enum {
+public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable where T : Enum {
     #region // Static members
 
     /// <summary>

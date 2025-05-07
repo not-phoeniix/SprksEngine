@@ -5,7 +5,7 @@ namespace Embyr.Scenes;
 /// <summary>
 /// Interface that represents an actor object within the world, depends on IDrawable
 /// </summary>
-public interface IActor : IDrawable {
+public interface IActor {
     /// <summary>
     /// Event called when actor is removed from scene
     /// </summary>

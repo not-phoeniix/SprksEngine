@@ -7,7 +7,7 @@ namespace Embyr.Physics;
 /// <summary>
 /// Inverse Kinematics chain using the FABRIK solver
 /// </summary>
-public class IKChain : IDrawable, IDebugDrawable {
+public class IKChain : IDrawable2D, IDebugDrawable {
     //* WOWSA !! this was SO EASY to implement :D
     //*   many many thanks to the awesome video that helped me figure
     //*   out the FABRIK solver !!

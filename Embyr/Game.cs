@@ -64,7 +64,8 @@ public enum GameLayer {
 /// </summary>
 public abstract class Game : Microsoft.Xna.Framework.Game {
     public enum RenderPipeline {
-        Deferred2D
+        Deferred2D,
+        Forward3D
     }
 
     /// <summary>
@@ -122,7 +123,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     private GameSetupParams setupParams;
 
     private bool isActivePrev;
-    private Menu loadingMenu;
+    private Menu? loadingMenu;
     private Point prevWindowedSize;
 
     private Rectangle canvasDestination;
@@ -175,7 +176,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         setupParams = SetupGame();
 
         if (setupParams.InitialScene == null) {
-            throw new Exception("Cannot set up game with null initial scene!");
+            throw new NullReferenceException("Cannot set up game with null initial scene!");
         }
 
         EngineSettings.GameCanvasResolution = setupParams.CanvasRes;
@@ -215,6 +216,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         renderer = setupParams.RenderPipeline switch {
             RenderPipeline.Deferred2D => new RendererDeferred2D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
+            RenderPipeline.Forward3D => new RendererForward3D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
             _ => throw new Exception("Inputted render pipeline not recognized!")
         };
 
@@ -223,7 +225,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
 
         // set up scene when loading content !!
-        SceneManager.I.Init(this, setupParams.InitialScene);
+        SceneManager.I.Init(this, setupParams.InitialScene!);
     }
 
     /// <summary>
@@ -374,7 +376,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// <summary>
     /// Method that is run every time the window is resized
     /// </summary>
-    private void OnResize(object sender, EventArgs e) {
+    private void OnResize(object? sender, EventArgs? e) {
         if (!isResizing && Window.ClientBounds.Width > 0 && Window.ClientBounds.Height > 0) {
             isResizing = true;
 

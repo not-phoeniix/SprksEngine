@@ -10,7 +10,7 @@ namespace Embyr.Scenes;
 /// A layer that does parallax scrolling, grabs current camera and
 /// uses inputted speed to create depth effect
 /// </summary>
-public class ParallaxLayer : IDrawable {
+public class ParallaxLayer : IDrawable2D {
     private readonly Sprite sprite;
     private readonly float speed;
     private readonly bool hRepeat;

@@ -34,7 +34,7 @@ public sealed class Transform3D {
         get => parent;
         set {
             // apply offsets whenever changing what the parent is
-            if (matricesDirty) RecalculateMatrices();
+            if (parentGlobalsDirty) RecalculateParentGlobals();
             localPos += parentGlobalPos;
             localRotation *= parentGlobalRotation;
             localScale *= parentGlobalScale;
@@ -44,12 +44,32 @@ public sealed class Transform3D {
             parent?.children.Remove(this);
             parent = value;
             parent?.children.Add(this);
-            RecalculateMatrices();
+            RecalculateParentGlobals();
 
             // re-remove offsets after new parent has been set
             localPos -= parentGlobalPos;
             localRotation /= parentGlobalRotation;
             localScale /= parentGlobalScale;
+        }
+    }
+
+    /// <summary>
+    /// Gets the world transformation matrix for this transform
+    /// </summary>
+    public Matrix WorldMatrix {
+        get {
+            if (matricesDirty) RecalculateMatrices();
+            return worldMatrix;
+        }
+    }
+
+    /// <summary>
+    /// Gets the world inverse transpose transformation matrix for this transform
+    /// </summary>
+    public Matrix WorldInverseTranspose {
+        get {
+            if (matricesDirty) RecalculateMatrices();
+            return worldInverseTranspose;
         }
     }
 
@@ -60,6 +80,7 @@ public sealed class Transform3D {
         get => localPos;
         set {
             localPos = value;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
         }
     }
@@ -69,13 +90,14 @@ public sealed class Transform3D {
     /// </summary>
     public Vector3 GlobalPosition {
         get {
-            if (matricesDirty) RecalculateMatrices();
-            return localPos + parent?.GlobalPosition ?? Vector3.Zero;
+            if (parentGlobalsDirty) RecalculateParentGlobals();
+            return localPos + parentGlobalPos;
         }
 
         set {
-            if (matricesDirty) RecalculateMatrices();
-            localPos = value - parent?.GlobalPosition ?? Vector3.Zero;
+            if (parentGlobalsDirty) RecalculateParentGlobals();
+            localPos = value - parentGlobalPos;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
         }
     }
@@ -87,6 +109,7 @@ public sealed class Transform3D {
         get => localScale;
         set {
             localScale = value;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
         }
     }
@@ -96,41 +119,44 @@ public sealed class Transform3D {
     /// </summary>
     public Vector3 GlobalScale {
         get {
-            if (matricesDirty) RecalculateMatrices();
-            return localScale = parentGlobalScale;
+            if (parentGlobalsDirty) RecalculateParentGlobals();
+            return parentGlobalScale * localScale;
         }
 
         set {
-            if (matricesDirty) RecalculateMatrices();
-            localScale = value - parentGlobalScale;
+            if (parentGlobalsDirty) RecalculateParentGlobals();
+            localScale = value / parentGlobalScale;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
         }
     }
 
     /// <summary>
-    /// Gets/sets the rotation of this transform relative to the parent
+    /// Gets/sets the rotation qaternion of this transform relative to the parent
     /// </summary>
     public Quaternion Rotation {
         get => localRotation;
         set {
             localRotation = value;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
             MarkDirectionalsDirty();
         }
     }
 
     /// <summary>
-    /// Gets/sets the global rotation of this transform
+    /// Gets/sets the global rotation quaternion of this transform
     /// </summary>
     public Quaternion GlobalRotation {
         get {
-            if (matricesDirty) RecalculateMatrices();
-            return localRotation * parentGlobalRotation;
+            if (parentGlobalsDirty) RecalculateParentGlobals();
+            return parentGlobalRotation * localRotation;
         }
 
         set {
-            if (matricesDirty) RecalculateMatrices();
+            if (parentGlobalsDirty) RecalculateParentGlobals();
             localRotation = value / parentGlobalRotation;
+            MarkParentGlobalsDirty();
             MarkMatricesDirty();
             MarkDirectionalsDirty();
         }
@@ -258,7 +284,7 @@ public sealed class Transform3D {
 
         // calculate all transforms...
         Matrix transMat = Matrix.CreateTranslation(localPos + parentGlobalPos);
-        Matrix rotMat = Matrix.CreateFromQuaternion(localRotation * parentGlobalRotation);
+        Matrix rotMat = Matrix.CreateFromQuaternion(parentGlobalRotation * localRotation);
         Matrix scaleMat = Matrix.CreateScale(localScale + parentGlobalScale);
 
         // then combine to internal matrices !
@@ -270,8 +296,8 @@ public sealed class Transform3D {
     }
 
     private void RecalculateDirectionals() {
-        right = Vector3.Transform(new Vector3(1, 0, 0), GlobalRotation);
-        up = Vector3.Transform(new Vector3(0, 1, 0), GlobalRotation);
+        right = Vector3.Transform(Vector3.Right, GlobalRotation);
+        up = Vector3.Transform(Vector3.Up, GlobalRotation);
         forward = Vector3.Transform(new Vector3(0, 0, 1), GlobalRotation);
         directionalsDirty = false;
     }
