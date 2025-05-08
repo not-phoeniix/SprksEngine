@@ -58,7 +58,7 @@ public class Camera3D {
     /// <summary>
     /// Gets the bounds of the camera view (in world space)
     /// </summary>
-    public BoundingFrustum ViewBounds => new(viewProjMat);
+    public BoundingFrustum ViewBounds { get; private set; }
 
     /// <summary>
     /// Gets/sets the field of view of this camera when in perspective mode
@@ -137,23 +137,32 @@ public class Camera3D {
     /// Updates camera matrices
     /// </summary>
     public void Update(float aspectRatio) {
+        // clamp looking rotation to prevent upside down looking!
+        Transform.GlobalRotation = new Vector3(
+            Math.Clamp(Transform.GlobalRotation.X, MathHelper.ToRadians(-89), MathHelper.ToRadians(89)),
+            Transform.GlobalRotation.Y,
+            Transform.GlobalRotation.Z
+        );
+
         UpdateView();
         if (projectionDirty || aspectRatio != prevAspectRatio) {
             UpdateProjection(aspectRatio);
         }
 
         viewProjMat = ViewMatrix * ProjectionMatrix;
+        ViewBounds = new BoundingFrustum(viewProjMat);
         prevAspectRatio = aspectRatio;
     }
 
     /// <summary>
-    /// Rotates camera to look at a world position
+    /// Rotates camera to look at a world position, locks roll to zero
     /// </summary>
     /// <param name="targetPosition">Position to look at</param>
     public void LookAt(Vector3 targetPosition) {
-        Transform.GlobalRotation = Quaternion.CreateFromRotationMatrix(
-            Matrix.CreateLookAt(Transform.GlobalPosition, targetPosition, Vector3.Up)
-        );
+        Vector3 delta = targetPosition - Transform.GlobalPosition;
+        float yaw = MathF.Atan2(delta.X, delta.Z);
+        float pitch = -MathF.Atan2(delta.Y, delta.X);
+        Transform.GlobalRotation = new Vector3(pitch, yaw, 0);
     }
 
     // /// <summary>

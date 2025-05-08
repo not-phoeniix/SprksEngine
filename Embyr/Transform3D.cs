@@ -11,12 +11,12 @@ public sealed class Transform3D {
 
     private Vector3 localPos;
     private Vector3 localScale;
-    private Quaternion localRotation;
+    private Vector3 localRotation;
 
     bool parentGlobalsDirty;
     private Vector3 parentGlobalPos;
     private Vector3 parentGlobalScale;
-    private Quaternion parentGlobalRotation;
+    private Vector3 parentGlobalRotation;
 
     private bool matricesDirty;
     private Matrix worldMatrix;
@@ -132,9 +132,9 @@ public sealed class Transform3D {
     }
 
     /// <summary>
-    /// Gets/sets the rotation qaternion of this transform relative to the parent
+    /// Gets/sets the rotation of this transform relative to the parent in PITCH/YAW/ROLL format
     /// </summary>
-    public Quaternion Rotation {
+    public Vector3 Rotation {
         get => localRotation;
         set {
             localRotation = value;
@@ -145,17 +145,17 @@ public sealed class Transform3D {
     }
 
     /// <summary>
-    /// Gets/sets the global rotation quaternion of this transform
+    /// Gets/sets the global rotation of this transform in PITCH/YAW/ROLL format
     /// </summary>
-    public Quaternion GlobalRotation {
+    public Vector3 GlobalRotation {
         get {
             if (parentGlobalsDirty) RecalculateParentGlobals();
-            return parentGlobalRotation * localRotation;
+            return parentGlobalRotation + localRotation;
         }
 
         set {
             if (parentGlobalsDirty) RecalculateParentGlobals();
-            localRotation = value / parentGlobalRotation;
+            localRotation = value - parentGlobalRotation;
             MarkParentGlobalsDirty();
             MarkMatricesDirty();
             MarkDirectionalsDirty();
@@ -199,7 +199,7 @@ public sealed class Transform3D {
     /// <param name="scale">Scale of transform</param>
     /// <param name="rotation">Rotation of transform</param>
     /// <param name="parent">Reference to parent transform object</param>
-    public Transform3D(Vector3 position, Vector3 scale, Quaternion rotation, Transform3D? parent = null) {
+    public Transform3D(Vector3 position, Vector3 scale, Vector3 rotation, Transform3D? parent = null) {
         this.localPos = position;
         this.localScale = scale;
         this.localRotation = rotation;
@@ -213,7 +213,7 @@ public sealed class Transform3D {
     /// Creates a new Transform object
     /// </summary>
     /// <param name="position">Position of transform</param>
-    public Transform3D(Vector3 position) : this(position, Vector3.One, Quaternion.Identity) { }
+    public Transform3D(Vector3 position) : this(position, Vector3.One, Vector3.Zero) { }
 
     /// <summary>
     /// Creates a new Transform object at (0, 0) with default scale and rotation
@@ -221,10 +221,10 @@ public sealed class Transform3D {
     public Transform3D() {
         this.localPos = Vector3.Zero;
         this.localScale = Vector3.One;
-        this.localRotation = Quaternion.Identity;
+        this.localRotation = Vector3.Zero;
         this.parentGlobalPos = Vector3.Zero;
         this.parentGlobalScale = Vector3.One;
-        this.parentGlobalRotation = Quaternion.Identity;
+        this.parentGlobalRotation = Vector3.Zero;
         this.children = new List<Transform3D>();
         this.parent = null;
     }
@@ -273,7 +273,7 @@ public sealed class Transform3D {
         } else {
             parentGlobalPos = Vector3.Zero;
             parentGlobalScale = Vector3.One;
-            parentGlobalRotation = Quaternion.Identity;
+            parentGlobalRotation = Vector3.Zero;
         }
 
         parentGlobalsDirty = false;
@@ -284,7 +284,8 @@ public sealed class Transform3D {
 
         // calculate all transforms...
         Matrix transMat = Matrix.CreateTranslation(localPos + parentGlobalPos);
-        Matrix rotMat = Matrix.CreateFromQuaternion(parentGlobalRotation * localRotation);
+        Vector3 pyr = parentGlobalRotation + localRotation;
+        Matrix rotMat = Matrix.CreateFromYawPitchRoll(pyr.Y, pyr.X, pyr.Z);
         Matrix scaleMat = Matrix.CreateScale(localScale + parentGlobalScale);
 
         // then combine to internal matrices !
@@ -296,9 +297,11 @@ public sealed class Transform3D {
     }
 
     private void RecalculateDirectionals() {
-        right = Vector3.Transform(Vector3.Right, GlobalRotation);
-        up = Vector3.Transform(Vector3.Up, GlobalRotation);
-        forward = Vector3.Transform(new Vector3(0, 0, 1), GlobalRotation);
+        Matrix rotation = Matrix.CreateFromYawPitchRoll(GlobalRotation.Y, GlobalRotation.X, GlobalRotation.Z);
+
+        right = Vector3.Transform(new Vector3(1, 0, 0), rotation);
+        up = Vector3.Transform(new Vector3(0, 1, 0), rotation);
+        forward = Vector3.Transform(new Vector3(0, 0, 1), rotation);
         directionalsDirty = false;
     }
 

@@ -20,5 +20,31 @@ public class RendererForward3D : Renderer3D {
         foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {
             actor.Draw(scene.Camera);
         }
+
+        // render all post processing effects !!
+        RenderTarget2D prevTarget = MainLayer.RenderTarget;
+        for (int i = 0; i < PostProcessingEffects.Count; i++) {
+            // just don't do any post processing if it's disabled!
+            if (!Settings.EnablePostProcessing) break;
+
+            // grab reference to iteration effect, skip if disabled
+            PostProcessingEffect fx = PostProcessingEffects[i];
+            if (!fx.Enabled) continue;
+
+            fx.InputRenderTarget = prevTarget;
+            fx.Draw(SpriteBatch);
+
+            prevTarget = fx.FinalRenderTarget;
+        }
+
+        // draw final post process layer BACK to world layer
+        //   (if any post processes were used in the first place)
+        if (prevTarget != MainLayer.RenderTarget) {
+            MainLayer.ScreenSpaceEffect = null;
+            MainLayer.DrawTo(
+                () => SpriteBatch.Draw(prevTarget, Vector2.Zero, Color.White),
+                SpriteBatch
+            );
+        }
     }
 }

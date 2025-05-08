@@ -29,7 +29,7 @@ public class Game : Embyr.Game {
 
         PostProcessingEffect[] fx = [
             new BloomPostProcessingEffect(GraphicsDevice) {
-                LuminanceThreshold = 0.95f,
+                LuminanceThreshold = 0.5f,
                 NumBlurPasses = 4
             }
         ];
@@ -38,6 +38,5 @@ public class Game : Embyr.Game {
             RendererSettings = rSettings,
             PostProcessingEffects = fx
         };
-
     }
 }
