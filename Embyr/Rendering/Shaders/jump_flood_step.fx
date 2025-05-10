@@ -1,4 +1,4 @@
-#include "frag_header.fxh"
+#include "2d_defines.fxh"
 
 //! jump flood algorithm conceptualized from this article:
 //!   https://blog.demofox.org/2016/02/29/fast-voronoi-diagrams-and-distance-dield-textures-on-the-gpu-with-the-jump-flooding-algorithm/

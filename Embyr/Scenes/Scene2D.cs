@@ -23,7 +23,7 @@ public abstract class Scene2D : Scene {
     }
 
     public override void LoadContent() {
-        fxSolidColor = ShaderManager.I.LoadShader("solid_color", ShaderManager.ShaderProfile.OpenGL);
+        fxSolidColor = ShaderManager.I.LoadShader("solid_color");
         Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
         base.LoadContent();
     }

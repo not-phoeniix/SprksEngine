@@ -32,9 +32,9 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
     }
 
     public BloomPostProcessingEffect(GraphicsDevice gd, float luminanceThreshold = 0.95f, int numBlurPasses = 2) : base(gd) {
-        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur", ShaderManager.ShaderProfile.OpenGL);
-        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine", ShaderManager.ShaderProfile.OpenGL);
+        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold");
+        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur");
+        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine");
 
         LuminanceThreshold = luminanceThreshold;
         this.numBlurPasses = numBlurPasses;

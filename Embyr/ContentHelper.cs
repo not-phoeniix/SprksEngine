@@ -9,6 +9,7 @@ using MonoGame.Aseprite;
 using MonoGame.Aseprite.Content.Processors;
 using MonoGame.Aseprite.Sprites;
 using System.Reflection;
+using Embyr.Rendering;
 
 namespace Embyr;
 
@@ -17,6 +18,7 @@ namespace Embyr;
 /// </summary>
 public class ContentHelper : Singleton<ContentHelper> {
     private Microsoft.Xna.Framework.Game game;
+    private Game.RenderPipeline pipeline;
     private ContentManager localContent;
     private readonly Dictionary<string, AFont> globalAFontCache = new();
 
@@ -25,6 +27,7 @@ public class ContentHelper : Singleton<ContentHelper> {
     private readonly Dictionary<string, AFont> aFontCache = new();
     private readonly Dictionary<string, Texture2D> tilesetCache = new();
     private readonly Dictionary<string, ParallaxBackground> parallaxCache = new();
+    private readonly Dictionary<string, GameMesh> gameMeshCache = new();
 
     /// <summary>
     /// Gets the root directory of the game's content managers
@@ -35,8 +38,9 @@ public class ContentHelper : Singleton<ContentHelper> {
     /// Initializes the content helper singleton
     /// </summary>
     /// <param name="game">Game to initialize content from</param>
-    public void Init(Microsoft.Xna.Framework.Game game) {
+    public void Init(Microsoft.Xna.Framework.Game game, Game.RenderPipeline pipeline) {
         this.game = game;
+        this.pipeline = pipeline;
         LocalReset();
     }
 
@@ -49,6 +53,7 @@ public class ContentHelper : Singleton<ContentHelper> {
         aFontCache.Clear();
         tilesetCache.Clear();
         parallaxCache.Clear();
+        gameMeshCache.Clear();
 
         localContent?.Unload();
         localContent?.Dispose();
@@ -81,6 +86,8 @@ public class ContentHelper : Singleton<ContentHelper> {
             return (T)GetContentTileset(contentName);
         } else if (type == typeof(ParallaxBackground)) {
             return (T)GetContentParallaxBg(contentName);
+        } else if (type == typeof(GameMesh)) {
+            return (T)GetContentGameMesh(contentName);
         }
 
         return localContent.Load<T>(contentName);
@@ -207,6 +214,21 @@ public class ContentHelper : Singleton<ContentHelper> {
         }
 
         return parallax;
+    }
+
+    /// <summary>
+    /// Gets a GameMesh from internal scene cache
+    /// </summary>
+    /// <param name="contentName">Content string path to mesh</param>
+    /// <returns>Reference to cached game mesh</returns>
+    private object GetContentGameMesh(string contentName) {
+        if (!gameMeshCache.TryGetValue(contentName, out GameMesh mesh)) {
+            Model model = localContent.Load<Model>(contentName);
+            mesh = ShaderManager.I.MakeMesh(model, pipeline);
+            gameMeshCache[contentName] = mesh;
+        }
+
+        return mesh;
     }
 
     #endregion

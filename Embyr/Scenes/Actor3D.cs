@@ -1,3 +1,4 @@
+using Embyr.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,7 +10,7 @@ namespace Embyr.Scenes;
 public abstract class Actor3D : IActor3D {
     #region // Fields & Properties
 
-    private readonly Model model;
+    private readonly GameMesh gameMesh;
 
     /// <summary>
     /// Gets the transform of this actor
@@ -52,16 +53,16 @@ public abstract class Actor3D : IActor3D {
     /// Creates a new Actor3D object
     /// </summary>
     /// <param name="name">Name of this actor</param>
-    /// <param name="model">Model of actor to render</param>
+    /// <param name="gameMesh">3D mesh of actor to draw</param>
     /// <param name="position">Initial position</param>
     /// <param name="scene">Scene to place this actor in</param>
     public Actor3D(
         string name,
         Vector3 position,
-        Model model,
+        GameMesh gameMesh,
         Scene3D scene
     ) {
-        this.model = model;
+        this.gameMesh = gameMesh;
         this.Transform = new Transform3D(position);
         this.Name = name;
         this.Scene = scene;
@@ -83,15 +84,7 @@ public abstract class Actor3D : IActor3D {
 
     /// <inheritdoc/>
     public virtual void Draw(Camera3D camera) {
-        foreach (ModelMesh mesh in model.Meshes) {
-            foreach (BasicEffect e in mesh.Effects) {
-                e.World = Transform.WorldMatrix;
-                e.View = camera.ViewMatrix;
-                e.Projection = camera.ProjectionMatrix;
-            }
-
-            mesh.Draw();
-        }
+        gameMesh.Draw(Transform, camera);
     }
 
     /// <summary>

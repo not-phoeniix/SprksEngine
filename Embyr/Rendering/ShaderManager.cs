@@ -5,20 +5,23 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr.Rendering;
 
 internal class ShaderManager : Singleton<ShaderManager> {
-    private readonly Dictionary<string, Effect> shaderCache = new();
-    private GraphicsDevice gd;
-
     public enum ShaderProfile {
         OpenGL,
         DirectX
     }
 
+    private readonly Dictionary<string, Effect> shaderCache = new();
+    private GraphicsDevice gd;
+    private ShaderProfile profile;
+
     /// <summary>
     /// Initializes the shader manager
     /// </summary>
     /// <param name="gd">Graphics device to create shaders with</param>
-    public void Init(GraphicsDevice gd) {
+    /// <param name="profile">Graphics profile of program</param>
+    public void Init(GraphicsDevice gd, ShaderProfile profile) {
         this.gd = gd;
+        this.profile = profile;
     }
 
     /// <summary>
@@ -27,7 +30,7 @@ internal class ShaderManager : Singleton<ShaderManager> {
     /// <param name="shaderName"></param>
     /// <param name="profile"></param>
     /// <returns></returns>
-    public Effect LoadShader(string shaderName, ShaderProfile profile) {
+    public Effect LoadShader(string shaderName) {
         string profileSuffix = profile switch {
             ShaderProfile.OpenGL => "gl",
             ShaderProfile.DirectX => "dx",
@@ -54,6 +57,21 @@ internal class ShaderManager : Singleton<ShaderManager> {
         }
 
         shaderCache.Clear();
+    }
+
+    /// <summary>
+    /// Creates a new GameMesh according to desired pipeline settings
+    /// </summary>
+    /// <param name="model">Model to create mesh from</param>
+    /// <param name="pipeline">Pipeline to load shaders from</param>
+    /// <returns>A new GameMesh instance</returns>
+    public GameMesh MakeMesh(Model model, Game.RenderPipeline pipeline) {
+        Effect shader = pipeline switch {
+            Game.RenderPipeline.Forward3D => LoadShader("3d_forward"),
+            _ => throw new Exception($"Pipeline {pipeline} not valid for 3D mesh creation!")
+        };
+
+        return new GameMesh(model, shader);
     }
 
     /// <summary>

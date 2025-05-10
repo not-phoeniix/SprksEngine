@@ -1,4 +1,4 @@
-﻿#include "frag_header.fxh"
+﻿#include "2d_defines.fxh"
 
 Texture2D SpriteTexture;
 

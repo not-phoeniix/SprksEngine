@@ -1,4 +1,5 @@
 using Embyr;
+using Embyr.Rendering;
 using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,7 +17,7 @@ public class TestActor : Actor3D {
     public override bool ShouldBeSaved => false;
 
     public TestActor(string name, Vector3 position, Scene3D scene)
-    : base(name, position, ContentHelper.I.Load<Model>("cube"), scene) {
+    : base(name, position, ContentHelper.I.Load<GameMesh>("cube"), scene) {
     }
 
     public override void Draw(Camera3D camera) {
@@ -26,7 +27,7 @@ public class TestActor : Actor3D {
     public override void Update(float deltaTime) {
         timeSum += deltaTime;
 
-        // Transform.GlobalPosition = new Vector3(timeSum * 2, 0, 0);
+        Transform.GlobalRotation = new Vector3(0, timeSum * 0.5f, 0);
 
         base.Update(deltaTime);
     }

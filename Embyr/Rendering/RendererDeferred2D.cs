@@ -31,11 +31,11 @@ public class RendererDeferred2D : Renderer2D {
 
     public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
-        fxLightRender = ShaderManager.I.LoadShader("light_render", ShaderManager.ShaderProfile.OpenGL);
-        fxLightCombine = ShaderManager.I.LoadShader("light_combine", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step", ShaderManager.ShaderProfile.OpenGL);
-        fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render", ShaderManager.ShaderProfile.OpenGL);
+        fxLightRender = ShaderManager.I.LoadShader("light_render");
+        fxLightCombine = ShaderManager.I.LoadShader("light_combine");
+        fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed");
+        fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step");
+        fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render");
 
         RecreateRenderTargets(
             EngineSettings.GameCanvasResolution.X,

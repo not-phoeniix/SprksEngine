@@ -209,8 +209,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     }
 
     protected override sealed void LoadContent() {
-        ShaderManager.I.Init(GraphicsDevice);
-        ContentHelper.I.Init(this);
+        ShaderManager.I.Init(GraphicsDevice, ShaderManager.ShaderProfile.OpenGL);
+        ContentHelper.I.Init(this, setupParams.RenderPipeline ?? throw new NullReferenceException("Cannot initialize content manager with null pipeline!"));
 
         RendererSetupParams rParams = SetupRenderer();
 

@@ -6,13 +6,19 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr.Rendering;
 
 public class RendererForward3D : Renderer3D {
+    private readonly Effect forward3D;
+
     public RendererForward3D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
+        forward3D = ShaderManager.I.LoadShader("3d_forward");
     }
 
     public override void RenderScene(Scene inputScene) {
         // don't render non-3D scenes!
         if (inputScene is not Scene3D scene) return;
+
+        // pass shader params
+        forward3D.Parameters["AmbientColor"].SetValue(inputScene.AmbientColor.ToVector3());
 
         GraphicsDevice.SetRenderTarget(MainLayer.RenderTarget);
         GraphicsDevice.Clear(Color.Transparent);

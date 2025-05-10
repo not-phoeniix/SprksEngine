@@ -11,8 +11,8 @@ public class MainScene(string name) : Scene3D(name) {
         TestActor actor = new("test actor!", new Vector3(0, 0, 0), this);
         AddActor(actor);
 
-        TestActor actor2 = new("test actor!", new Vector3(3, 0, 0), this);
-        AddActor(actor2);
+        float ambientGray = 0.03f;
+        AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
 
         base.LoadContent();
 
