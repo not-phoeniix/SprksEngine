@@ -9,7 +9,7 @@ namespace _3DTest;
 
 public class MainScene(string name) : Scene3D(name) {
     private TestActor parentActor;
-    private float timeSum;
+    private TestActor childActor;
 
     public override void LoadContent() {
         base.LoadContent();
@@ -27,7 +27,7 @@ public class MainScene(string name) : Scene3D(name) {
         );
         AddActor(parentActor);
 
-        TestActor actorTwo = new(
+        childActor = new TestActor(
             "test actor 2!",
             new Vector3(3, 3, 3),
             new Material3D() {
@@ -35,25 +35,17 @@ public class MainScene(string name) : Scene3D(name) {
             },
             this
         );
-        // actorTwo.Transform.Parent = parentActor.Transform;
-        // actorTwo.Transform.Position = new Vector3(5, 5, 5);
-        actorTwo.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-        AddActor(actorTwo);
+        childActor.Transform.Parent = parentActor.Transform;
+        childActor.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+        AddActor(childActor);
 
         float ambientGray = 0.03f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
     }
 
     public override void Update(float dt) {
-        timeSum += dt;
-
-        // Camera.Transform.GlobalRotation = Quaternion.CreateFromRotationMatrix(
-        //     Matrix.CreateLookAt(
-        //         Camera.Transform.GlobalPosition,
-        //         actor.Transform.GlobalPosition,
-        //         Vector3.Up
-        //     )
-        // );
+        parentActor.Transform.Rotation += new Vector3(0, dt, 0);
+        childActor.Transform.Rotation += new Vector3(dt, dt, dt);
 
         if (Input.IsLeftMouseDown()) {
             Vector2 delta = Input.MousePosDelta;

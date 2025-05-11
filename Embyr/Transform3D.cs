@@ -36,7 +36,7 @@ public sealed class Transform3D {
             // apply offsets whenever changing what the parent is
             if (parentGlobalsDirty) RecalculateParentGlobals();
             localPos += parentGlobalPos;
-            localRotation *= parentGlobalRotation;
+            localRotation += parentGlobalRotation;
             localScale *= parentGlobalScale;
 
             // actually change parent, updating child refs
@@ -48,7 +48,7 @@ public sealed class Transform3D {
 
             // re-remove offsets after new parent has been set
             localPos -= parentGlobalPos;
-            localRotation /= parentGlobalRotation;
+            localRotation -= parentGlobalRotation;
             localScale /= parentGlobalScale;
         }
     }
@@ -284,13 +284,14 @@ public sealed class Transform3D {
         if (parentGlobalsDirty) RecalculateParentGlobals();
 
         // calculate all transforms...
-        Matrix transMat = Matrix.CreateTranslation(localPos + parentGlobalPos);
-        Vector3 pyr = parentGlobalRotation + localRotation;
+        Matrix transMat = Matrix.CreateTranslation(localPos);
+        Vector3 pyr = localRotation;
         Matrix rotMat = Matrix.CreateFromYawPitchRoll(pyr.Y, pyr.X, pyr.Z);
-        Matrix scaleMat = Matrix.CreateScale(localScale * parentGlobalScale);
+        Matrix scaleMat = Matrix.CreateScale(localScale);
 
         // then combine to internal matrices !
         worldMatrix = scaleMat * rotMat * transMat;
+        if (parent != null) worldMatrix *= parent.WorldMatrix;
         worldInverseTranspose = Matrix.Transpose(Matrix.Invert(worldMatrix));
 
         // after recalculating we're no longer dirty!
