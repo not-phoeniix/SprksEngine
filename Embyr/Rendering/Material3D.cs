@@ -62,6 +62,7 @@ public class Material3D {
         Shader.Parameters["WorldInverseTranspose"].SetValue(WorldInverseTranspose);
         Shader.Parameters["View"].SetValue(View);
         Shader.Parameters["Projection"].SetValue(Projection);
+        Shader.Parameters["Gamma"].SetValue(EngineSettings.Gamma);
 
         foreach (EffectPass pass in Shader.CurrentTechnique.Passes) {
             pass.Apply();

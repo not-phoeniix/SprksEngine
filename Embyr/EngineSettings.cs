@@ -57,6 +57,8 @@ public static class EngineSettings {
 
     public static Color RenderClearColor { get; set; } = Palette.Col2;
 
+    public static float Gamma { get; set; } = 2.2f;
+
     /// <summary>
     /// Toggles the value of <c>EngineSettings.ShowDebugDrawing</c>
     /// </summary>

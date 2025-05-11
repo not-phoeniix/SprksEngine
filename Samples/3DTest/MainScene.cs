@@ -37,26 +37,7 @@ public class MainScene(string name) : Scene3D(name) {
         childActor.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
         AddActor(childActor);
 
-        int gridSize = 5;
-        float boxSize = 3;
-        for (int z = 0; z < gridSize; z++) {
-            for (int x = 0; x < gridSize; x++) {
-                AddActor(new TestActor(
-                    "wow...",
-                    new Vector3(
-                        (-gridSize / 2 + x) * boxSize,
-                        -4,
-                        (-gridSize / 2 + z) * boxSize
-                    ),
-                    new Material3D() {
-                        SurfaceColor = Color.Gray
-                    },
-                    this
-                ));
-            }
-        }
-
-        float ambientGray = 0.03f;
+        float ambientGray = 0.01f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
     }
 
@@ -72,11 +53,6 @@ public class MainScene(string name) : Scene3D(name) {
                 -delta.X * dt,
                 0
             );
-        }
-
-        if (Input.IsRightMouseDown()) {
-            parentActor.Transform.GlobalPosition += Camera.Transform.Right * -Input.MousePosDelta.X * 0.05f;
-            parentActor.Transform.GlobalPosition += Camera.Transform.Up * -Input.MousePosDelta.Y * 0.05f;
         }
 
         Camera.Transform.GlobalPosition += Camera.Transform.Forward * -Input.MoveDirection.Y * dt * 8;

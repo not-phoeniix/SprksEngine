@@ -7,6 +7,7 @@ matrix WorldInverseTranspose;
 
 float3 AmbientColor;
 float3 SurfaceColor;
+float Gamma;
 
 PSInput MainVS(in VSInput input) {
     PSInput output = (PSInput)0;
@@ -32,7 +33,8 @@ float4 MainPS(PSInput input) : COLOR {
 
     lightSum += diffuse;
 
-    return float4(lightSum * SurfaceColor, 1.0);
+    // gamma correction :]
+    return float4(pow(lightSum * SurfaceColor, 1.0 / Gamma), 1.0);
 }
 
 technique MainShading {
