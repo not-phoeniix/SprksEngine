@@ -13,8 +13,6 @@ public class MainScene(string name) : Scene3D(name) {
 
     public override void LoadContent() {
         base.LoadContent();
-
-        // Camera.Transform.GlobalPosition = new Vector3(0, 0, 10);
         Camera.PerspectiveFOV = MathHelper.ToRadians(90);
 
         parentActor = new(

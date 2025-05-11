@@ -14,10 +14,11 @@ public abstract class Scene3D : Scene {
         localLights = new Octree<Light3D>(Vector3.One * -10_000, Vector3.One * 10_000);
         globalLights = new List<Light3D>();
         Camera = new Camera3D(new Vector3(-10, 10, -10), 0.01f, 1000.0f);
-        Camera.LookAt(Vector3.Zero);
     }
 
     public override void LoadContent() {
+        Camera.Transform.GlobalPosition = new Vector3(-10, 10, -10);
+        Camera.LookAt(Vector3.Zero);
         base.LoadContent();
     }
 
