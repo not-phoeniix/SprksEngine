@@ -60,21 +60,6 @@ internal class ShaderManager : Singleton<ShaderManager> {
     }
 
     /// <summary>
-    /// Creates a new GameMesh according to desired pipeline settings
-    /// </summary>
-    /// <param name="model">Model to create mesh from</param>
-    /// <param name="pipeline">Pipeline to load shaders from</param>
-    /// <returns>A new GameMesh instance</returns>
-    public GameMesh MakeMesh(Model model, Game.RenderPipeline pipeline) {
-        Effect shader = pipeline switch {
-            Game.RenderPipeline.Forward3D => LoadShader("3d_forward"),
-            _ => throw new Exception($"Pipeline {pipeline} not valid for 3D mesh creation!")
-        };
-
-        return new GameMesh(model, shader);
-    }
-
-    /// <summary>
     /// Creates a new Effect from a precompiled embedded resource in this project
     /// </summary>
     /// <param name="resourceName">Name of compiled shader resource</param>

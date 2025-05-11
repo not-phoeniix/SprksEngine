@@ -8,7 +8,6 @@ namespace Embyr.Rendering;
 /// </summary>
 public class GameMesh {
     private readonly Model model;
-    internal readonly Effect shader;
     private readonly GraphicsDevice gd;
 
     /// <summary>
@@ -16,10 +15,9 @@ public class GameMesh {
     /// </summary>
     /// <param name="model">3D model to draw</param>
     /// <param name="shader">Shader to draw with</param>
-    public GameMesh(Model model, Effect shader) {
+    public GameMesh(Model model, GraphicsDevice gd) {
         this.model = model;
-        this.shader = shader;
-        this.gd = shader.GraphicsDevice ?? throw new NullReferenceException("Cannot initialize game mesh with null GraphicsDevice!");
+        this.gd = gd ?? throw new NullReferenceException("Cannot initialize game mesh with null GraphicsDevice!");
     }
 
     /// <summary>
@@ -27,12 +25,8 @@ public class GameMesh {
     /// </summary>
     /// <param name="transform">3D transform to render mesh at</param>
     /// <param name="camera">Camera to view mesh with</param>
-    public void Draw(Transform3D transform, Camera3D camera) {
-        shader.Parameters["World"].SetValue(transform.WorldMatrix);
-        shader.Parameters["WorldInverseTranspose"]?.SetValue(transform.WorldInverseTranspose);
-        shader.Parameters["View"].SetValue(camera.ViewMatrix);
-        shader.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
-
+    /// <param name="material">To use when drawing this mesh</param>
+    public void Draw(Transform3D transform, Camera3D camera, Material3D material) {
         foreach (ModelMesh mesh in model.Meshes) {
             foreach (ModelMeshPart part in mesh.MeshParts) {
                 // drawing code copied from ModelMesh.Draw(); method, used to
@@ -41,15 +35,12 @@ public class GameMesh {
                     gd.SetVertexBuffer(part.VertexBuffer);
                     gd.Indices = part.IndexBuffer;
 
-                    foreach (EffectPass pass in shader.CurrentTechnique.Passes) {
-                        pass.Apply();
-                        gd.DrawIndexedPrimitives(
-                            PrimitiveType.TriangleList,
-                            part.VertexOffset,
-                            part.StartIndex,
-                            part.PrimitiveCount
-                        );
-                    }
+                    material.World = transform.WorldMatrix;
+                    material.WorldInverseTranspose = transform.WorldInverseTranspose;
+                    material.View = camera.ViewMatrix;
+                    material.Projection = camera.ProjectionMatrix;
+
+                    material.ApplyAndDraw(part, PrimitiveType.TriangleList);
                 }
             }
         }

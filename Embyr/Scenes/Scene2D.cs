@@ -20,11 +20,11 @@ public abstract class Scene2D : Scene {
         actors = new Quadtree<IActor2D>(new Point(-10_000), new Point(10_000));
         localLights = new Quadtree<Light2D>(new Point(-10_000), new Point(10_000));
         globalLights = new List<Light2D>();
+        Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
     }
 
     public override void LoadContent() {
         fxSolidColor = ShaderManager.I.LoadShader("solid_color");
-        Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
         base.LoadContent();
     }
 
@@ -32,9 +32,7 @@ public abstract class Scene2D : Scene {
         actors.Clear();
         localLights.Clear();
         globalLights.Clear();
-
         fxSolidColor = null;
-        Camera = null;
         base.Unload();
     }
 

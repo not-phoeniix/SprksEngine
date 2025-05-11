@@ -161,8 +161,8 @@ public class Camera3D {
     public void LookAt(Vector3 targetPosition) {
         Vector3 delta = targetPosition - Transform.GlobalPosition;
         float yaw = MathF.Atan2(delta.X, delta.Z);
-        float pitch = -MathF.Atan2(delta.Y, delta.X);
-        Transform.GlobalRotation = new Vector3(pitch, yaw, 0);
+        // float pitch = -MathF.Atan2(delta.Y, delta.X);
+        Transform.GlobalRotation = new Vector3(0, yaw, 0);
     }
 
     // /// <summary>

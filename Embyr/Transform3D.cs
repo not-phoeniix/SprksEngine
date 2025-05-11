@@ -205,6 +205,7 @@ public sealed class Transform3D {
         this.localRotation = rotation;
         this.parent = parent;
         this.children = new List<Transform3D>();
+        RecalculateParentGlobals();
         RecalculateMatrices();
         RecalculateDirectionals();
     }
@@ -286,7 +287,7 @@ public sealed class Transform3D {
         Matrix transMat = Matrix.CreateTranslation(localPos + parentGlobalPos);
         Vector3 pyr = parentGlobalRotation + localRotation;
         Matrix rotMat = Matrix.CreateFromYawPitchRoll(pyr.Y, pyr.X, pyr.Z);
-        Matrix scaleMat = Matrix.CreateScale(localScale + parentGlobalScale);
+        Matrix scaleMat = Matrix.CreateScale(localScale * parentGlobalScale);
 
         // then combine to internal matrices !
         worldMatrix = scaleMat * rotMat * transMat;

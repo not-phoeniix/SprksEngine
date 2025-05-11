@@ -11,6 +11,7 @@ public abstract class Actor3D : IActor3D {
     #region // Fields & Properties
 
     private readonly GameMesh gameMesh;
+    private readonly Material3D material;
 
     /// <summary>
     /// Gets the transform of this actor
@@ -54,15 +55,18 @@ public abstract class Actor3D : IActor3D {
     /// </summary>
     /// <param name="name">Name of this actor</param>
     /// <param name="gameMesh">3D mesh of actor to draw</param>
+    /// <param name="material">Material of actor associated with rendering mesh</param>
     /// <param name="position">Initial position</param>
     /// <param name="scene">Scene to place this actor in</param>
     public Actor3D(
         string name,
         Vector3 position,
         GameMesh gameMesh,
+        Material3D material,
         Scene3D scene
     ) {
         this.gameMesh = gameMesh;
+        this.material = material;
         this.Transform = new Transform3D(position);
         this.Name = name;
         this.Scene = scene;
@@ -84,7 +88,7 @@ public abstract class Actor3D : IActor3D {
 
     /// <inheritdoc/>
     public virtual void Draw(Camera3D camera) {
-        gameMesh.Draw(Transform, camera);
+        gameMesh.Draw(Transform, camera, material);
     }
 
     /// <summary>

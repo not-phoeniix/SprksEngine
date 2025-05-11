@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Embyr;
+using Embyr.Rendering;
 using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -7,20 +8,45 @@ using Microsoft.Xna.Framework.Input;
 namespace _3DTest;
 
 public class MainScene(string name) : Scene3D(name) {
+    private TestActor parentActor;
+    private float timeSum;
+
     public override void LoadContent() {
-        TestActor actor = new("test actor!", new Vector3(0, 0, 0), this);
-        AddActor(actor);
-
-        float ambientGray = 0.03f;
-        AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
-
         base.LoadContent();
 
         // Camera.Transform.GlobalPosition = new Vector3(0, 0, 10);
         Camera.PerspectiveFOV = MathHelper.ToRadians(90);
+
+        parentActor = new(
+            "test actor!",
+            new Vector3(0, 0, 0),
+            new Material3D() {
+                SurfaceColor = Color.Red
+            },
+            this
+        );
+        AddActor(parentActor);
+
+        TestActor actorTwo = new(
+            "test actor 2!",
+            new Vector3(3, 3, 3),
+            new Material3D() {
+                SurfaceColor = Color.Blue
+            },
+            this
+        );
+        // actorTwo.Transform.Parent = parentActor.Transform;
+        // actorTwo.Transform.Position = new Vector3(5, 5, 5);
+        actorTwo.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+        AddActor(actorTwo);
+
+        float ambientGray = 0.03f;
+        AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
     }
 
     public override void Update(float dt) {
+        timeSum += dt;
+
         // Camera.Transform.GlobalRotation = Quaternion.CreateFromRotationMatrix(
         //     Matrix.CreateLookAt(
         //         Camera.Transform.GlobalPosition,
@@ -28,14 +54,6 @@ public class MainScene(string name) : Scene3D(name) {
         //         Vector3.Up
         //     )
         // );
-
-        if (Input.IsKeyDown(Keys.Left)) {
-            // Camera.Transform.GlobalRotation += new Vector3(0, dt, 0);
-        }
-
-        if (Input.IsKeyDown(Keys.Right)) {
-            // Camera.Transform.GlobalRotation += new Vector3(0, -dt, 0);
-        }
 
         if (Input.IsLeftMouseDown()) {
             Vector2 delta = Input.MousePosDelta;
@@ -61,11 +79,6 @@ public class MainScene(string name) : Scene3D(name) {
         if (Input.IsKeyDown(Keys.RightShift)) {
             Camera.LookAt(Vector3.Zero);
         }
-
-        // Camera.LookAt(actor.Transform.GlobalPosition);
-
-        Debug.WriteLine($"forward: {Camera.Transform.Forward.X} {Camera.Transform.Forward.Y} {Camera.Transform.Forward.Z}");
-        Debug.WriteLine($"pos: {Camera.Transform.GlobalPosition.X} {Camera.Transform.GlobalPosition.Y} {Camera.Transform.GlobalPosition.Z}");
 
         base.Update(dt);
     }

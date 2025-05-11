@@ -224,7 +224,7 @@ public class ContentHelper : Singleton<ContentHelper> {
     private object GetContentGameMesh(string contentName) {
         if (!gameMeshCache.TryGetValue(contentName, out GameMesh mesh)) {
             Model model = localContent.Load<Model>(contentName);
-            mesh = ShaderManager.I.MakeMesh(model, pipeline);
+            mesh = new GameMesh(model, game.GraphicsDevice);
             gameMeshCache[contentName] = mesh;
         }
 

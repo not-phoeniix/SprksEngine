@@ -6,6 +6,7 @@ matrix Projection;
 matrix WorldInverseTranspose;
 
 float3 AmbientColor;
+float3 SurfaceColor;
 
 PSInput MainVS(in VSInput input) {
     PSInput output = (PSInput)0;
@@ -26,11 +27,12 @@ float4 MainPS(PSInput input) : COLOR {
 
     lightSum += AmbientColor;
 
-    float3 diffuse = saturate(dot(input.Normal, normalize(float3(-1.0, 1.0, -2.0)))) * float3(1.0, 0.2, 0.2);
+    float3 lightColor = float3(1.0, 1.0, 1.0);
+    float3 diffuse = saturate(dot(input.Normal, normalize(float3(-1.215, 1.392, -2.124)))) * lightColor;
 
     lightSum += diffuse;
 
-    return float4(lightSum, 1.0);
+    return float4(lightSum * SurfaceColor, 1.0);
 }
 
 technique MainShading {
