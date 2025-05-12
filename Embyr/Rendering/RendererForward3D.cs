@@ -8,6 +8,13 @@ namespace Embyr.Rendering;
 public class RendererForward3D : Renderer3D {
     private readonly Effect forward3D;
 
+    private const int MaxLightsPerPass = 32;
+    private readonly Vector4[] lightPositions = new Vector4[MaxLightsPerPass];
+    private readonly Vector3[] lightColors = new Vector3[MaxLightsPerPass];
+    private readonly Vector3[] lightDirections = new Vector3[MaxLightsPerPass];
+    private readonly float[] lightIntensities = new float[MaxLightsPerPass];
+    private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
+
     public RendererForward3D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
         forward3D = ShaderManager.I.LoadShader("3d_forward");
@@ -17,8 +24,42 @@ public class RendererForward3D : Renderer3D {
         // don't render non-3D scenes!
         if (inputScene is not Scene3D scene) return;
 
+        // set up param arrays for lights in scene
+        int i = 0;
+        foreach (Light3D light in scene.GetAllLightsToRender()) {
+            // don't render lighting
+            if (!Settings.EnableLighting) break;
+
+            // exit early if max lights have been reached
+            if (i >= MaxLightsPerPass) break;
+
+            if (light.Enabled) {
+                lightPositions[i] = new Vector4(
+                    light.Transform.GlobalPosition,
+                    light.IsGlobal ? 1 : 0
+                );
+                lightColors[i] = light.Color.ToVector3();
+                lightDirections[i] = light.Transform.Forward;
+                lightIntensities[i] = light.Intensity;
+                lightSizeParams[i] = new Vector4(
+                    light.Range,
+                    light.SpotInnerAngle,
+                    light.SpotOuterAngle,
+                    0
+                );
+
+                i++;
+            }
+        }
+
         // pass shader params
         forward3D.Parameters["AmbientColor"].SetValue(inputScene.AmbientColor.ToVector3());
+        forward3D.Parameters["Positions"].SetValue(lightPositions);
+        forward3D.Parameters["Colors"].SetValue(lightColors);
+        forward3D.Parameters["Intensities"].SetValue(lightIntensities);
+        forward3D.Parameters["Directions"].SetValue(lightDirections);
+        forward3D.Parameters["SizeParams"].SetValue(lightSizeParams);
+        forward3D.Parameters["NumLights"].SetValue(i);
 
         GraphicsDevice.SetRenderTarget(MainLayer.RenderTarget);
         GraphicsDevice.Clear(Color.Transparent);
@@ -27,30 +68,6 @@ public class RendererForward3D : Renderer3D {
             actor.Draw(scene.Camera);
         }
 
-        // render all post processing effects !!
-        RenderTarget2D prevTarget = MainLayer.RenderTarget;
-        for (int i = 0; i < PostProcessingEffects.Count; i++) {
-            // just don't do any post processing if it's disabled!
-            if (!Settings.EnablePostProcessing) break;
-
-            // grab reference to iteration effect, skip if disabled
-            PostProcessingEffect fx = PostProcessingEffects[i];
-            if (!fx.Enabled) continue;
-
-            fx.InputRenderTarget = prevTarget;
-            fx.Draw(SpriteBatch);
-
-            prevTarget = fx.FinalRenderTarget;
-        }
-
-        // draw final post process layer BACK to world layer
-        //   (if any post processes were used in the first place)
-        if (prevTarget != MainLayer.RenderTarget) {
-            MainLayer.ScreenSpaceEffect = null;
-            MainLayer.DrawTo(
-                () => SpriteBatch.Draw(prevTarget, Vector2.Zero, Color.White),
-                SpriteBatch
-            );
-        }
+        RenderPostProcessing(MainLayer);
     }
 }

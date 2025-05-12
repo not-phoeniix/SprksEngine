@@ -45,4 +45,32 @@ public abstract class Renderer : IResolution {
 
         PostProcessingEffects.Clear();
     }
+
+    protected void RenderPostProcessing(RenderLayer targetLayer) {
+        // render all post processing effects !!
+        RenderTarget2D prevTarget = targetLayer.RenderTarget;
+        for (int i = 0; i < PostProcessingEffects.Count; i++) {
+            // just don't do any post processing if it's disabled!
+            if (!Settings.EnablePostProcessing) break;
+
+            // grab reference to iteration effect, skip if disabled
+            PostProcessingEffect fx = PostProcessingEffects[i];
+            if (!fx.Enabled) continue;
+
+            fx.InputRenderTarget = prevTarget;
+            fx.Draw(SpriteBatch);
+
+            prevTarget = fx.FinalRenderTarget;
+        }
+
+        // draw final post process layer BACK to world layer
+        //   (if any post processes were used in the first place)
+        if (prevTarget != targetLayer.RenderTarget) {
+            targetLayer.ScreenSpaceEffect = null;
+            targetLayer.DrawTo(
+                () => SpriteBatch.Draw(prevTarget, Vector2.Zero, Color.White),
+                SpriteBatch
+            );
+        }
+    }
 }

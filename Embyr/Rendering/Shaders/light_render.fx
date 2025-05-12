@@ -207,13 +207,7 @@ float4 MainPS(VSOutput input) : COLOR {
     float4 additiveTotalColor = float4(0.0, 0.0, 0.0, 0.0);
 
     // iterate across all lights and sum all light colors
-    [unroll(MAX_LIGHTS)] for (int i = 0; i < MAX_LIGHTS; i++) {
-        // break loop when number of lights
-        //   in scene has been surpassed
-        if (i >= NumLights) {
-            break;
-        }
-
+    [unroll(MAX_LIGHTS)] for (int i = 0; i < NumLights; i++) {
         // ~~~ initial light calculations ~~~
         float radius = SizeParams[i].x;
         float angularWidth = SizeParams[i].y;

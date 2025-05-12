@@ -53,7 +53,7 @@ public abstract class Scene3D : Scene {
             yield return light;
         }
 
-        foreach (Light3D light in localLights.GetData(Camera.ViewBounds, true)) {
+        foreach (Light3D light in localLights.GetData(Camera.Transform.GlobalPosition, 1000, true)) {
             yield return light;
         }
     }

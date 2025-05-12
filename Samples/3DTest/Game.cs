@@ -14,6 +14,7 @@ public class Game : Embyr.Game {
         return new GameSetupParams() {
             RenderPipeline = RenderPipeline.Forward3D,
             InitialScene = scene,
+            CanvasRes = new Point(300, 200),
             WindowTitle = "3D test !!",
             EnableVSync = true,
             RenderClearColor = Color.Black

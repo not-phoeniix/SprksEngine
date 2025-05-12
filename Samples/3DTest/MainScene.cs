@@ -11,6 +11,8 @@ public class MainScene(string name) : Scene3D(name) {
     private readonly float cameraLookSpeed = 400;
     private TestActor parentActor;
     private TestActor childActor;
+    private Transform3D orbitLightAnchor;
+    private Light3D orbitLight;
 
     public override void LoadContent() {
         base.LoadContent();
@@ -29,7 +31,7 @@ public class MainScene(string name) : Scene3D(name) {
             new Vector3(0, 0, 0),
             cube,
             new Material3D() {
-                SurfaceColor = new Color(0.01f, 0.01f, 0.01f),
+                SurfaceColor = new Color(0.05f, 0.05f, 0.05f),
                 Roughness = 0.99f
             },
             this
@@ -56,7 +58,7 @@ public class MainScene(string name) : Scene3D(name) {
             sphere,
             new Material3D() {
                 SurfaceColor = Color.SkyBlue,
-                Roughness = 0.9f
+                Roughness = 0.6f
             },
             this
         );
@@ -68,7 +70,7 @@ public class MainScene(string name) : Scene3D(name) {
             sphere,
             new Material3D() {
                 SurfaceColor = Color.Green,
-                Roughness = 0.3f
+                Roughness = 0.2f
             },
             this
         );
@@ -76,11 +78,31 @@ public class MainScene(string name) : Scene3D(name) {
 
         float ambientGray = 0.01f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
+
+        Light3D globalLight = new() {
+            // Color = new Color(0.1f, 0.5f, 1.0f),
+            Color = Color.White,
+            Intensity = 0.4f,
+            IsGlobal = true
+        };
+        globalLight.Transform.GlobalRotation = new Vector3(0.92f, 0.21f, 0);
+        AddLight(globalLight);
+
+        orbitLight = new Light3D() {
+            Color = Color.Red,
+            Intensity = 1.0f,
+            Range = 20
+        };
+        orbitLightAnchor = new Transform3D(Vector3.Zero);
+        orbitLight.Transform.Parent = orbitLightAnchor;
+        orbitLight.Transform.Position = new Vector3(10, 4, 0);
+        AddLight(orbitLight);
     }
 
     public override void Update(float dt) {
         parentActor.Transform.Rotation += new Vector3(0, dt, 0) * 0.4f;
         childActor.Transform.Rotation += new Vector3(dt, dt, dt) * 0.8f;
+        orbitLightAnchor.GlobalRotation += new Vector3(0, dt, 0) * 0.3f;
 
         if (Input.IsLeftMouseDown()) {
             Vector2 delta = Input.MousePosDelta;
