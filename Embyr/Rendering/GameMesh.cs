@@ -35,10 +35,11 @@ public class GameMesh {
                     gd.SetVertexBuffer(part.VertexBuffer);
                     gd.Indices = part.IndexBuffer;
 
-                    material.World = transform.WorldMatrix;
-                    material.WorldInverseTranspose = transform.WorldInverseTranspose;
-                    material.View = camera.ViewMatrix;
-                    material.Projection = camera.ProjectionMatrix;
+                    material.Shader.Parameters["World"].SetValue(transform.WorldMatrix);
+                    material.Shader.Parameters["WorldInverseTranspose"].SetValue(transform.WorldInverseTranspose);
+                    material.Shader.Parameters["View"].SetValue(camera.ViewMatrix);
+                    material.Shader.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+                    material.Shader.Parameters["CamWorldPos"].SetValue(camera.Transform.GlobalPosition);
 
                     material.ApplyAndDraw(part, PrimitiveType.TriangleList);
                 }

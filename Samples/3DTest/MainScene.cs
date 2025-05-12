@@ -14,12 +14,19 @@ public class MainScene(string name) : Scene3D(name) {
     public override void LoadContent() {
         base.LoadContent();
         Camera.PerspectiveFOV = MathHelper.ToRadians(90);
+        Camera.Transform.GlobalPosition = new Vector3(0, 3, -4);
+        Camera.LookAt(Vector3.Zero);
+
+        GameMesh cube = ContentHelper.I.Load<GameMesh>("cube");
+        GameMesh sphere = ContentHelper.I.Load<GameMesh>("sphere");
 
         parentActor = new(
             "test actor!",
             new Vector3(0, 0, 0),
+            cube,
             new Material3D() {
-                SurfaceColor = Color.Red
+                SurfaceColor = new Color(0.01f, 0.01f, 0.01f),
+                Roughness = 0.99f
             },
             this
         );
@@ -28,8 +35,10 @@ public class MainScene(string name) : Scene3D(name) {
         childActor = new TestActor(
             "test actor 2!",
             new Vector3(3, 3, 3),
+            cube,
             new Material3D() {
-                SurfaceColor = Color.Blue
+                SurfaceColor = Color.BlueViolet,
+                Roughness = 0.0f
             },
             this
         );
@@ -37,13 +46,39 @@ public class MainScene(string name) : Scene3D(name) {
         childActor.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
         AddActor(childActor);
 
+        TestActor sphereActor = new(
+            "sphere actor!",
+            new Vector3(5, 0, 0),
+            sphere,
+            new Material3D() {
+                SurfaceColor = Color.SkyBlue,
+                Roughness = 0.9f
+            },
+            this
+        );
+        AddActor(sphereActor);
+
+        TestActor sphereActorTwo = new(
+            "sphere actor two!",
+            new Vector3(-5, 0, 0),
+            sphere,
+            new Material3D() {
+                SurfaceColor = Color.Green,
+                Roughness = 0.3f
+            },
+            this
+        );
+        AddActor(sphereActorTwo);
+
+        EngineSettings.Gamma = 1.6f;
+
         float ambientGray = 0.01f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
     }
 
     public override void Update(float dt) {
-        parentActor.Transform.Rotation += new Vector3(0, dt, 0);
-        childActor.Transform.Rotation += new Vector3(dt, dt, dt);
+        parentActor.Transform.Rotation += new Vector3(0, dt, 0) * 0.4f;
+        childActor.Transform.Rotation += new Vector3(dt, dt, dt) * 0.8f;
 
         if (Input.IsLeftMouseDown()) {
             Vector2 delta = Input.MousePosDelta;

@@ -10,11 +10,10 @@
 struct VSInput {
     float4 Position : POSITION0;
     float4 Normal : NORMAL0;
-    float4 Color : COLOR0;
 };
 
 struct PSInput {
     float4 Position : SV_POSITION;
-    float4 Color : COLOR0;
     float3 Normal : TEXCOORD1;
+    float3 WorldPosition : TEXCOORD2;
 };

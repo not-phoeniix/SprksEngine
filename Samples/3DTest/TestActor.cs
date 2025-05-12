@@ -14,8 +14,8 @@ public class TestActor : Actor3D {
 
     public override bool ShouldBeSaved => false;
 
-    public TestActor(string name, Vector3 position, Material3D material, Scene3D scene)
-    : base(name, position, ContentHelper.I.Load<GameMesh>("cube"), material, scene) {
+    public TestActor(string name, Vector3 position, GameMesh mesh, Material3D material, Scene3D scene)
+    : base(name, position, mesh, material, scene) {
     }
 
     public override void Draw(Camera3D camera) {

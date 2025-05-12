@@ -12,6 +12,8 @@ public class Material3D {
     /// </summary>
     public static readonly Effect DefaultDiffuseShader = ShaderManager.I.LoadShader("3d_forward");
 
+    private float roughness = 0.0f;
+
     /// <summary>
     /// Shader associated with this material
     /// </summary>
@@ -23,24 +25,12 @@ public class Material3D {
     public Color SurfaceColor { get; set; }
 
     /// <summary>
-    /// Gets/sets the world matrix for rendering, comes from a Transform3D
+    /// Gets/sets the roughness of this material, clamped to be between 0.0f and 1.0f
     /// </summary>
-    public Matrix World { get; set; }
-
-    /// <summary>
-    /// Gets/sets the world inverse transpose matrix for rendering, comes from a Transform3D
-    /// </summary>
-    public Matrix WorldInverseTranspose { get; set; }
-
-    /// <summary>
-    /// Gets/sets the view matrix for rendering, comes from a Camera3D
-    /// </summary>
-    public Matrix View { get; set; }
-
-    /// <summary>
-    /// Gets/sets the projection matrix for rendering, comes from a Camera3D
-    /// </summary>
-    public Matrix Projection { get; set; }
+    public float Roughness {
+        get => roughness;
+        set => roughness = Math.Clamp(value, 0, 1);
+    }
 
     /// <summary>
     /// Creates a new Material3D object
@@ -58,11 +48,8 @@ public class Material3D {
     /// <param name="primitiveType">Primitive type to use when rendering mesh part</param>
     internal void ApplyAndDraw(ModelMeshPart part, PrimitiveType primitiveType) {
         Shader.Parameters["SurfaceColor"].SetValue(SurfaceColor.ToVector3());
-        Shader.Parameters["World"].SetValue(World);
-        Shader.Parameters["WorldInverseTranspose"].SetValue(WorldInverseTranspose);
-        Shader.Parameters["View"].SetValue(View);
-        Shader.Parameters["Projection"].SetValue(Projection);
         Shader.Parameters["Gamma"].SetValue(EngineSettings.Gamma);
+        Shader.Parameters["Roughness"].SetValue(Roughness);
 
         foreach (EffectPass pass in Shader.CurrentTechnique.Passes) {
             pass.Apply();
