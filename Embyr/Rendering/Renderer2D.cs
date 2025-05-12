@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-public abstract class Renderer2D : Renderer {
+internal abstract class Renderer2D : Renderer {
     private readonly Menu? loadingMenu;
 
     protected readonly Dictionary<GameLayer, RenderLayer> Layers;

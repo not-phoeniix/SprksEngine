@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-public class RendererForward3D : Renderer3D {
+internal class RendererForward3D : Renderer3D {
     private readonly Effect forward3D;
 
     private const int MaxLightsPerPass = 32;

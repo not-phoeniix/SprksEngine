@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-public class RendererDeferred2D : Renderer2D {
+internal class RendererDeferred2D : Renderer2D {
     // shaders
     private readonly Effect fxLightCombine;
     private readonly Effect fxJumpFloodSeed;

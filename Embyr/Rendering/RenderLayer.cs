@@ -8,7 +8,7 @@ namespace Embyr.Rendering;
 /// <summary>
 /// A render layer for smooth low-res parallax, handles drawing and auto smooth scrolling
 /// </summary>
-public class RenderLayer : IResolution {
+internal class RenderLayer : IResolution {
     private RenderTarget2D renderTarget;
     private RenderTarget2D effectTarget;
     private readonly GraphicsDevice gd;

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-public abstract class Renderer : IResolution {
+internal abstract class Renderer : IResolution {
     protected readonly List<PostProcessingEffect> PostProcessingEffects;
     public readonly GraphicsDevice GraphicsDevice;
     public readonly SpriteBatch SpriteBatch;
