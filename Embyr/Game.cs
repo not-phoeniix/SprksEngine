@@ -422,6 +422,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
     private void ChangeResolution(int width, int height) {
         SceneManager.I.ChangeResolution(width, height, CanvasExpandSize);
+        renderer?.ChangeResolution(width, height, CanvasExpandSize);
 
         OnResolutionChange?.Invoke(width, height, CanvasExpandSize);
 

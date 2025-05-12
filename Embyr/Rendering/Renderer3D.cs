@@ -53,5 +53,9 @@ public abstract class Renderer3D : Renderer {
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         base.ChangeResolution(width, height, canvasExpandSize);
         loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
+        MainLayer?.ChangeResolution(width, height, canvasExpandSize);
+        DebugLayer?.ChangeResolution(width, height, canvasExpandSize);
+        UILayer?.ChangeResolution(width, height, canvasExpandSize);
+        UIDebugLayer?.ChangeResolution(width, height, canvasExpandSize);
     }
 }
