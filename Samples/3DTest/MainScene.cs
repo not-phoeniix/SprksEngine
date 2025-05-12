@@ -10,6 +10,7 @@ namespace _3DTest;
 public class MainScene(string name) : Scene3D(name) {
     private TestActor parentActor;
     private TestActor childActor;
+    private TestActor sphereTracker;
 
     public override void LoadContent() {
         base.LoadContent();
@@ -20,7 +21,7 @@ public class MainScene(string name) : Scene3D(name) {
         GameMesh cube = ContentHelper.I.Load<GameMesh>("cube");
         GameMesh sphere = ContentHelper.I.Load<GameMesh>("sphere");
 
-        parentActor = new(
+        parentActor = new TestActor(
             "test actor!",
             new Vector3(0, 0, 0),
             cube,
@@ -58,7 +59,7 @@ public class MainScene(string name) : Scene3D(name) {
         );
         AddActor(sphereActor);
 
-        TestActor sphereActorTwo = new(
+        sphereTracker = new TestActor(
             "sphere actor two!",
             new Vector3(-5, 0, 0),
             sphere,
@@ -68,7 +69,29 @@ public class MainScene(string name) : Scene3D(name) {
             },
             this
         );
-        AddActor(sphereActorTwo);
+        sphereTracker.Transform.Scale = new Vector3(0.9f);
+        AddActor(sphereTracker);
+
+        TestActor prev = sphereTracker;
+        for (int i = 0; i < 5; i++) {
+            TestActor actor = new(
+                "parent testing guy",
+                Vector3.Zero,
+                sphere,
+                new Material3D() {
+                    SurfaceColor = Color.White,
+                    Roughness = 0.8f
+                },
+                this
+            );
+
+            actor.Transform.Parent = prev.Transform;
+            actor.Transform.Scale = new Vector3(0.7f);
+            actor.Transform.Position = new Vector3(i * 1.5f + 2);
+
+            AddActor(actor);
+            prev = actor;
+        }
 
         EngineSettings.Gamma = 1.6f;
 
@@ -79,6 +102,7 @@ public class MainScene(string name) : Scene3D(name) {
     public override void Update(float dt) {
         parentActor.Transform.Rotation += new Vector3(0, dt, 0) * 0.4f;
         childActor.Transform.Rotation += new Vector3(dt, dt, dt) * 0.8f;
+        sphereTracker.Transform.GlobalPosition = childActor.Transform.GlobalPosition;
 
         if (Input.IsLeftMouseDown()) {
             Vector2 delta = Input.MousePosDelta;

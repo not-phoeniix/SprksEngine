@@ -69,7 +69,7 @@ float4 MainPS(PSInput input) : COLOR {
     lightSum += DirectionalLight(
         normalize(float3(0.42f, -3.92f, 0.91f)),
         0.7f,
-        float3(1.0f, 0.2f, 0.2f),
+        float3(1.0f, 0.5f, 0.5f),
         input.Normal,
         input.WorldPosition);
 

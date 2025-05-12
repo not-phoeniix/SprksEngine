@@ -91,7 +91,12 @@ public sealed class Transform3D {
     public Vector3 GlobalPosition {
         get {
             if (parentGlobalsDirty) RecalculateParentGlobals();
-            return localPos + parentGlobalPos;
+
+            if (parent != null) {
+                return Vector3.Transform(localPos, parent.WorldMatrix);
+            } else {
+                return localPos;
+            }
         }
 
         set {
