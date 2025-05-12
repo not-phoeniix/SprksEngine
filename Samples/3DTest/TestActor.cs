@@ -8,8 +8,8 @@ namespace _3DTest;
 
 public class TestActor : Actor3D {
     public override BoundingBox Bounds => new(
-        Transform.GlobalPosition - Vector3.One,
-        Transform.GlobalPosition + Vector3.One
+        Transform.GlobalPosition - Transform.GlobalScale,
+        Transform.GlobalPosition + Transform.GlobalScale
     );
 
     public override bool ShouldBeSaved => false;

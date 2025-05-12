@@ -66,17 +66,30 @@ float3 DirectionalLight(float3 lightDir, float lightIntensity, float3 lightColor
     return (diffuse * SurfaceColor) + specular;
 }
 
-float3 PointLight(float3 lightPos, float lightIntensity, float3 lightColor, float lightRange, float3 surfaceNormal, float3 fragWorldPos) {
+float3 PointLight(float3 lightPos, float3 lightDirection, float lightIntensity, float3 lightColor, float lightRange, float4 lightSizeParams, float3 surfaceNormal, float3 fragWorldPos) {
     float3 toFrag = normalize(fragWorldPos - lightPos);
 
     float3 diffuse = LambertDiffuse(toFrag, lightIntensity, lightColor, surfaceNormal);
     float3 specular = PhongSpecular(toFrag, lightIntensity, lightColor, surfaceNormal, fragWorldPos);
-    float attenuation = Attenuate(lightPos, lightRange, fragWorldPos);
-
     // don't apply specular when diffuse is in shadow
     specular *= any(diffuse);
 
-    return ((diffuse * SurfaceColor) + specular) * attenuation;
+    float rangeAtt = Attenuate(lightPos, lightRange, fragWorldPos);
+
+    // get cos(angle) between current pixel on the mesh and
+    //   the center point of the cone (wherever direction
+    //   is currently facing)
+    float pixelAngle = saturate(dot(toFrag, lightDirection));
+    // cosine of inner and outer spotlight angles,
+    //   limited so outer is always greater than inner
+    float cosInner = cos(lightSizeParams.y);
+    float cosOuter = cos(max(lightSizeParams.z, lightSizeParams.y + 0.0001f));
+    float falloffRange = cosOuter - cosInner;
+    // calculate angular attenuation scalar so light becomes
+    //   spotlight and has falloff in a particular direction lol
+    float angleAtt = saturate((cosOuter - pixelAngle) / falloffRange);
+
+    return ((diffuse * SurfaceColor) + specular) * rangeAtt * angleAtt;
 }
 
 float4 MainPS(PSInput input) : COLOR {
@@ -103,9 +116,11 @@ float4 MainPS(PSInput input) : COLOR {
             float range = params.x;
             lightSum += PointLight(
                 posData.xyz,
+                Directions[i],
                 Intensities[i],
                 Colors[i],
                 range,
+                params,
                 input.Normal,
                 input.WorldPosition);
         }

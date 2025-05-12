@@ -159,12 +159,15 @@ public class Camera3D {
     /// </summary>
     /// <param name="targetPosition">Position to look at</param>
     public void LookAt(Vector3 targetPosition) {
-        Vector3 delta = targetPosition - Transform.GlobalPosition;
-        if (delta.LengthSquared() > float.Epsilon) delta.Normalize();
+        Transform.LookAt(targetPosition);
+    }
 
-        float yaw = MathF.Atan2(delta.X, delta.Z);
-        float pitch = MathF.Asin(-delta.Y);
-        Transform.GlobalRotation = new Vector3(pitch, yaw, 0);
+    /// <summary>
+    /// Rotates camera to look towards a direction, locks roll to zero
+    /// </summary>
+    /// <param name="direction">Direction to look towards</param>
+    public void LookTo(Vector3 direction) {
+        Transform.LookTo(direction);
     }
 
     // /// <summary>

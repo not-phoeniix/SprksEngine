@@ -139,7 +139,13 @@ internal class Quadtree<T> where T : class, ITransform2D {
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr;
+                if (obj is IActor2D actor) {
+                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                } else {
+                    dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                }
+
                 if (dSqr < closestDSqr) {
                     closest = obj;
                     closestDSqr = dSqr;
@@ -174,7 +180,13 @@ internal class Quadtree<T> where T : class, ITransform2D {
             if (dSqrToThis > radius * radius) yield break;
 
             foreach (T obj in data) {
-                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr;
+                if (obj is IActor2D actor) {
+                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                } else {
+                    dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                }
+
                 if (dSqr <= radius * radius) {
                     yield return obj;
                 }
@@ -198,7 +210,14 @@ internal class Quadtree<T> where T : class, ITransform2D {
             if (!viewport.Intersects(Bounds)) yield break;
 
             foreach (T obj in data) {
-                if (viewport.Contains(obj.Transform.GlobalPosition)) {
+                bool contains;
+                if (obj is IActor2D actor) {
+                    contains = viewport.Intersects(actor.Bounds);
+                } else {
+                    contains = viewport.Contains(obj.Transform.GlobalPosition);
+                }
+
+                if (contains) {
                     yield return obj;
                 }
             }

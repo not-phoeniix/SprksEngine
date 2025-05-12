@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Embyr;
 using Embyr.Rendering;
@@ -23,8 +24,24 @@ public class MainScene(string name) : Scene3D(name) {
 
         EngineSettings.Gamma = 1.7f;
 
+        float ambientGray = 0.01f;
+        AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
+
         GameMesh cube = ContentHelper.I.Load<GameMesh>("cube");
         GameMesh sphere = ContentHelper.I.Load<GameMesh>("sphere");
+
+        TestActor floor = new(
+            "floor",
+            new Vector3(0, -2, 0),
+            cube,
+            new Material3D() {
+                SurfaceColor = new Color(0.8f, 0.8f, 0.8f),
+                Roughness = 0.9f
+            },
+            this
+        );
+        floor.Transform.GlobalScale = new Vector3(100, 0.1f, 100);
+        AddActor(floor);
 
         parentActor = new TestActor(
             "test actor!",
@@ -76,11 +93,7 @@ public class MainScene(string name) : Scene3D(name) {
         );
         AddActor(sphereActorTwo);
 
-        float ambientGray = 0.01f;
-        AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
-
         Light3D globalLight = new() {
-            // Color = new Color(0.1f, 0.5f, 1.0f),
             Color = Color.White,
             Intensity = 0.4f,
             IsGlobal = true
@@ -91,11 +104,14 @@ public class MainScene(string name) : Scene3D(name) {
         orbitLight = new Light3D() {
             Color = Color.Red,
             Intensity = 1.0f,
-            Range = 20
+            Range = 20,
+            SpotInnerAngle = MathF.PI / 6,
+            SpotOuterAngle = MathF.PI / 4,
         };
         orbitLightAnchor = new Transform3D(Vector3.Zero);
         orbitLight.Transform.Parent = orbitLightAnchor;
         orbitLight.Transform.Position = new Vector3(10, 4, 0);
+        orbitLight.Transform.LookAt(Vector3.Zero);
         AddLight(orbitLight);
     }
 

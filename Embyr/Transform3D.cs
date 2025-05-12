@@ -269,6 +269,27 @@ public sealed class Transform3D {
         children.Clear();
     }
 
+    /// <summary>
+    /// Sets global rotation to look at a world position, locks roll to zero
+    /// </summary>
+    /// <param name="position">Position in world to look at</param>
+    public void LookAt(Vector3 position) {
+        Vector3 delta = position - GlobalPosition;
+        if (delta.LengthSquared() > float.Epsilon) delta.Normalize();
+
+        float yaw = MathF.Atan2(delta.X, delta.Z);
+        float pitch = MathF.Asin(-delta.Y);
+        GlobalRotation = new Vector3(pitch, yaw, 0);
+    }
+
+    /// <summary>
+    /// Sets global rotation to look towards a direction, locks roll to zero
+    /// </summary>
+    /// <param name="direction">Direction to look towards</param>
+    public void LookTo(Vector3 direction) {
+        LookAt(GlobalPosition + direction);
+    }
+
     private void RecalculateParentGlobals() {
         if (parent != null) {
             // this will recursively go up the transform tree

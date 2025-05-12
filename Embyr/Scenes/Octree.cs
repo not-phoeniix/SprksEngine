@@ -160,7 +160,13 @@ internal class Octree<T> where T : class, ITransform3D {
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
-                float dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr;
+                if (obj is IActor3D actor) {
+                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                } else {
+                    dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
+                }
+
                 if (dSqr < closestDSqr) {
                     closest = obj;
                     closestDSqr = dSqr;
@@ -195,7 +201,13 @@ internal class Octree<T> where T : class, ITransform3D {
             if (dSqrToThis > radius * radius) yield break;
 
             foreach (T obj in data) {
-                float dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr;
+                if (obj is IActor3D actor) {
+                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                } else {
+                    dSqr = Vector3.DistanceSquared(position, obj.Transform.GlobalPosition);
+                }
+
                 if (dSqr <= radius * radius) {
                     yield return obj;
                 }
@@ -219,7 +231,16 @@ internal class Octree<T> where T : class, ITransform3D {
             if (!viewport.Intersects(Bounds)) yield break;
 
             foreach (T obj in data) {
-                if (viewport.Contains(obj.Transform.GlobalPosition) == ContainmentType.Contains) {
+                bool contains;
+                if (obj is IActor3D actor) {
+                    ContainmentType containment = viewport.Contains(actor.Bounds);
+                    contains = containment == ContainmentType.Contains ||
+                               containment == ContainmentType.Intersects;
+                } else {
+                    contains = viewport.Contains(obj.Transform.GlobalPosition) == ContainmentType.Contains;
+                }
+
+                if (contains) {
                     yield return obj;
                 }
             }
