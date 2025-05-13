@@ -4,7 +4,7 @@ namespace Embyr.Tiles;
 /// A tile component that can be instantiated in the tile
 /// class that contains special extra functionality for tiles
 /// </summary>
-public interface ITileComponent<T> : IDrawable2D, IDebugDrawable where T : Enum {
+public interface ITileComponent<T> : IDrawable2D, IDebugDrawable2D where T : Enum {
     /// <summary>
     /// Gets the tile associated with this tile component
     /// </summary>

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace _3DTest;
 
-public class TestActor : Actor3D {
+public class TestActor : Actor3D, IDebugDrawable3D {
     public override BoundingBox Bounds => new(
         Transform.GlobalPosition - Transform.GlobalScale,
         Transform.GlobalPosition + Transform.GlobalScale
@@ -24,5 +24,9 @@ public class TestActor : Actor3D {
 
     public override void Update(float deltaTime) {
         base.Update(deltaTime);
+    }
+
+    public void DebugDraw(Camera3D camera) {
+        Bounds.RenderBoundingBox(camera, Color.Red);
     }
 }

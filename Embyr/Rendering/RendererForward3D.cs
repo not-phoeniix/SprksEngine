@@ -61,13 +61,25 @@ internal class RendererForward3D : Renderer3D {
         forward3D.Parameters["SizeParams"].SetValue(lightSizeParams);
         forward3D.Parameters["NumLights"].SetValue(i);
 
+        // render scene itself to main layer
         GraphicsDevice.SetRenderTarget(MainLayer.RenderTarget);
         GraphicsDevice.Clear(Color.Transparent);
-
         foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {
             actor.Draw(scene.Camera);
         }
 
+        // render post processing back onto the main layer
         RenderPostProcessing(MainLayer);
+
+        // render debug info for the scene
+        GraphicsDevice.SetRenderTarget(DebugLayer.RenderTarget);
+        GraphicsDevice.Clear(Color.Transparent);
+        foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {
+            if (!EngineSettings.ShowDebugDrawing) break;
+
+            if (actor is IDebugDrawable3D debug) {
+                debug.DebugDraw(scene.Camera);
+            }
+        }
     }
 }

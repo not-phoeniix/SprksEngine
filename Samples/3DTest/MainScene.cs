@@ -22,8 +22,6 @@ public class MainScene(string name) : Scene3D(name) {
         Camera.Transform.GlobalPosition = new Vector3(0, 4, -5);
         Camera.LookAt(Vector3.Zero);
 
-        EngineSettings.Gamma = 1.7f;
-
         float ambientGray = 0.01f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
 

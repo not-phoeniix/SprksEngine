@@ -10,7 +10,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
 
     private static readonly int splitThreshold = 50;
 
-    private class Node : IDebugDrawable {
+    private class Node : IDebugDrawable2D {
         private readonly List<T> data;
         private readonly List<(T, Node)> toMove;
         private Node[]? childNodes;

@@ -9,7 +9,7 @@ namespace Embyr.Physics;
 /// <summary>
 /// Component that deals with physics handling, both with integration and collision
 /// </summary>
-public class PhysicsComponent2D : IDebugDrawable {
+public class PhysicsComponent2D : IDebugDrawable2D {
     /// <summary>
     /// The types of physics solvers used in position calculation
     /// </summary>

@@ -26,7 +26,8 @@ public class GameMesh {
     /// <param name="transform">3D transform to render mesh at</param>
     /// <param name="camera">Camera to view mesh with</param>
     /// <param name="material">To use when drawing this mesh</param>
-    public void Draw(Transform3D transform, Camera3D camera, Material3D material) {
+    /// <param name="primitiveType">Primitive type to use when rendering geometry</param>
+    public void Draw(Transform3D transform, Camera3D camera, Material3D material, PrimitiveType primitiveType = PrimitiveType.TriangleList) {
         foreach (ModelMesh mesh in model.Meshes) {
             foreach (ModelMeshPart part in mesh.MeshParts) {
                 // drawing code copied from ModelMesh.Draw(); method, used to
@@ -39,9 +40,9 @@ public class GameMesh {
                     material.Shader.Parameters["WorldInverseTranspose"].SetValue(transform.WorldInverseTranspose);
                     material.Shader.Parameters["View"].SetValue(camera.ViewMatrix);
                     material.Shader.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
-                    material.Shader.Parameters["CamWorldPos"].SetValue(camera.Transform.GlobalPosition);
+                    material.Shader.Parameters["CamWorldPos"]?.SetValue(camera.Transform.GlobalPosition);
 
-                    material.ApplyAndDraw(part, PrimitiveType.TriangleList);
+                    material.ApplyAndDraw(part, primitiveType);
                 }
             }
         }

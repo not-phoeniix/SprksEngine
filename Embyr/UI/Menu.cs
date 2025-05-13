@@ -9,7 +9,7 @@ namespace Embyr.UI;
 /// <summary>
 /// Representation of a menu
 /// </summary>
-public abstract class Menu : IDrawable2D, IDebugDrawable, IResolution {
+public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
     private Color backgroundColor = Color.Black;
     private Texture2D backgroundImg;
     private Queue<MenuElement> toAdd = new();

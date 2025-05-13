@@ -1,3 +1,5 @@
+using Embyr.Rendering;
+using Embyr.Scenes;
 using Embyr.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,6 +15,10 @@ public static class DrawExtensions {
         _pixel = new Texture2D(sb.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
         _pixel.SetData(new Color[] { Color.White });
     }
+
+    private static readonly Transform3D debugRenderTransform = new();
+    private static readonly Material3D debugMaterial = new(Material3D.DefaultSingleColorShader);
+    private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
 
     #region // Line
 
@@ -368,6 +374,23 @@ public static class DrawExtensions {
         Color color
     ) {
         font.Draw(text, position, color, sb);
+    }
+
+    #endregion
+
+    #region // 3D
+
+    /// <summary>
+    /// Draws a wireframe bounding box
+    /// </summary>
+    /// <param name="box">Bounding box to draw</param>
+    /// <param name="camera">Camera to base transforms off of</param>
+    /// <param name="color">Color to draw bounding box with</param>
+    public static void RenderBoundingBox(this BoundingBox box, Camera3D camera, Color color) {
+        debugRenderTransform.GlobalPosition = (box.Min + box.Max) / 2.0f;
+        debugRenderTransform.GlobalScale = (box.Max - box.Min) / 2.0f;
+        debugMaterial.Shader.Parameters["Color"].SetValue(color.ToVector3());
+        boxMesh.Draw(debugRenderTransform, camera, debugMaterial, PrimitiveType.LineList);
     }
 
     #endregion

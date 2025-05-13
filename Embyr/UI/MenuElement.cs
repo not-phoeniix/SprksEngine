@@ -6,7 +6,7 @@ namespace Embyr.UI;
 /// <summary>
 /// A basic abstract element of a menu, cannot be instantiated
 /// </summary>
-public abstract class MenuElement : IDrawable2D, IDebugDrawable {
+public abstract class MenuElement : IDrawable2D, IDebugDrawable2D {
     /// <summary>
     /// Rectangular bounds of this menu item, in screen-space
     /// </summary>

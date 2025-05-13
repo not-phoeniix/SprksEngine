@@ -7,7 +7,7 @@ namespace Embyr.Physics;
 /// <summary>
 /// Contains a collection of rope nodes, a segmented physics rope
 /// </summary>
-public class Rope : IDrawable2D, IDebugDrawable {
+public class Rope : IDrawable2D, IDebugDrawable2D {
     // try this !!
     // https://www.owlree.blog/posts/simulating-a-rope.html
     // hopefully it works :3

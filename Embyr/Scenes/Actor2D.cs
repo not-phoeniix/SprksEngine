@@ -6,7 +6,7 @@ namespace Embyr.Scenes;
 /// <summary>
 /// An abstract base class that implements all <c>IActor</c> members.
 /// </summary>
-public abstract class Actor2D : IActor2D, IDebugDrawable {
+public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     #region // Fields & Properties
 
     /// <summary>

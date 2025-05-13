@@ -1,4 +1,5 @@
-﻿using Embyr.Rendering;
+﻿using Embyr;
+using Embyr.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -9,6 +10,9 @@ public class Game : Embyr.Game {
     private RendererSettings rSettings;
 
     protected override GameSetupParams SetupGame() {
+        EngineSettings.ShowDebugDrawing = true;
+        EngineSettings.Gamma = 1.7f;
+
         MainScene scene = new("main_scene");
 
         return new GameSetupParams() {

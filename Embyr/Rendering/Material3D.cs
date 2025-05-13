@@ -1,3 +1,4 @@
+using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,6 +12,11 @@ public class Material3D {
     /// Static default diffuse shader for all materials
     /// </summary>
     public static readonly Effect DefaultDiffuseShader = ShaderManager.I.LoadShader("3d_forward");
+
+    /// <summary>
+    /// Static default shader used for unlit debug drawing
+    /// </summary>
+    public static readonly Effect DefaultSingleColorShader = ShaderManager.I.LoadShader("3d_single_color");
 
     private float roughness = 0.0f;
 
@@ -47,9 +53,9 @@ public class Material3D {
     /// <param name="part">Part to draw</param>
     /// <param name="primitiveType">Primitive type to use when rendering mesh part</param>
     internal void ApplyAndDraw(ModelMeshPart part, PrimitiveType primitiveType) {
-        Shader.Parameters["SurfaceColor"].SetValue(SurfaceColor.ToVector3());
-        Shader.Parameters["Gamma"].SetValue(EngineSettings.Gamma);
-        Shader.Parameters["Roughness"].SetValue(Roughness);
+        Shader.Parameters["SurfaceColor"]?.SetValue(SurfaceColor.ToVector3());
+        Shader.Parameters["Gamma"]?.SetValue(EngineSettings.Gamma);
+        Shader.Parameters["Roughness"]?.SetValue(Roughness);
 
         foreach (EffectPass pass in Shader.CurrentTechnique.Passes) {
             pass.Apply();
