@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using Embyr.Scenes;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
@@ -83,4 +84,20 @@ internal class ShaderManager : Singleton<ShaderManager> {
 
         return effect;
     }
+
+    // private Model CreateEmbeddedResourceModel(string resourceName) {
+    //     Assembly assembly = this.GetType().Assembly;
+
+    //     using Stream? stream = assembly.GetManifestResourceStream(resourceName);
+    //     if (stream == null) {
+    //         throw new NullReferenceException($"Embedded resource stream null - cannot find model resource \"{resourceName}\"");
+    //     }
+
+    //     Debug.WriteLine($"Creating model from resource \"{resourceName}\"...");
+
+    //     Model m = new(
+    //         SceneManager.I.GraphicsDevice,
+
+    //     )
+    // }
 }

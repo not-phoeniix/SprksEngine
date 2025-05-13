@@ -48,22 +48,41 @@ public class Material3D {
     }
 
     /// <summary>
-    /// Applies this material to the graphics devices and draws a model mesh part to the set target
+    /// Applies this material to the graphics device and draws a model mesh part to the set target
     /// </summary>
     /// <param name="part">Part to draw</param>
     /// <param name="primitiveType">Primitive type to use when rendering mesh part</param>
     internal void ApplyAndDraw(ModelMeshPart part, PrimitiveType primitiveType) {
+        ApplyAndDraw(
+            part.VertexBuffer,
+            part.IndexBuffer,
+            part.VertexOffset,
+            part.StartIndex,
+            part.PrimitiveCount,
+            primitiveType
+        );
+    }
+
+    /// <summary>
+    /// Applies this material to the graphics device and draws data from buffers to the set render target
+    /// </summary>
+    /// <param name="vb"></param>
+    /// <param name="ib"></param>
+    /// <param name="primitiveType"></param>
+    internal void ApplyAndDraw(VertexBuffer vb, IndexBuffer ib, int baseVertex, int startIndex, int primitiveCount, PrimitiveType primitiveType) {
         Shader.Parameters["SurfaceColor"]?.SetValue(SurfaceColor.ToVector3());
         Shader.Parameters["Gamma"]?.SetValue(EngineSettings.Gamma);
         Shader.Parameters["Roughness"]?.SetValue(Roughness);
+        Shader.GraphicsDevice.SetVertexBuffer(vb);
+        Shader.GraphicsDevice.Indices = ib;
 
         foreach (EffectPass pass in Shader.CurrentTechnique.Passes) {
             pass.Apply();
             Shader.GraphicsDevice.DrawIndexedPrimitives(
                 primitiveType,
-                part.VertexOffset,
-                part.StartIndex,
-                part.PrimitiveCount
+                baseVertex,
+                startIndex,
+                primitiveCount
             );
         }
     }

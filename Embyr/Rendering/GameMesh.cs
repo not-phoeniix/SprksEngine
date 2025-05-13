@@ -1,3 +1,4 @@
+using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -33,9 +34,6 @@ public class GameMesh {
                 // drawing code copied from ModelMesh.Draw(); method, used to
                 //   speed up rendering and be more customizable
                 if (part.PrimitiveCount > 0) {
-                    gd.SetVertexBuffer(part.VertexBuffer);
-                    gd.Indices = part.IndexBuffer;
-
                     material.Shader.Parameters["World"].SetValue(transform.WorldMatrix);
                     material.Shader.Parameters["WorldInverseTranspose"].SetValue(transform.WorldInverseTranspose);
                     material.Shader.Parameters["View"].SetValue(camera.ViewMatrix);
