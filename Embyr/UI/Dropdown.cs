@@ -131,7 +131,7 @@ public class Dropdown : MenuElement, IMenuInteractable {
                 i++;
             }
 
-            if (Input.IsActionOnce(InputAction.Back)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIBackAction)) {
                 Open = false;
             }
 
@@ -149,7 +149,7 @@ public class Dropdown : MenuElement, IMenuInteractable {
         openButton.Update(dt);
 
         // close if clicked elsewhere when not hovered
-        if (!Hovered && (Input.IsActionOnce(InputAction.Submit) || Input.IsLeftMouseDownOnce())) {
+        if (!Hovered && (Input.IsActionOnce(ActionBindingPreset.UISubmitAction) || Input.IsLeftMouseDownOnce())) {
             Open = false;
         }
     }
@@ -207,17 +207,17 @@ public class Dropdown : MenuElement, IMenuInteractable {
     /// <returns></returns>
     public bool HandleControllerInput(ref bool mouseMode) {
         if (Open) {
-            if (Input.IsActionOnce(InputAction.Back)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIBackAction)) {
                 Open = false;
                 return false;
             }
 
-            if (Input.IsActionOnce(InputAction.UIDown)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIDownAction)) {
                 mouseMode = false;
                 ScrollDown();
             }
 
-            if (Input.IsActionOnce(InputAction.UIUp)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIUpAction)) {
                 mouseMode = false;
                 ScrollUp();
             }

@@ -228,7 +228,7 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
         // assign interactable to be the first element if it's ever null
         SelectedInteractable ??= InteractableElements[0];
 
-        if (Input.IsActionOnce(InputAction.Submit)) {
+        if (Input.IsActionOnce(ActionBindingPreset.UISubmitAction)) {
             mouseMode = false;
         }
 
@@ -237,11 +237,11 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
             ControllerInputIsHandling = true;
         } else {
             // only do scrolling if current interactable is done handling input
-            if (Input.IsActionOnce(InputAction.UIDown)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIDownAction)) {
                 ScrollDown();
             }
 
-            if (Input.IsActionOnce(InputAction.UIUp)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIUpAction)) {
                 ScrollUp();
             }
         }
@@ -320,7 +320,7 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
         }
 
         // invoke back action if action is indeed back'd
-        if (Input.IsActionOnce(InputAction.Back) && !ControllerInputIsHandling) {
+        if (Input.IsActionOnce(ActionBindingPreset.UIBackAction) && !ControllerInputIsHandling) {
             OnBackAction?.Invoke();
         }
 

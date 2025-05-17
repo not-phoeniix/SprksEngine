@@ -15,13 +15,28 @@ public class Game : Embyr.Game {
 
         MainScene scene = new("main_scene");
 
+        ActionBindingPreset binds = ActionBindingPreset.MakeDefault();
+        binds.AddActionBind("forward", Keys.W);
+        binds.AddActionBind("forward", Buttons.LeftThumbstickUp);
+        binds.AddActionBind("left", Keys.A);
+        binds.AddActionBind("left", Buttons.LeftThumbstickLeft);
+        binds.AddActionBind("right", Keys.D);
+        binds.AddActionBind("right", Buttons.LeftThumbstickRight);
+        binds.AddActionBind("backward", Keys.S);
+        binds.AddActionBind("backward", Buttons.LeftThumbstickDown);
+        binds.AddActionBind("up", Keys.Space);
+        binds.AddActionBind("up", Buttons.A);
+        binds.AddActionBind("down", Keys.LeftShift);
+        binds.AddActionBind("down", Buttons.RightStick);
+
         return new GameSetupParams() {
             RenderPipeline = RenderPipeline.Forward3D,
             InitialScene = scene,
             CanvasRes = new Point(300, 200),
             WindowTitle = "3D test !!",
             EnableVSync = true,
-            RenderClearColor = Color.Black
+            RenderClearColor = Color.Black,
+            DefaultBindingPreset = binds
         };
     }
 

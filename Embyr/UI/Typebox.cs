@@ -88,7 +88,7 @@ public class Typebox : Label, IMenuInteractable {
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
     public override void Update(float dt) {
-        bool submitNoMod = !Input.AnyModifierDown() && Input.IsActionOnce(InputAction.Submit);
+        bool submitNoMod = !Input.AnyModifierDown() && Input.IsActionOnce(ActionBindingPreset.UISubmitAction);
         bool leftMouse = Input.IsLeftMouseDownOnce();
 
         // type when active
@@ -100,8 +100,6 @@ public class Typebox : Label, IMenuInteractable {
                 Text = "";
                 unclicked = false;
             }
-
-            Input.PreventDirectionalsNextFrame = true;
 
             string modified = Text;
             Input.UpdateKeyboardString(ref modified);
@@ -129,7 +127,7 @@ public class Typebox : Label, IMenuInteractable {
         }
 
         // unfocuses the typebox and prevents typing when back button is clicked
-        if (Input.IsActionOnce(InputAction.Back)) {
+        if (Input.IsActionOnce(ActionBindingPreset.UIBackAction)) {
             Focused = false;
         }
 

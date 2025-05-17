@@ -7,14 +7,8 @@ namespace Embyr;
 /// <summary>
 /// A structure full of the boolean states of input actions at a given frame
 /// </summary>
-public readonly struct ActionState {
-    private readonly uint bitState;
-    private readonly Vector2 moveDir;
-
-    /// <summary>
-    /// Gets the 2-dimensional movement direction vector for this frame
-    /// </summary>
-    public Vector2 MoveDirection => moveDir;
+internal readonly struct ActionState {
+    private readonly UInt128 bitState;
 
     /// <summary>
     /// Creates a new ActionState by grabbing and combining input
@@ -23,9 +17,7 @@ public readonly struct ActionState {
     /// <param name="preset">ActionBindingPreset to base input searching from</param>
     /// <param name="disableDirectionals">Whether or not to disable checking for direction actions (like ui UDLR controls)</param>
     /// <param name="normalizeMovement">Whether or not to normalize movement vector</param>
-    public ActionState(ActionBindingPreset preset, bool disableDirectionals = false, bool normalizeMovement = false) {
-        bitState = 0;
-
+    public ActionState(ActionBindingPreset preset) {
         // don't create action state if preset is null
         if (preset == null) return;
 
@@ -33,97 +25,161 @@ public readonly struct ActionState {
         MouseState ms = Mouse.GetState();
         GamePadState gs = GamePad.GetState(0);
 
-        foreach (InputAction action in Enum.GetValues<InputAction>()) {
-            // skip checking for directionals if specified, using
-            //   hashed switch for efficiency
-            if (disableDirectionals) {
-                switch (action) {
-                    case InputAction.Left:
-                    case InputAction.Right:
-                    case InputAction.Up:
-                    case InputAction.Down:
-                    case InputAction.UILeft:
-                    case InputAction.UIRight:
-                    case InputAction.UIUp:
-                    case InputAction.UIDown:
-                        continue;
-                }
+        UInt128 bitState = 0;
+
+        preset.ForEachBindingValue((shiftOffset, name, b, k, m) => {
+            bool isActivated = false;
+
+            if (b is Buttons button && gs.IsButtonDown(button)) {
+                isActivated = true;
             }
 
-            // keyboard/mouse state grabbing
-            string kbBind = preset.GetKeyboardMouse(action);
-            switch (kbBind) {
-                case "LeftMouse":
+            if (k is Keys key && kb.IsKeyDown(key)) {
+                isActivated = true;
+            }
+
+            switch (m) {
+                case MouseClick.Left:
                     if (ms.LeftButton == ButtonState.Pressed) {
-                        bitState |= (uint)action;
+                        isActivated = true;
                     }
                     break;
-
-                case "RightMouse":
-                    if (ms.RightButton == ButtonState.Pressed) {
-                        bitState |= (uint)action;
-                    }
-                    break;
-
-                case "MiddleMouse":
+                case MouseClick.Middle:
                     if (ms.MiddleButton == ButtonState.Pressed) {
-                        bitState |= (uint)action;
+                        isActivated = true;
                     }
                     break;
-
-                default:
-                    if (Enum.TryParse(kbBind, out Keys key) && kb.IsKeyDown(key)) {
-                        bitState |= (uint)action;
+                case MouseClick.Right:
+                    if (ms.RightButton == ButtonState.Pressed) {
+                        isActivated = true;
+                    }
+                    break;
+                case MouseClick.Extended1:
+                    if (ms.XButton1 == ButtonState.Pressed) {
+                        isActivated = true;
+                    }
+                    break;
+                case MouseClick.Extended2:
+                    if (ms.XButton2 == ButtonState.Pressed) {
+                        isActivated = true;
                     }
                     break;
             }
 
-            // gamepad state grabbing
-            string gpBind = preset.GetGamePad(action);
-            if (Enum.TryParse(gpBind, out Buttons button) && gs.IsButtonDown(button)) {
-                // this should hopefully account for null (hopefully)
-                bitState |= (uint)action;
+            if (isActivated) {
+                bitState |= (UInt128)1 << shiftOffset;
             }
-        }
+        });
 
-        // update movement direction vector
-
-        moveDir = Vector2.Zero;
-
-        if (IsDown(InputAction.Left)) {
-            moveDir.X -= 1.0f;
-        }
-        if (IsDown(InputAction.Right)) {
-            moveDir.X += 1.0f;
-        }
-        if (IsDown(InputAction.Up)) {
-            moveDir.Y -= 1.0f;
-        }
-        if (IsDown(InputAction.Down)) {
-            moveDir.Y += 1.0f;
-        }
-
-        if (normalizeMovement && moveDir.X != 0 && moveDir.Y != 0) {
-            // normalize vector if going diagonally without needing
-            //   to actually use normalization and perform division
-            //   by using precalculated values for a normal vector
-            moveDir.X *= 0.707107f;
-            moveDir.Y *= 0.707107f;
-        }
+        this.bitState = bitState;
     }
 
     /// <summary>
     /// Creates a new ActionState with the default action binding preset
     /// </summary>
-    public ActionState() : this(ActionBindingPreset.Default) { }
+    public ActionState() : this(null) { }
 
     /// <summary>
-    /// Grabs whether or not an action is activated for this action state
+    /// Checks whether or not an action is activated for this action state
     /// </summary>
-    /// <param name="action">Action to check activation for </param>
+    /// <param name="bitShiftOffset">Bit shift offset of action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
     /// <returns>True if action is activated, false if not</returns>
-    public bool IsDown(InputAction action) {
-        uint andValue = bitState & (uint)action;
+    public bool IsDown(int bitShiftOffset) {
+        UInt128 andValue = bitState & ((UInt128)1 << bitShiftOffset);
         return andValue != 0;
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 1D axis with two actions
+    /// </summary>
+    /// <param name="bitShiftOffsetNegative">Bit shift offset of negative action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositive">Bit shift offset of postiive action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <returns>Composite float value from -1 to 1 of action axis input</returns>
+    public float GetComposite1D(
+        int bitShiftOffsetNegative,
+        int bitShiftOffsetPositive
+    ) {
+        float value = 0;
+
+        if (IsDown(bitShiftOffsetNegative)) value -= 1;
+        if (IsDown(bitShiftOffsetPositive)) value += 1;
+
+        return value;
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 2D axis with four actions
+    /// </summary>
+    /// <param name="bitShiftOffsetNegativeX">Bit shift offset of negative X action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetNegativeY">Bit shift offset of negative Y action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositiveX">Bit shift offset of positive X action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositiveY">Bit shift offset of positive Y action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="normalize">Whether or not to normalize vector</param>
+    /// <returns>Composite 2D vector value from -1 to 1 of action axis input</returns>
+    public Vector2 GetComposite2D(
+        int bitShiftOffsetNegativeX,
+        int bitShiftOffsetNegativeY,
+        int bitShiftOffsetPositiveX,
+        int bitShiftOffsetPositiveY,
+        bool normalize
+    ) {
+        Vector2 value = new(
+            GetComposite1D(bitShiftOffsetNegativeX, bitShiftOffsetPositiveX),
+            GetComposite1D(bitShiftOffsetNegativeY, bitShiftOffsetPositiveY)
+        );
+
+        if (normalize && value.LengthSquared() != 1) {
+            // use precalculated values for speed & efficiency !
+            value.X *= 0.707107f;
+            value.Y *= 0.707107f;
+        }
+
+        return value;
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 3D axis with six actions
+    /// </summary>
+    /// <param name="bitShiftOffsetNegativeX">Bit shift offset of negative X action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetNegativeY">Bit shift offset of negative Y action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetNegativeZ">Bit shift offset of negative Z action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositiveX">Bit shift offset of positive X action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositiveY">Bit shift offset of positive Y action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="bitShiftOffsetPositiveZ">Bit shift offset of positive Z action, acquired from <c>ActionBindingPreset.GetBindingBitShiftOffset</c></param>
+    /// <param name="normalize">Whether or not to normalize vector</param>
+    /// <returns>Composite 3D vector value from -1 to 1 of action axis input</returns>
+    public Vector3 GetComposite3D(
+        int bitShiftOffsetNegativeX,
+        int bitShiftOffsetNegativeY,
+        int bitShiftOffsetNegativeZ,
+        int bitShiftOffsetPositiveX,
+        int bitShiftOffsetPositiveY,
+        int bitShiftOffsetPositiveZ,
+        bool normalize
+    ) {
+        Vector3 value = new(
+            GetComposite1D(bitShiftOffsetNegativeX, bitShiftOffsetPositiveX),
+            GetComposite1D(bitShiftOffsetNegativeY, bitShiftOffsetPositiveY),
+            GetComposite1D(bitShiftOffsetNegativeZ, bitShiftOffsetPositiveZ)
+        );
+
+        if (normalize) {
+            float lSqr = value.LengthSquared();
+            if (lSqr == 2) {
+                // if two actions are activated then do 2D normalization,
+                // use precalculated values for speed & efficiency !
+                value.X *= 0.707107f;
+                value.Y *= 0.707107f;
+                value.Z *= 0.707107f;
+            } else if (lSqr == 3) {
+                // if three actions are activated then do 3D normalization,
+                // use precalculated values for speed & efficiency !
+                value.X *= 0.577350f;
+                value.Y *= 0.577350f;
+                value.Z *= 0.577350f;
+            }
+        }
+
+        return value;
     }
 }

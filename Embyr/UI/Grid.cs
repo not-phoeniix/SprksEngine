@@ -285,7 +285,7 @@ public class Grid : MenuElement, IMenuInteractable {
     public bool HandleControllerInput(ref bool mouseMode) {
         // only handle this grid's input if the selected one isn't handling it first
         if (!SelectedInteractable?.HandleControllerInput(ref mouseMode) ?? true && Hovered) {
-            if (Input.IsActionOnce(InputAction.UIDown)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIDownAction)) {
                 // exit if trying to scroll down from the bottom
                 if (index.Y == Height - 1) {
                     if (SelectedInteractable != null) {
@@ -298,7 +298,7 @@ public class Grid : MenuElement, IMenuInteractable {
                 ScrollDown();
             }
 
-            if (Input.IsActionOnce(InputAction.UIUp)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIUpAction)) {
                 // exit if trying to scroll up from the top
                 if (index.Y == 0) {
                     if (SelectedInteractable != null) {
@@ -311,7 +311,7 @@ public class Grid : MenuElement, IMenuInteractable {
                 ScrollUp();
             }
 
-            if (Input.IsActionOnce(InputAction.UILeft)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UILeftAction)) {
                 // exit if trying to scroll left at the left edge
                 if (index.X == 0) {
                     if (SelectedInteractable != null) {
@@ -324,7 +324,7 @@ public class Grid : MenuElement, IMenuInteractable {
                 ScrollLeft();
             }
 
-            if (Input.IsActionOnce(InputAction.UIRight)) {
+            if (Input.IsActionOnce(ActionBindingPreset.UIRightAction)) {
                 // exit if trying to scroll right at the right edge
                 if (index.X == Width - 1) {
                     if (SelectedInteractable != null) {

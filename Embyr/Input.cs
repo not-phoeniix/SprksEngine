@@ -151,17 +151,9 @@ public static class Input {
     }
 
     /// <summary>
-    /// Gets the current action state's movement direction
+    /// Gets/sets the current action binding preset for the input manager
     /// </summary>
-    public static Vector2 MoveDirection {
-        get { return actionState.MoveDirection; }
-    }
-
-    /// <summary>
-    /// Gets/sets whether or not to prevent directional movement updating
-    /// (like while typing) for the next draw frame, reset every update loop
-    /// </summary>
-    public static bool PreventDirectionalsNextFrame { get; set; }
+    internal static ActionBindingPreset CurrentBindingPreset { get; set; }
 
     #endregion
 
@@ -172,9 +164,8 @@ public static class Input {
     /// </summary>
     /// <param name="mouseCanvasTransform">Transformation matrix of mouse that maps screen to canvas position</param>
     /// <param name="invertedCameraTransform">Inverted transformation matrix that maps canvas positions into the world</param>
-    /// <param name="bindingPreset">Action binding preset to grab logic for in state updating</param>
     /// <param name="dt">Time passed since last frame</param>
-    internal static void Update(Matrix mouseCanvasTransform, Matrix invertedCameraTransform, ActionBindingPreset bindingPreset, float dt) {
+    internal static void Update(Matrix mouseCanvasTransform, Matrix invertedCameraTransform, float dt) {
         // update static fields
         Input.mouseCanvasTransform = mouseCanvasTransform;
         Input.canvasWorldTransform = invertedCameraTransform;
@@ -187,11 +178,7 @@ public static class Input {
         mState = Mouse.GetState();
         padState = GamePad.GetState(0);
         actionStatePrev = actionState;
-        actionState = new ActionState(
-            bindingPreset,
-            PreventDirectionalsNextFrame,
-            false
-        );
+        actionState = new ActionState(CurrentBindingPreset);
 
         // update class's internal state, only updates when a state is changed
         //   (therefore a button/key has been pressed, mouse moved, stick flicked, etc)
@@ -218,7 +205,6 @@ public static class Input {
             OnInputModeChanged?.Invoke(Mode);
         }
 
-        PreventDirectionalsNextFrame = false;
         modePrev = Mode;
     }
 
@@ -358,19 +344,90 @@ public static class Input {
     /// <summary>
     /// Gets whether or not an action has been activated this frame
     /// </summary>
-    /// <param name="action">Action to check for</param>
+    /// <param name="action">Name of action to check for</param>
     /// <returns>True if action is activated, false if not</returns>
-    public static bool IsAction(InputAction action) {
-        return actionState.IsDown(action);
+    public static bool IsAction(string action) {
+        int offset = CurrentBindingPreset.GetBindingBitShiftOffset(action);
+        return actionState.IsDown(offset);
     }
 
     /// <summary>
     /// Gets whether or not an action has been activated for the first time this frame
     /// </summary>
-    /// <param name="action">Action to check for</param>
+    /// <param name="action">Name of action to check for</param>
     /// <returns>True if action is activated this frame and not last frame, false if not</returns>
-    public static bool IsActionOnce(InputAction action) {
-        return actionState.IsDown(action) && !actionStatePrev.IsDown(action);
+    public static bool IsActionOnce(string action) {
+        int offset = CurrentBindingPreset.GetBindingBitShiftOffset(action);
+        return actionState.IsDown(offset) && !actionStatePrev.IsDown(offset);
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 1D axis with two actions
+    /// </summary>
+    /// <param name="negative">Name of action to use as negative</param>
+    /// <param name="positive">Name of action to use as positive</param>
+    /// <returns>Composite float value from -1 to 1 of action axis input</returns>
+    public static float GetComposite1D(string negative, string positive) {
+        return actionState.GetComposite1D(
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive)
+        );
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 2D axis with four actions
+    /// </summary>
+    /// <param name="negative_x">Name of action to use as negative x axis</param>
+    /// <param name="negative_y">Name of action to use as negative y axis</param>
+    /// <param name="positive_x">Name of action to use as positive x axis</param>
+    /// <param name="positive_y">Name of action to use as positive y axis</param>
+    /// <param name="normalize">Whether or not to normalize vector</param>
+    /// <returns>Composite 2D vector value from -1 to 1 of action axis input</returns>
+    public static Vector2 GetComposite2D(
+        string negative_x,
+        string negative_y,
+        string positive_x,
+        string positive_y,
+        bool normalize = false
+    ) {
+        return actionState.GetComposite2D(
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative_x),
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative_y),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive_x),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive_y),
+            normalize
+        );
+    }
+
+    /// <summary>
+    /// Gets the composite activation value along a 3D axis with six actions
+    /// </summary>
+    /// <param name="negative_x">Name of action to use as negative x axis</param>
+    /// <param name="negative_y">Name of action to use as negative y axis</param>
+    /// <param name="negative_z">Name of action to use as negative z axis</param>
+    /// <param name="positive_x">Name of action to use as positive x axis</param>
+    /// <param name="positive_y">Name of action to use as positive y axis</param>
+    /// <param name="positive_z">Name of action to use as positive z axis</param>
+    /// <param name="normalize">Whether or not to normalize vector</param>
+    /// <returns>Composite 3D vector value from -1 to 1 of action axis input</returns>
+    public static Vector3 GetComposite3D(
+        string negative_x,
+        string negative_y,
+        string negative_z,
+        string positive_x,
+        string positive_y,
+        string positive_z,
+        bool normalize = false
+    ) {
+        return actionState.GetComposite3D(
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative_x),
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative_y),
+            CurrentBindingPreset.GetBindingBitShiftOffset(negative_z),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive_x),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive_y),
+            CurrentBindingPreset.GetBindingBitShiftOffset(positive_z),
+            normalize
+        );
     }
 
     /// <summary>

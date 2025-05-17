@@ -123,14 +123,14 @@ public class Button : Label, IMenuInteractable {
         if (Hovered) {
             // only activate with submit if an alt key isn't pressed
             //   (to not also toggle fullscreen)
-            if ((!Input.AnyModifierDown() && Input.IsActionOnce(InputAction.Submit)) ||
+            if ((!Input.AnyModifierDown() && Input.IsActionOnce(ActionBindingPreset.UISubmitAction)) ||
                 Input.IsLeftMouseDownOnce()
             ) {
                 Activate();
                 Pressed = true;
 
                 // controllers do "click up" instantly
-                if (Input.IsAction(InputAction.Submit)) {
+                if (Input.IsAction(ActionBindingPreset.UISubmitAction)) {
                     OnClick?.Invoke();
                     alreadyClicked = true;
                 }

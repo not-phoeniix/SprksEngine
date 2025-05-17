@@ -128,16 +128,17 @@ public class MainScene(string name) : Scene3D(name) {
             );
         }
 
-        Camera.Transform.GlobalPosition += Camera.Transform.Forward * -Input.MoveDirection.Y * dt * 8;
-        Camera.Transform.GlobalPosition += Camera.Transform.Right * -Input.MoveDirection.X * dt * 8;
-
-        if (Input.IsKeyDown(Keys.LeftShift)) {
-            Camera.Transform.GlobalPosition += new Vector3(0, -dt * 8, 0);
-        }
-
-        if (Input.IsKeyDown(Keys.Space)) {
-            Camera.Transform.GlobalPosition += new Vector3(0, dt * 8, 0);
-        }
+        Vector3 moveInput = Input.GetComposite3D(
+            "left",
+            "down",
+            "backward",
+            "right",
+            "up",
+            "forward"
+        );
+        Camera.Transform.GlobalPosition += Camera.Transform.Forward * moveInput.Z * dt * 8;
+        Camera.Transform.GlobalPosition += Camera.Transform.Right * -moveInput.X * dt * 8;
+        Camera.Transform.GlobalPosition += new Vector3(0, moveInput.Y * dt * 8, 0);
 
         if (Input.IsKeyDown(Keys.RightShift)) {
             Camera.LookAt(Vector3.Zero);

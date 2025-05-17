@@ -181,25 +181,25 @@ public class Dragger : MenuElement, IEnumerable<MenuElement> {
         }
 
         // make it so only stop dragging after mouse is released
-        if (!Input.IsLeftMouseDown() && !Input.IsAction(InputAction.Submit)) {
+        if (!Input.IsLeftMouseDown() && !Input.IsAction(ActionBindingPreset.UISubmitAction)) {
             IsDragging = false;
             shouldDrag = false;
         }
 
         if (IsDragging) {
-            if (Input.IsAction(InputAction.UILeft)) {
+            if (Input.IsAction(ActionBindingPreset.UILeftAction)) {
                 currentDragOffset.X -= ControllerDragSpeed * dt;
             }
 
-            if (Input.IsAction(InputAction.UIRight)) {
+            if (Input.IsAction(ActionBindingPreset.UIRightAction)) {
                 currentDragOffset.X += ControllerDragSpeed * dt;
             }
 
-            if (Input.IsAction(InputAction.UIUp)) {
+            if (Input.IsAction(ActionBindingPreset.UIUpAction)) {
                 currentDragOffset.Y -= ControllerDragSpeed * dt;
             }
 
-            if (Input.IsAction(InputAction.UIDown)) {
+            if (Input.IsAction(ActionBindingPreset.UIDownAction)) {
                 currentDragOffset.Y += ControllerDragSpeed * dt;
             }
 

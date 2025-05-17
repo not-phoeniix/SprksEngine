@@ -82,7 +82,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         public bool EnableVSync { get; init; }
         public bool IsFullscreen { get; init; }
         public bool IsBorderless { get; init; }
-        public ActionBindingPreset DefaultBindingPreset { get; init; }
+        public ActionBindingPreset? DefaultBindingPreset { get; init; }
 
         /// <summary>
         /// Creates a new SetupParams instance with default values
@@ -98,7 +98,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             IsFullscreen = false;
             IsBorderless = false;
             RenderPipeline = null;
-            DefaultBindingPreset = ActionBindingPreset.Default;
+            DefaultBindingPreset = null;
         }
     }
 
@@ -180,7 +180,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
 
         EngineSettings.GameCanvasResolution = setupParams.CanvasRes;
-        EngineSettings.CurrentBindingPreset = setupParams.DefaultBindingPreset;
+        EngineSettings.CurrentBindingPreset = setupParams.DefaultBindingPreset ?? ActionBindingPreset.MakeDefault();
         EngineSettings.EnableVSync = setupParams.EnableVSync;
         EngineSettings.IsFullscreen = setupParams.IsFullscreen;
         EngineSettings.IsBorderless = setupParams.IsBorderless;
@@ -254,10 +254,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             invertCam2DMat = scene.Camera.InvertedMatrix;
         }
 
+        Input.CurrentBindingPreset = EngineSettings.CurrentBindingPreset;
         Input.Update(
             mouseMatrix,
             invertCam2DMat,
-            EngineSettings.CurrentBindingPreset,
             Performance.DeltaTime
         );
 
