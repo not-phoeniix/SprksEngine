@@ -7,7 +7,7 @@ namespace Embyr.Physics;
 /// <summary>
 /// Contains a collection of rope nodes, a segmented physics rope
 /// </summary>
-public class Rope : IDrawable2D, IDebugDrawable2D {
+public class Rope2D : IDrawable2D, IDebugDrawable2D {
     // try this !!
     // https://www.owlree.blog/posts/simulating-a-rope.html
     // hopefully it works :3
@@ -94,7 +94,7 @@ public class Rope : IDrawable2D, IDebugDrawable2D {
     /// <param name="startPoint">Starting position of the rope</param>
     /// <param name="endPoint">Ending position of the rope</param>
     /// <param name="segments">Number of rope segments</param>
-    public Rope(Vector2 startPoint, Vector2 endPoint, int segments) {
+    public Rope2D(Vector2 startPoint, Vector2 endPoint, int segments) {
         if (segments <= 0) {
             throw new Exception("Error creating rope: segments cannot be less than one!");
         }
@@ -135,7 +135,7 @@ public class Rope : IDrawable2D, IDebugDrawable2D {
     /// </summary>
     /// <param name="nodes">Pre-existing array of nodes</param>
     /// <param name="segmentLength">Length of each rope segment</param>
-    public Rope(PhysicsComponent2D[] nodes, float segmentLength) {
+    public Rope2D(PhysicsComponent2D[] nodes, float segmentLength) {
         this.nodes = nodes;
         this.segmentLength = segmentLength;
         foreach (PhysicsComponent2D node in nodes) {

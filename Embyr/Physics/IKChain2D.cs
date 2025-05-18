@@ -7,7 +7,7 @@ namespace Embyr.Physics;
 /// <summary>
 /// Inverse Kinematics chain using the FABRIK solver
 /// </summary>
-public class IKChain : IDrawable2D, IDebugDrawable2D {
+public class IKChain2D : IDrawable2D, IDebugDrawable2D {
     //* WOWSA !! this was SO EASY to implement :D
     //*   many many thanks to the awesome video that helped me figure
     //*   out the FABRIK solver !!
@@ -70,7 +70,7 @@ public class IKChain : IDrawable2D, IDebugDrawable2D {
     /// </param>
     /// <param name="anchor">Starting anchor of chain</param>
     /// <param name="initialTarget">Starting target of chain</param>
-    public IKChain(float[] segmentLengths, Vector2 anchor, Vector2 initialTarget) {
+    public IKChain2D(float[] segmentLengths, Vector2 anchor, Vector2 initialTarget) {
         if (segmentLengths.Length <= 1) {
             throw new System.Exception("ERROR: Cannot create IK with one or less segments!");
         }
@@ -101,7 +101,7 @@ public class IKChain : IDrawable2D, IDebugDrawable2D {
     /// Array of segment lengths starting from anchor moving to
     /// target, also determines number of segments
     /// </param>
-    public IKChain(float[] segmentLengths)
+    public IKChain2D(float[] segmentLengths)
     : this(segmentLengths, Vector2.Zero, Vector2.Zero) { }
 
     // starts at first node, sets it to the anchor, and pulls all
