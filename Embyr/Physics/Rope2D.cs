@@ -119,14 +119,16 @@ public class Rope2D : IDrawable2D, IDebugDrawable2D {
         for (int i = 0; i < numNodes; i++) {
             Vector2 position = startPoint + (diff * i);
 
-            nodes[i] = new PhysicsComponent2D(
-                new Transform2D(position),
-                new Rectangle(0, 0, 1, 1),
-                1f,
-                1000
-            ) {
-                Solver = PhysicsComponent2D.PhysicsSolver.Verlet
-            };
+            // TODO: fix rope physics component initialization!
+
+            // nodes[i] = new PhysicsComponent2D(
+            //     new Transform2D(position),
+            //     new Rectangle(0, 0, 1, 1),
+            //     1f,
+            //     1000
+            // ) {
+            //     Solver = PhysicsComponent2D.PhysicsSolver.Verlet
+            // };
         }
     }
 

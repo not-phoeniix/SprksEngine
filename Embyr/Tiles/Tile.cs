@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.Scenes;
+using Embyr.Physics;
 
 namespace Embyr.Tiles;
 
@@ -440,24 +441,15 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     /// </summary>
     public Point TilespacePosition {
         get {
-            Vector2 pos = Transform.GlobalPosition / Bounds.Size.ToVector2();
+            Vector2 pos = Transform.GlobalPosition / PixelSize;
             return pos.ToPoint();
         }
     }
 
     /// <summary>
-    /// Rectangle bounds of this tile
+    /// Gets the collider for for this tile
     /// </summary>
-    public Rectangle Bounds {
-        get {
-            return new Rectangle(
-                (int)Transform.GlobalPosition.X,
-                (int)Transform.GlobalPosition.Y,
-                8,
-                8
-            );
-        }
-    }
+    public RectCollider2D Collider { get; }
 
     #endregion
 
@@ -467,6 +459,7 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     public Tile(T type, Texture2D texture, bool usesTileset, Scene scene) {
         this.Scene = scene;
         this.Transform = new Transform2D();
+        this.Collider = new RectCollider2D(Transform, new Vector2(PixelSize));
         this.usesTileset = usesTileset;
         this.texture = texture;
         this.components = new List<ITileComponent<T>>();
@@ -503,7 +496,12 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     protected void DrawTinted(Color color, SpriteBatch sb) {
         // skip drawing if tileset is null
         if (texture == null) return;
-        sb.Draw(texture, Transform.GlobalPosition, sourceRect, color);
+        sb.Draw(
+            texture,
+            Transform.GlobalPosition - new Vector2(PixelSize / 2),
+            sourceRect,
+            color
+        );
     }
 
     /// <summary>
@@ -518,13 +516,15 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     }
 
     /// <summary>
-    /// Draws the exposed faces with lime green lines
+    /// Draws debug information for this tile such as collider and component info
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public void DebugDraw(SpriteBatch sb) {
         foreach (ITileComponent<T> c in components) {
             c.DebugDraw(sb);
         }
+
+        Collider.DebugDraw(sb);
     }
 
     /// <summary>

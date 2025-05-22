@@ -1,3 +1,4 @@
+using Embyr.Physics;
 using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -19,14 +20,9 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
     public Transform2D Transform { get; }
 
     /// <summary>
-    /// Gets the total bounds of this TileMap
+    /// Gets the collider for this TileMap
     /// </summary>
-    public Rectangle Bounds => new(
-        tiles.Min.X * Tile<T>.PixelSize,
-        tiles.Min.Y * Tile<T>.PixelSize,
-        (tiles.Max.X - tiles.Min.X) * Tile<T>.PixelSize,
-        (tiles.Max.Y - tiles.Min.Y) * Tile<T>.PixelSize
-    );
+    public Collider2D Collider { get; }
 
     /// <summary>
     /// Event executed when this tile map is added to a scene
@@ -71,6 +67,9 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         this.SimulationDistance = simulationDistance;
         this.tiles = new NList2D<Tile<T>>();
         this.Transform = new Transform2D(position);
+        this.Collider = new RectCollider2D(this, Vector2.Zero) {
+            Collidable = false
+        };
     }
 
     /// <summary>
@@ -148,13 +147,11 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
             for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
                 if (!tiles.InBounds(x, y)) continue;
-
-                if (tiles[x, y] != null) {
-                    tiles[x, y].DebugDraw(sb);
-                    sb.DrawRectOutline(tiles[x, y].Bounds, 1, Color.Yellow);
-                }
+                tiles[x, y]?.DebugDraw(sb);
             }
         }
+
+        Collider.DebugDraw(sb);
     }
 
     /// <summary>
@@ -172,6 +169,7 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
                 x * Tile<T>.PixelSize,
                 y * Tile<T>.PixelSize
             );
+            Collider.AddChild(tile.Collider);
         }
 
         for (int x2 = x - 1; x2 <= x + 1; x2++) {
@@ -180,6 +178,8 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
                 tiles[x2, y2]?.UpdateEdges(this, null);
             }
         }
+
+        ((RectCollider2D)Collider).Size = tiles.Size.ToVector2() * Tile<T>.PixelSize;
     }
 
     /// <summary>
@@ -223,8 +223,8 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         return new Rectangle(
             (int)MathF.Floor(rect.X / Tile<T>.PixelSize) - padding,
             (int)MathF.Floor(rect.Y / Tile<T>.PixelSize) - padding,
-            (int)MathF.Ceiling((rect.Right - rect.Left) / Tile<T>.PixelSize) + padding * 2,
-            (int)MathF.Ceiling((rect.Bottom - rect.Top) / Tile<T>.PixelSize) + padding * 2
+            (int)MathF.Ceiling(rect.Size.X / Tile<T>.PixelSize) + padding * 2,
+            (int)MathF.Ceiling(rect.Size.Y / Tile<T>.PixelSize) + padding * 2
         );
     }
 }

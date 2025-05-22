@@ -141,7 +141,11 @@ internal class Quadtree<T> where T : class, ITransform2D {
             foreach (T obj in data) {
                 float dSqr;
                 if (obj is IActor2D actor) {
-                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                    Rectangle bounds = new(
+                        Vector2.Floor(actor.Collider.Min).ToPoint(),
+                        Vector2.Floor(actor.Collider.Max - actor.Collider.Min).ToPoint()
+                    );
+                    dSqr = Utils.DistanceSquared(position, bounds);
                 } else {
                     dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
                 }
@@ -182,7 +186,11 @@ internal class Quadtree<T> where T : class, ITransform2D {
             foreach (T obj in data) {
                 float dSqr;
                 if (obj is IActor2D actor) {
-                    dSqr = Utils.DistanceSquared(position, actor.Bounds);
+                    Rectangle bounds = new(
+                        Vector2.Floor(actor.Collider.Min).ToPoint(),
+                        Vector2.Floor(actor.Collider.Max - actor.Collider.Min).ToPoint()
+                    );
+                    dSqr = Utils.DistanceSquared(position, bounds);
                 } else {
                     dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
                 }
@@ -212,7 +220,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
             foreach (T obj in data) {
                 bool contains;
                 if (obj is IActor2D actor) {
-                    contains = viewport.Intersects(actor.Bounds);
+                    contains = actor.Collider.Intersects(viewport);
                 } else {
                     contains = viewport.Contains(obj.Transform.GlobalPosition);
                 }

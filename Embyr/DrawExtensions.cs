@@ -18,7 +18,11 @@ public static class DrawExtensions {
 
     private static readonly Transform3D debugRenderTransform = new();
     private static readonly Material3D debugMaterial = new(Material3D.DefaultSingleColorShader);
-    private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
+
+    // TODO: figure out a way to pack the cube model inside the baked DLL
+    //   either through embedded resources or just manual
+    //   drawing using manual buffers in the graphics device
+    // private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
 
     #region // Line
 
@@ -390,7 +394,7 @@ public static class DrawExtensions {
         debugRenderTransform.GlobalPosition = (box.Min + box.Max) / 2.0f;
         debugRenderTransform.GlobalScale = (box.Max - box.Min) / 2.0f;
         debugMaterial.Shader.Parameters["Color"].SetValue(color.ToVector3());
-        boxMesh.Draw(debugRenderTransform, camera, debugMaterial, PrimitiveType.LineList);
+        // boxMesh.Draw(debugRenderTransform, camera, debugMaterial, PrimitiveType.LineList);
     }
 
     #endregion

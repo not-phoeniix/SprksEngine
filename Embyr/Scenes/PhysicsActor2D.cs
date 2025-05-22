@@ -15,11 +15,6 @@ public abstract class PhysicsActor2D : Actor2D {
     /// </summary>
     public PhysicsComponent2D Physics { get; }
 
-    /// <summary>
-    /// Gets the bounds of this physics actor in the world
-    /// </summary>
-    public override Rectangle Bounds => Physics.Bounds;
-
     #endregion
 
     /// <summary>
@@ -27,57 +22,25 @@ public abstract class PhysicsActor2D : Actor2D {
     /// </summary>
     /// <param name="name">Name of this actor</param>
     /// <param name="position">Initial position</param>
-    /// <param name="verticalCollisionBox">
-    /// Local-to-sprite collision box that defines where/how
-    /// vertical collision takes place with this object
-    /// </param>
-    /// <param name="horizontalCollisionBox">
-    /// Local-to-sprite collision box that defines where/how
-    /// horizontal collision takes place with this object
-    /// </param>
+    /// <param name="collider">Collider to attach to this actor</param>
     /// <param name="mass">Mass of actor</param>
     /// <param name="maxSpeed">Maximum velocity actor can achieve</param>
+    /// <param name="minSpeed">Minimum velocity of actor before snapping to zero</param>
     /// <param name="scene">Scene to place this actor in</param>
     public PhysicsActor2D(
         string name,
         Vector2 position,
-        Rectangle verticalCollisionBox,
-        Rectangle horizontalCollisionBox,
+        Collider2D collider,
         float mass,
         float maxSpeed,
+        float minSpeed,
         Scene2D scene
-    ) : base(name, position, scene) {
+    ) : base(name, position, collider, scene) {
         Physics = new PhysicsComponent2D(
-            Transform,
-            verticalCollisionBox,
-            horizontalCollisionBox,
+            this,
             mass,
-            maxSpeed
-        );
-    }
-
-    /// <summary>
-    /// Creates a new Entity object
-    /// </summary>
-    /// <param name="name">Name of this actor</param>
-    /// <param name="position">Initial position</param>
-    /// <param name="spriteBounds">Local-to-sprite bounds used for collision</param>
-    /// <param name="mass">Mass of actor</param>
-    /// <param name="maxSpeed">Maximum velocity actor can achieve</param>
-    /// <param name="scene">Scene to place this actor in</param>
-    public PhysicsActor2D(
-        string name,
-        Vector2 position,
-        Rectangle spriteBounds,
-        float mass,
-        float maxSpeed,
-        Scene2D scene
-    ) : base(name, position, scene) {
-        Physics = new PhysicsComponent2D(
-            Transform,
-            spriteBounds,
-            mass,
-            maxSpeed
+            maxSpeed,
+            minSpeed
         );
     }
 

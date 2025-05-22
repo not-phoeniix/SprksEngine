@@ -20,7 +20,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
 
     #region // Fields & Properties
 
-    private readonly Transform2D transform;
+    private readonly IActor2D actor;
     private Vector2 prevTransformPos;
     private Vector2 prevPos;
     private Vector2 prevVerletPos;
@@ -73,9 +73,14 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     public float Mass { get; private set; }
 
     /// <summary>
-    /// Maximum speed of physics component before clamping, only applied with the
+    /// Maximum speed of physics component before clamping, only applied with the Euler physics solver
     /// </summary>
     public float MaxSpeed { get; private set; }
+
+    /// <summary>
+    /// Minimum speed of physics component before snapping to zero
+    /// </summary>
+    public float MinSpeed { get; private set; }
 
     /// <summary>
     /// Current position aligned to top left corner of sprite
@@ -137,57 +142,9 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     public float GroundFrictionScale { get; set; } = 20f;
 
     /// <summary>
-    /// Local bounding box relative to sprite for
-    /// top-bottom vertical collision in world
-    /// </summary>
-    public Rectangle VerticalCollisionBox { get; set; }
-
-    /// <summary>
-    /// Local bounding box relative to sprite for
-    /// left-right horizontal collision in world
-    /// </summary>
-    public Rectangle HorizontalCollisionBox { get; set; }
-
-    /// <summary>
-    /// Vertical collision bounds in world-space,
-    /// adjusted with Position variable
-    /// </summary>
-    public Rectangle VerticalBounds {
-        get {
-            return new Rectangle(
-                VerticalCollisionBox.X + (int)Position.X,
-                VerticalCollisionBox.Y + (int)Position.Y,
-                VerticalCollisionBox.Width,
-                VerticalCollisionBox.Height
-            );
-        }
-    }
-
-    /// <summary>
-    /// Horizontal collision bounds in world-space,
-    /// adjusted with Position variable
-    /// </summary>
-    public Rectangle HorizontalBounds {
-        get {
-            return new Rectangle(
-                HorizontalCollisionBox.X + (int)Position.X,
-                HorizontalCollisionBox.Y + (int)Position.Y,
-                HorizontalCollisionBox.Width,
-                HorizontalCollisionBox.Height
-            );
-        }
-    }
-
-    /// <summary>
-    /// Gets combined surrounding world-space rectangle of both
-    /// horizontal and vertical collision bounds
-    /// </summary>
-    public Rectangle Bounds => Rectangle.Union(VerticalBounds, HorizontalBounds);
-
-    /// <summary>
     /// Callback executed when the component collides with a tile
     /// </summary>
-    public event Action OnCollide;
+    public event Action? OnCollide;
 
     #endregion
 
@@ -196,95 +153,26 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// <summary>
     /// Creates a new physics component
     /// </summary>
-    /// <param name="position">Initial position</param>
-    /// <param name="transform">Transform of object to affect with physics</param>
-    /// <param name="verticalCollisionBox">
-    /// Local-to-sprite collision box that defines where/how
-    /// vertical collision takes place with this object
-    /// </param>
-    /// <param name="horizontalCollisionBox">
-    /// Local-to-sprite collision box that defines where/how
-    /// horizontal collision takes place with this object
-    /// </param>
+    /// <param name="actor">Actor to attach this component to</param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
     public PhysicsComponent2D(
-        Transform2D transform,
-        Rectangle verticalCollisionBox,
-        Rectangle horizontalCollisionBox,
+        IActor2D actor,
         float mass,
-        float maxSpeed
+        float maxSpeed,
+        float minSpeed
     ) {
-        this.transform = transform;
-        this.prevTransformPos = transform.GlobalPosition;
-        this.position = transform.GlobalPosition;
+        this.actor = actor;
+        this.prevTransformPos = actor.Transform.GlobalPosition;
+        this.position = actor.Transform.GlobalPosition;
         this.prevPos = position;
         this.prevVerletPos = position;
-        this.VerticalCollisionBox = verticalCollisionBox;
-        this.HorizontalCollisionBox = horizontalCollisionBox;
         this.Mass = mass;
         this.MaxSpeed = maxSpeed;
+        this.MinSpeed = minSpeed;
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
-
-    /// <summary>
-    /// Creates a new physics component
-    /// </summary>
-    /// <param name="transform">Transform of object to affect with physics</param>
-    /// <param name="collisionBox">
-    /// Local-to-sprite bounding rectangle of this object, used
-    /// for collision and bounds calculations
-    /// </param>
-    /// <param name="boxOffset">Unsigned integer offset of vertical/horizontal collision box modification</param>
-    /// <param name="mass">Mass of object</param>
-    /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent2D(
-        Transform2D transform,
-        Rectangle collisionBox,
-        int boxOffset,
-        float mass,
-        float maxSpeed
-    ) : this(
-        transform,
-        new Rectangle(
-            collisionBox.X + (Math.Max(boxOffset, 0) / 2),
-            collisionBox.Y,
-            collisionBox.Width - Math.Max(boxOffset, 0),
-            collisionBox.Height
-        ),
-        new Rectangle(
-            collisionBox.X,
-            collisionBox.Y + (Math.Max(boxOffset, 0) / 2),
-            collisionBox.Width,
-            collisionBox.Height - Math.Max(boxOffset, 0)
-        ),
-        mass,
-        maxSpeed
-    ) { }
-
-    /// <summary>
-    /// Creates a new physics component
-    /// </summary>
-    /// <param name="transform">Transform of object to affect with physics</param>
-    /// <param name="collisionBox">
-    /// Local-to-sprite bounding rectangle of this object, used
-    /// for collision and bounds calculations
-    /// </param>
-    /// <param name="mass">Mass of object</param>
-    /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent2D(
-        Transform2D transform,
-        Rectangle collisionBox,
-        float mass,
-        float maxSpeed
-    ) : this(
-        transform,
-        collisionBox,
-        1,
-        mass,
-        maxSpeed
-    ) { }
 
     #endregion
 
@@ -338,7 +226,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         }
 
         // updates the value of the transform every update
-        transform.GlobalPosition = position;
+        actor.Transform.GlobalPosition = position;
     }
 
     /// <summary>
@@ -357,9 +245,9 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         //     //   position to current lerped position
         //     transform.GlobalPosition = Position;
         // }
-        transform.GlobalPosition = Position;
 
-        prevTransformPos = transform.GlobalPosition;
+        prevTransformPos = actor.Transform.GlobalPosition;
+        actor.Transform.GlobalPosition = Position;
     }
 
     /// <summary>
@@ -368,8 +256,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public void DebugDraw(SpriteBatch sb) {
-        sb.DrawRectOutline(VerticalBounds, 1f, Color.OrangeRed);
-        sb.DrawRectOutline(HorizontalBounds, 1f, Color.OrangeRed);
+        actor.Collider.DebugDraw(sb);
     }
 
     private void EulerPosUpdate(float deltaTime) {
@@ -378,6 +265,11 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         velocity = Utils.ClampMagnitude(velocity, MaxSpeed);
         // apply gravity AFTER speed limiting
         velocity += gravityAccel * deltaTime;
+
+        // snap velocity to zero if below min threshold
+        if (velocity.LengthSquared() < MinSpeed * MinSpeed) {
+            velocity = Vector2.Zero;
+        }
 
         position += velocity * deltaTime;
 
@@ -403,6 +295,11 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         Vector2 tmpPos = position;
         position = 2 * position - prevVerletPos + ((acceleration + gravityAccel) * deltaTime + impulseAccel) * deltaTime;
         velocity = (position - prevVerletPos) / (2 * deltaTime);
+        if (velocity.LengthSquared() < MinSpeed * MinSpeed) {
+            // stop movement if velocity is below minimum threshold
+            velocity = Vector2.Zero;
+            position = tmpPos;
+        }
         prevVerletPos = tmpPos;
 
         // reset fields
@@ -455,27 +352,44 @@ public class PhysicsComponent2D : IDebugDrawable2D {
 
         int numCollisionIterations = 4;
         for (int i = 0; i < numCollisionIterations; i++) {
-            // track whether or not any object is colliding
-            // at the end of collision loop
-            bool anythingColliding = false;
+            bool anyCollisionsOccured = false;
 
-            foreach (IActor2D actor in scene.GetActorsInViewport(Utils.ExpandRect(Bounds, 5))) {
-                // don't collide with perfect matching bounds (probably the same object)
-                if (actor.Bounds == Bounds) continue;
+            Vector2 max = actor.Collider.Max;
+            Vector2 min = actor.Collider.Min;
+            float collisionRadius = MathF.Max(max.X - min.X, max.Y - min.Y);
+
+            foreach (IActor2D a in scene.GetActorsInRadius(actor.Transform.GlobalPosition, collisionRadius)) {
+                // don't collide with yourself!
+                if (a.Collider == this.actor.Collider) continue;
 
                 // resolve collisions, if any collisions still
                 //   occur during resolution, mark that things
                 //   are colliding this frame !!
-                if (ResolveCollision(actor.Bounds)) {
-                    anythingColliding = true;
+                if (this.actor.Collider.Intersects(a.Collider)) {
+                    Vector2 displacement = this.actor.Collider.GetDisplacementVector(a.Collider);
+
+                    position += displacement;
+
+                    somethingCollided = true;
+                    anyCollisionsOccured = true;
+
+                    // stop velocity in each axis if
+                    //   that axis has any displacement
+                    velocity.X *= displacement.X != 0 ? 0 : 1;
+                    velocity.Y *= displacement.Y != 0 ? 0 : 1;
+
+                    // we are on the ground if we are displacing up
+                    if (displacement.Y < 0) {
+                        OnGround = true;
+                    }
                 }
+
+                this.actor.Transform.GlobalPosition = position;
             }
 
-            // update flag if anything collided at all this iteration
-            if (anythingColliding) somethingCollided = true;
-
-            // end loop if no collisions occur this frame for efficiency
-            if (!anythingColliding) break;
+            // no need to do collision checks anymore if
+            //   there aren't any collisions left
+            if (!anyCollisionsOccured) break;
         }
 
         // invoke collision callback when a collision occurs for the first frame
@@ -606,77 +520,77 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     */
 
     // returns whether or not a collision exists
-    private bool ResolveCollision(Rectangle target) {
-        bool collisionExists = false;
+    // private bool ResolveCollision(Rectangle target) {
+    //     bool collisionExists = false;
 
-        Rectangle currentVertBounds = new(
-            VerticalCollisionBox.X + (int)position.X,
-            VerticalCollisionBox.Y + (int)position.Y,
-            VerticalCollisionBox.Width,
-            VerticalCollisionBox.Height
-        );
+    //     Rectangle currentVertBounds = new(
+    //         VerticalCollisionBox.X + (int)position.X,
+    //         VerticalCollisionBox.Y + (int)position.Y,
+    //         VerticalCollisionBox.Width,
+    //         VerticalCollisionBox.Height
+    //     );
 
-        Rectangle currentHorizBounds = new(
-            HorizontalCollisionBox.X + (int)position.X,
-            HorizontalCollisionBox.Y + (int)position.Y,
-            HorizontalCollisionBox.Width,
-            HorizontalCollisionBox.Height
-        );
+    //     Rectangle currentHorizBounds = new(
+    //         HorizontalCollisionBox.X + (int)position.X,
+    //         HorizontalCollisionBox.Y + (int)position.Y,
+    //         HorizontalCollisionBox.Width,
+    //         HorizontalCollisionBox.Height
+    //     );
 
-        // detect by expanding bottom bounds by 1 pixel
-        //   when object is colliding with ground
-        bool isBelow = Utils.IsBelow(target, currentVertBounds);
-        bool verticalCollision = target.Top <= currentVertBounds.Bottom + 1;
-        if (isBelow && verticalCollision) {
-            OnGround = true;
-        }
+    //     // detect by expanding bottom bounds by 1 pixel
+    //     //   when object is colliding with ground
+    //     bool isBelow = Utils.IsBelow(target, currentVertBounds);
+    //     bool verticalCollision = target.Top <= currentVertBounds.Bottom + 1;
+    //     if (isBelow && verticalCollision) {
+    //         OnGround = true;
+    //     }
 
-        // vertical collision resolution
-        if (target.Intersects(currentVertBounds)) {
-            collisionExists = true;
+    //     // vertical collision resolution
+    //     if (target.Intersects(currentVertBounds)) {
+    //         collisionExists = true;
 
-            int displacement;
-            bool tileBelow = target.Top >= currentVertBounds.Top;
+    //         int displacement;
+    //         bool tileBelow = target.Top >= currentVertBounds.Top;
 
-            if (tileBelow) {
-                // for when object/entity is above the object
-                displacement = currentVertBounds.Bottom - target.Top;
-            } else {
-                // for when object/entity is below the object
-                displacement = currentVertBounds.Top - target.Bottom;
-            }
+    //         if (tileBelow) {
+    //             // for when object/entity is above the object
+    //             displacement = currentVertBounds.Bottom - target.Top;
+    //         } else {
+    //             // for when object/entity is below the object
+    //             displacement = currentVertBounds.Top - target.Bottom;
+    //         }
 
-            position.Y -= displacement;
-            velocity.Y = 0;
-            toChangeVelocity = true;
+    //         position.Y -= displacement;
+    //         velocity.Y = 0;
+    //         toChangeVelocity = true;
 
-            position.Y = (int)position.Y;
-        }
+    //         position.Y = (int)position.Y;
+    //     }
 
-        // horizontal collision resolution
-        if (target.Intersects(currentHorizBounds)) {
-            collisionExists = true;
+    //     // horizontal collision resolution
+    //     if (target.Intersects(currentHorizBounds)) {
+    //         collisionExists = true;
 
-            int displacement;
-            bool tileToRight = target.Left >= currentHorizBounds.Left;
+    //         int displacement;
+    //         bool tileToRight = target.Left >= currentHorizBounds.Left;
 
-            if (tileToRight) {
-                // for when object/entity is to the left of the object
-                displacement = currentHorizBounds.Right - target.Left;
-            } else {
-                // for when object/entity is to the right of the object
-                displacement = currentHorizBounds.Left - target.Right;
-            }
+    //         if (tileToRight) {
+    //             // for when object/entity is to the left of the object
+    //             displacement = currentHorizBounds.Right - target.Left;
+    //         } else {
+    //             // for when object/entity is to the right of the object
+    //             displacement = currentHorizBounds.Left - target.Right;
+    //         }
 
-            position.X -= displacement;
-            velocity.X = 0;
-            toChangeVelocity = true;
+    //         position.X -= displacement;
+    //         velocity.X = 0;
+    //         toChangeVelocity = true;
 
-            position.X = (int)position.X;
-        }
+    //         position.X = (int)position.X;
+    //     }
 
-        return collisionExists;
-    }
+    //     return collisionExists;
+    // }
 
     #endregion
 

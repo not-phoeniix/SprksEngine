@@ -1,3 +1,4 @@
+using Embyr.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -40,9 +41,9 @@ public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     public event Action<Scene>? OnRemoved;
 
     /// <summary>
-    /// Gets the bounds of this actor in the world
+    /// Gets the collider of this actor in the world
     /// </summary>
-    public abstract Rectangle Bounds { get; }
+    public Collider2D Collider { get; protected init; }
 
     #endregion
 
@@ -51,13 +52,16 @@ public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     /// </summary>
     /// <param name="name">Name of this actor</param>
     /// <param name="position">Initial position</param>
+    /// <param name="collider">Collider to attach to this actor</param>
     /// <param name="scene">Scene to place this actor in</param>
     public Actor2D(
         string name,
         Vector2 position,
+        Collider2D collider,
         Scene2D scene
     ) {
         this.Transform = new Transform2D(position);
+        this.Collider = collider;
         this.Name = name;
         this.Scene = scene;
     }
