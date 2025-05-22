@@ -384,6 +384,9 @@ public class PhysicsComponent2D : IDebugDrawable2D {
                     }
                 }
 
+                // apply new position to the transform so that
+                //   the collider doesn't calculate and apply
+                //   displacements multiple times
                 this.actor.Transform.GlobalPosition = position;
             }
 

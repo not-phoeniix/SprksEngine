@@ -25,7 +25,7 @@ public class Player : PhysicsActor2D {
         };
 
         // TODO: make a component system!
-        Collider = new RectCollider2D(this, new Vector2(10));
+        Collider = new BoxCollider2D(this, new Vector2(6));
         sprite = new SpriteComponent2D(this, ContentHelper.I.Load<Texture2D>("player"));
 
         OnAdded += (scene) => scene.AddLight(light);

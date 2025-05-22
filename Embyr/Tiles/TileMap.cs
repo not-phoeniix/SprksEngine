@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr.Tiles;
 
 /// <summary>
-/// A 2D grid/map of tiles, is an <c>IActor</c>
+/// A 2D grid/map of tiles, implements <c>IActor</c>
 /// </summary>
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
 public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
@@ -27,12 +27,12 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
     /// <summary>
     /// Event executed when this tile map is added to a scene
     /// </summary>
-    public event Action<Scene> OnAdded;
+    public event Action<Scene>? OnAdded;
 
     /// <summary>
     /// Event executed when this tile map is removed from a scene
     /// </summary>
-    public event Action<Scene> OnRemoved;
+    public event Action<Scene>? OnRemoved;
 
     /// <summary>
     /// Gets/sets the name of this TileMap actor
@@ -67,7 +67,7 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         this.SimulationDistance = simulationDistance;
         this.tiles = new NList2D<Tile<T>>();
         this.Transform = new Transform2D(position);
-        this.Collider = new RectCollider2D(this, Vector2.Zero) {
+        this.Collider = new BoxCollider2D(this, Vector2.Zero) {
             Collidable = false
         };
     }
@@ -179,7 +179,7 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
             }
         }
 
-        ((RectCollider2D)Collider).Size = tiles.Size.ToVector2() * Tile<T>.PixelSize;
+        ((BoxCollider2D)Collider).Size = (tiles.Size.ToVector2() + new Vector2(2)) * Tile<T>.PixelSize;
     }
 
     /// <summary>

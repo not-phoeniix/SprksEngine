@@ -449,7 +449,7 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     /// <summary>
     /// Gets the collider for for this tile
     /// </summary>
-    public RectCollider2D Collider { get; }
+    public BoxCollider2D Collider { get; }
 
     #endregion
 
@@ -459,7 +459,7 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     public Tile(T type, Texture2D texture, bool usesTileset, Scene scene) {
         this.Scene = scene;
         this.Transform = new Transform2D();
-        this.Collider = new RectCollider2D(Transform, new Vector2(PixelSize));
+        this.Collider = new BoxCollider2D(Transform, new Vector2(PixelSize));
         this.usesTileset = usesTileset;
         this.texture = texture;
         this.components = new List<ITileComponent<T>>();
