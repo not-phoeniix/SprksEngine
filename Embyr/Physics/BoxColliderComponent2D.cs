@@ -7,56 +7,45 @@ namespace Embyr.Physics;
 /// <summary>
 /// A 2D collider in a box shape, utilizes AABB, good for general fast collisions. Inherits from Collider2D.
 /// </summary>
-public class BoxCollider2D : Collider2D {
+public class BoxColliderComponent2D : ColliderComponent2D {
     /// <summary>
     /// Gets/sets the size of this box collider
     /// </summary>
     public Vector2 Size { get; set; }
 
     /// <inheritdoc/>
-    public override Vector2 Min => Transform.GlobalPosition - (Size / 2);
+    public override Vector2 Min => Actor.Transform.GlobalPosition - (Size / 2);
 
     /// <inheritdoc/>
-    public override Vector2 Max => Transform.GlobalPosition + (Size / 2);
+    public override Vector2 Max => Actor.Transform.GlobalPosition + (Size / 2);
 
     /// <summary>
-    /// Creates a new BoxCollider2D instance
+    /// Creates a new BoxColliderComponent2D instance
     /// </summary>
     /// <param name="actor">Actor to attach to collider</param>
-    /// <param name="size">The size of the collider</param>
-    public BoxCollider2D(IActor2D actor, Vector2 size)
-    : base(actor.Transform) {
-        this.Size = size;
-    }
-
-    /// <summary>
-    /// Creates a new BoxCollider2D instance
-    /// </summary>
-    /// <param name="transform">Transform to attach to collider</param>
-    /// <param name="size">The size of the collider</param>
-    public BoxCollider2D(Transform2D transform, Vector2 size)
-    : base(transform) {
-        this.Size = size;
+    public BoxColliderComponent2D(Actor2D actor)
+    : base(actor) {
+        this.Size = Vector2.One;
     }
 
     /// <inheritdoc/>
-    public override bool Intersects(Collider2D other) {
-        if (other is BoxCollider2D rect) {
+    public override bool Intersects(ColliderComponent2D other) {
+        if (other is BoxColliderComponent2D rect) {
             return Intersects(rect);
         }
 
-        if (other is CrossCollider2D cross) {
+        if (other is CrossColliderComponent2D cross) {
             return cross.Intersects(this);
         }
 
         return false;
     }
 
-    private bool Intersects(BoxCollider2D other) {
-        Vector2 thisMin = Transform.GlobalPosition - Size / 2;
-        Vector2 thisMax = Transform.GlobalPosition + Size / 2;
-        Vector2 otherMin = other.Transform.GlobalPosition - other.Size / 2;
-        Vector2 otherMax = other.Transform.GlobalPosition + other.Size / 2;
+    private bool Intersects(BoxColliderComponent2D other) {
+        Vector2 thisMin = Actor.Transform.GlobalPosition - Size / 2;
+        Vector2 thisMax = Actor.Transform.GlobalPosition + Size / 2;
+        Vector2 otherMin = other.Actor.Transform.GlobalPosition - other.Size / 2;
+        Vector2 otherMax = other.Actor.Transform.GlobalPosition + other.Size / 2;
 
         return thisMin.X + CollisionTolerance <= otherMax.X &&
                thisMin.Y + CollisionTolerance <= otherMax.Y &&
@@ -66,8 +55,8 @@ public class BoxCollider2D : Collider2D {
 
     /// <inheritdoc/>
     public override bool Intersects(Rectangle other) {
-        Vector2 thisMin = Transform.GlobalPosition - Size / 2;
-        Vector2 thisMax = Transform.GlobalPosition + Size / 2;
+        Vector2 thisMin = Actor.Transform.GlobalPosition - Size / 2;
+        Vector2 thisMax = Actor.Transform.GlobalPosition + Size / 2;
         Vector2 otherMin = new(other.Left, other.Top);
         Vector2 otherMax = new(other.Right, other.Bottom);
 
@@ -78,21 +67,21 @@ public class BoxCollider2D : Collider2D {
     }
 
     /// <inheritdoc/>
-    public override Vector2 GetDisplacementVector(Collider2D other) {
+    public override Vector2 GetDisplacementVector(ColliderComponent2D other) {
         other = other.GetMostSpecificCollidingChild(this);
 
         if (other == null || !other.Collidable) {
             return Vector2.Zero;
         }
 
-        if (other is BoxCollider2D rect) {
+        if (other is BoxColliderComponent2D rect) {
             return GetDisplacementVector(rect);
         }
 
         return Vector2.Zero;
     }
 
-    private Vector2 GetDisplacementVector(BoxCollider2D other) {
+    private Vector2 GetDisplacementVector(BoxColliderComponent2D other) {
         Vector2 overlap = GetOverlapSize(other);
 
         if (overlap.X >= overlap.Y) {
@@ -123,7 +112,7 @@ public class BoxCollider2D : Collider2D {
 
     // effectively returning the size of the union of two
     //   rect colliders, similar to Rectangle.Union
-    private Vector2 GetOverlapSize(BoxCollider2D other) {
+    private Vector2 GetOverlapSize(BoxColliderComponent2D other) {
         Vector2 thisMin = Min;
         Vector2 thisMax = Max;
         Vector2 otherMin = other.Min;

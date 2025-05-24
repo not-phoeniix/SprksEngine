@@ -3,13 +3,14 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.Tools;
 using Embyr.Scenes;
+using System.Diagnostics;
 
 namespace Embyr.Physics;
 
 /// <summary>
 /// Component that deals with physics handling, both with integration and collision
 /// </summary>
-public class PhysicsComponent2D : IDebugDrawable2D {
+public class PhysicsComponent2D : ActorComponent2D {
     /// <summary>
     /// The types of physics solvers used in position calculation
     /// </summary>
@@ -18,7 +19,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         Verlet
     }
 
-    private readonly IActor2D actor;
+    private readonly ColliderComponent2D? collider;
     private Vector2 prevTransformPos;
     private Vector2 prevPos;
     private Vector2 prevVerletPos;
@@ -34,11 +35,6 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// Angle used for wandering behavior in <c>IAgent</c>, internal and restricted to <c>Embyr</c> namespace
     /// </summary>
     internal float WanderAngle;
-
-    /// <summary>
-    /// Whether this component is enabled overall
-    /// </summary>
-    public bool Enabled { get; set; } = true;
 
     /// <summary>
     /// Whether or not gravity is enabled
@@ -68,17 +64,17 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// <summary>
     /// Mass of current physics object
     /// </summary>
-    public float Mass { get; private set; }
+    public float Mass { get; set; }
 
     /// <summary>
     /// Maximum speed of physics component before clamping, only applied with the Euler physics solver
     /// </summary>
-    public float MaxSpeed { get; private set; }
+    public float MaxSpeed { get; set; }
 
     /// <summary>
     /// Minimum speed of physics component before snapping to zero
     /// </summary>
-    public float MinSpeed { get; private set; }
+    public float MinSpeed { get; set; }
 
     /// <summary>
     /// Current position aligned to top left corner of sprite
@@ -131,13 +127,13 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// <summary>
     /// Scale of gravity applied to this object
     /// </summary>
-    public float GravityScale { get; set; } = 1f;
+    public float GravityScale { get; set; }
 
     /// <summary>
     /// Scale of friction applied to this object when on
     /// the ground (colliding with a tile vertically)
     /// </summary>
-    public float GroundFrictionScale { get; set; } = 20f;
+    public float GroundFrictionScale { get; set; }
 
     /// <summary>
     /// Callback executed when the component collides with a tile
@@ -150,20 +146,20 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// <param name="actor">Actor to attach this component to</param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent2D(
-        IActor2D actor,
-        float mass,
-        float maxSpeed,
-        float minSpeed
-    ) {
-        this.actor = actor;
+    public PhysicsComponent2D(Actor2D actor) : base(actor) {
         this.prevTransformPos = actor.Transform.GlobalPosition;
         this.position = actor.Transform.GlobalPosition;
         this.prevPos = position;
         this.prevVerletPos = position;
-        this.Mass = mass;
-        this.MaxSpeed = maxSpeed;
-        this.MinSpeed = minSpeed;
+        this.Mass = 1;
+        this.MaxSpeed = 10_000;
+        this.MinSpeed = 0.01f;
+        this.GroundFrictionScale = 20;
+        this.GravityScale = 1;
+        this.collider = actor.GetComponent<ColliderComponent2D>();
+        if (collider == null) {
+            Debug.WriteLine("Warning: PhysicsComponent2D created without finding a Collider2D! Collisions will be permanently disabled for this actor!");
+        }
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
@@ -173,7 +169,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// </summary>
     /// <param name="scene">Scene that physics component exists in</param>
     /// <param name="deltaTime">Time passed since last PhysicsUpdate</param>
-    public void Update(Scene2D scene, float deltaTime) {
+    public override void PhysicsUpdate(float deltaTime) {
         // update prev pos before anything changes first
         prevPos = position;
 
@@ -182,7 +178,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
 
         // apply gravity if enabled
         if (EnableGravity && !OnGround) {
-            GravityForce = new Vector2(0, scene.Gravity);
+            GravityForce = new Vector2(0, Actor.Scene.Gravity);
             ApplyGravity(GravityForce * GravityScale);
         }
 
@@ -197,7 +193,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         }
 
         // correct collisions
-        if (EnableCollisions) {
+        if (EnableCollisions && collider != null && Actor.Scene is Scene2D scene) {
             CollisionCorrection(scene);
         } else {
             OnGround = false;
@@ -211,38 +207,33 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         }
 
         // updates the value of the transform every update
-        actor.Transform.GlobalPosition = position;
+        Actor.Transform.GlobalPosition = position;
     }
 
-    /// <summary>
-    /// Updates the attached transform object, must be run every frame
-    /// </summary>
-    public void UpdateTransform() {
+    /// <inheritdoc/>
+    public override void Update(float dt) {
         // TODO: this causes lots of rope instability, fix plz <3
 
-        if (actor.Transform.GlobalPosition != prevTransformPos) {
+        if (Actor.Transform.GlobalPosition != prevTransformPos) {
             // if transform position has changed since last
             //   update, set physics component's position
-            position = actor.Transform.GlobalPosition;
-            prevPos = actor.Transform.GlobalPosition;
+            position = Actor.Transform.GlobalPosition;
+            prevPos = Actor.Transform.GlobalPosition;
         } else {
             // otherwise, just normally update transform
             //   position to current lerped position
-            actor.Transform.GlobalPosition = Position;
+            Actor.Transform.GlobalPosition = Position;
         }
 
-        prevTransformPos = actor.Transform.GlobalPosition;
+        prevTransformPos = Actor.Transform.GlobalPosition;
         // actor.Transform.GlobalPosition = Position;
     }
 
-    /// <summary>
-    /// Draws debug information about this physics component,
-    /// mainly collision boxes for vertical, horizontal, and combined
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public void DebugDraw(SpriteBatch sb) {
-        actor.Collider.DebugDraw(sb);
-    }
+    /// <inheritdoc/>
+    public override void Draw(SpriteBatch sb) { }
+
+    /// <inheritdoc/>
+    public override void DebugDraw(SpriteBatch sb) { }
 
     private void EulerPosUpdate(float deltaTime) {
         velocity += acceleration * deltaTime;
@@ -341,19 +332,22 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         for (int i = 0; i < NumCollisionIterations; i++) {
             bool anyCollisionsOccured = false;
 
-            Vector2 max = actor.Collider.Max;
-            Vector2 min = actor.Collider.Min;
+            Vector2 max = collider.Max;
+            Vector2 min = collider.Min;
             float collisionRadius = MathF.Max(max.X - min.X, max.Y - min.Y);
 
-            foreach (IActor2D a in scene.GetActorsInRadius(actor.Transform.GlobalPosition, collisionRadius)) {
+            foreach (Actor2D a in scene.GetActorsInRadius(Actor.Transform.GlobalPosition, collisionRadius)) {
+                ColliderComponent2D otherCollider = a.GetComponent<ColliderComponent2D>();
+                if (otherCollider == null) continue;
+
                 // don't collide with yourself!
-                if (a.Collider == this.actor.Collider) continue;
+                if (otherCollider == this.collider) continue;
 
                 // resolve collisions, if any collisions still
                 //   occur during resolution, mark that things
                 //   are colliding this frame !!
-                if (this.actor.Collider.Intersects(a.Collider)) {
-                    Vector2 displacement = this.actor.Collider.GetDisplacementVector(a.Collider);
+                if (this.collider.Intersects(otherCollider)) {
+                    Vector2 displacement = this.collider.GetDisplacementVector(otherCollider);
 
                     position += displacement;
 
@@ -370,7 +364,7 @@ public class PhysicsComponent2D : IDebugDrawable2D {
                     // apply new position to the transform so that
                     //   the collider doesn't calculate and apply
                     //   displacements multiple times
-                    this.actor.Transform.GlobalPosition = position;
+                    this.Actor.Transform.GlobalPosition = position;
 
                     // we are on the ground if we are displacing up
                     if (displacement.Y < 0) {

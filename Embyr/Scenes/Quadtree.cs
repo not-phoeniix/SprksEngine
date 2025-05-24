@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Embyr.Physics;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -134,20 +135,22 @@ internal class Quadtree<T> where T : class, ITransform2D {
             return data.Remove(obj);
         }
 
-        public T FindClosest(Vector2 position) {
-            T closest = null;
+        public T? FindClosest(Vector2 position) {
+            T? closest = null;
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
-                float dSqr;
-                if (obj is IActor2D actor) {
-                    Rectangle bounds = new(
-                        Vector2.Floor(actor.Collider.Min).ToPoint(),
-                        Vector2.Floor(actor.Collider.Max - actor.Collider.Min).ToPoint()
-                    );
-                    dSqr = Utils.DistanceSquared(position, bounds);
-                } else {
-                    dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+
+                if (obj is Actor2D actor) {
+                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    if (collider != null) {
+                        Rectangle bounds = new(
+                            Vector2.Floor(collider.Min).ToPoint(),
+                            Vector2.Floor(collider.Max - collider.Min).ToPoint()
+                        );
+                        dSqr = Utils.DistanceSquared(position, bounds);
+                    }
                 }
 
                 if (dSqr < closestDSqr) {
@@ -184,15 +187,17 @@ internal class Quadtree<T> where T : class, ITransform2D {
             if (dSqrToThis > radius * radius) yield break;
 
             foreach (T obj in data) {
-                float dSqr;
-                if (obj is IActor2D actor) {
-                    Rectangle bounds = new(
-                        Vector2.Floor(actor.Collider.Min).ToPoint(),
-                        Vector2.Floor(actor.Collider.Max - actor.Collider.Min).ToPoint()
-                    );
-                    dSqr = Utils.DistanceSquared(position, bounds);
-                } else {
-                    dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+                float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
+
+                if (obj is Actor2D actor) {
+                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    if (collider != null) {
+                        Rectangle bounds = new(
+                            Vector2.Floor(collider.Min).ToPoint(),
+                            Vector2.Floor(collider.Max - collider.Min).ToPoint()
+                        );
+                        dSqr = Utils.DistanceSquared(position, bounds);
+                    }
                 }
 
                 if (dSqr <= radius * radius) {
@@ -218,11 +223,13 @@ internal class Quadtree<T> where T : class, ITransform2D {
             if (!viewport.Intersects(Bounds)) yield break;
 
             foreach (T obj in data) {
-                bool contains;
-                if (obj is IActor2D actor) {
-                    contains = actor.Collider.Intersects(viewport);
-                } else {
-                    contains = viewport.Contains(obj.Transform.GlobalPosition);
+                bool contains = viewport.Contains(obj.Transform.GlobalPosition);
+
+                if (obj is Actor2D actor) {
+                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    if (collider != null) {
+                        contains = collider.Intersects(viewport);
+                    }
                 }
 
                 if (contains) {

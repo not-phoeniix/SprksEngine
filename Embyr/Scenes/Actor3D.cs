@@ -29,11 +29,6 @@ public abstract class Actor3D : IActor3D {
     public string Name { get; set; }
 
     /// <summary>
-    /// Gets whether or not this actor should be saved into the world file
-    /// </summary>
-    public abstract bool ShouldBeSaved { get; }
-
-    /// <summary>
     /// Gets/sets the action called when this actor is added to a scene
     /// </summary>
     public event Action<Scene>? OnAdded;

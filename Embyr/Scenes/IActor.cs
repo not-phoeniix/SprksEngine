@@ -27,11 +27,6 @@ public interface IActor {
     public string Name { get; set; }
 
     /// <summary>
-    /// Gets whether or not this actor should be saved to world file
-    /// </summary>
-    public bool ShouldBeSaved { get; }
-
-    /// <summary>
     /// Updates this actor within a scene
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>

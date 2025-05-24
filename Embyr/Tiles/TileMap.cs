@@ -9,45 +9,14 @@ namespace Embyr.Tiles;
 /// A 2D grid/map of tiles, implements <c>IActor</c>
 /// </summary>
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
-public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
-    private readonly NList2D<Tile<T>> tiles;
-
-    public Scene Scene { get; }
-
-    /// <summary>
-    /// Gets the transform of this TileMap
-    /// </summary>
-    public Transform2D Transform { get; }
-
-    /// <summary>
-    /// Gets the collider for this TileMap
-    /// </summary>
-    public Collider2D Collider { get; }
-
-    /// <summary>
-    /// Event executed when this tile map is added to a scene
-    /// </summary>
-    public event Action<Scene>? OnAdded;
-
-    /// <summary>
-    /// Event executed when this tile map is removed from a scene
-    /// </summary>
-    public event Action<Scene>? OnRemoved;
-
-    /// <summary>
-    /// Gets/sets the name of this TileMap actor
-    /// </summary>
-    public string Name { get; set; }
+public class TileMap<T> : Actor2D, IDebugDrawable2D where T : Enum {
+    private readonly NList2D<Tile<T>?> tiles;
+    private readonly BoxColliderComponent2D collider;
 
     /// <summary>
     /// Gets/sets the simulation distance for updating this tile map
     /// </summary>
     public float SimulationDistance { get; set; }
-
-    /// <summary>
-    /// Gets whether or not this tilemap actor should be saved, always false
-    /// </summary>
-    public bool ShouldBeSaved => false;
 
     public Tile<T>? this[int x, int y] {
         get => tiles.InBounds(x, y) ? tiles[x, y] : null;
@@ -57,33 +26,31 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
     /// <summary>
     /// Creates a new TileMap
     /// </summary>
+    /// <param name="name">Name of actor in scene</param>
     /// <param name="position">Position of TileMap in the world</param>
     /// <param name="simulationDistance">Simulation distance for TileMap updating</param>
-    /// <param name="name">Name of actor in scene</param>
     /// <param name="scene">Scene to place tilemap into</param>
-    public TileMap(Vector2 position, float simulationDistance, string name, Scene scene) {
-        this.Scene = scene;
+    public TileMap(string name, Vector2 position, float simulationDistance, Scene2D scene)
+    : base(name, position, scene) {
         this.Name = name;
         this.SimulationDistance = simulationDistance;
-        this.tiles = new NList2D<Tile<T>>();
+        this.tiles = new NList2D<Tile<T>?>();
         this.Transform = new Transform2D(position);
-        this.Collider = new BoxCollider2D(this, Vector2.Zero) {
-            Collidable = false
-        };
+        this.collider = AddComponent<BoxColliderComponent2D>();
+        collider.Collidable = false;
     }
 
-    /// <summary>
-    /// Updates general logic for this TileMap within its update radius, relative to scene camera
-    /// </summary>
-    /// <param name="dt">Time passed since last frame</param>
-    public void Update(float dt) {
+    /// <inheritdoc/>
+    public override void Update(float dt) {
+        base.Update(dt);
+
         Rectangle tilespaceSim = GetTilespaceSimulatedRect();
         for (int y = tilespaceSim.Top; y <= tilespaceSim.Bottom; y++) {
             for (int x = tilespaceSim.Left; x <= tilespaceSim.Right; x++) {
                 // don't update if index is out of bounds
                 if (!tiles.InBounds(x, y)) continue;
 
-                Tile<T> tile = tiles[x, y];
+                Tile<T>? tile = tiles[x, y];
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
                         tile.Transform.GlobalPosition,
@@ -97,18 +64,17 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         }
     }
 
-    /// <summary>
-    /// Updates physics logic of this TileMap within its update radius, relative to scene camera
-    /// </summary>
-    /// <param name="fdt">Time passed since last physics update</param>
-    public void PhysicsUpdate(float fdt) {
+    /// <inheritdoc/>
+    public override void PhysicsUpdate(float fdt) {
+        base.PhysicsUpdate(fdt);
+
         Rectangle tilespaceSim = GetTilespaceSimulatedRect();
         for (int y = tilespaceSim.Top; y <= tilespaceSim.Bottom; y++) {
             for (int x = tilespaceSim.Left; x <= tilespaceSim.Right; x++) {
                 // don't update if index is out of bounds
                 if (!tiles.InBounds(x, y)) continue;
 
-                Tile<T> tile = tiles[x, y];
+                Tile<T>? tile = tiles[x, y];
                 if (tile != null) {
                     float dSqr = Vector2.DistanceSquared(
                         tile.Transform.GlobalPosition,
@@ -122,11 +88,10 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         }
     }
 
-    /// <summary>
-    /// Draws this tilemap to the screen
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public void Draw(SpriteBatch sb) {
+    /// <inheritdoc/>
+    public override void Draw(SpriteBatch sb) {
+        base.Draw(sb);
+
         Rectangle tilespaceView = GetTilespaceViewRect();
         for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
             for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
@@ -138,11 +103,10 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
         }
     }
 
-    /// <summary>
-    /// Draws debug information for this TileMap
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public void DebugDraw(SpriteBatch sb) {
+    /// <inheritdoc/>
+    public override void DebugDraw(SpriteBatch sb) {
+        base.DebugDraw(sb);
+
         Rectangle tilespaceView = GetTilespaceViewRect();
         for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
             for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
@@ -150,8 +114,6 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
                 tiles[x, y]?.DebugDraw(sb);
             }
         }
-
-        Collider.DebugDraw(sb);
     }
 
     /// <summary>
@@ -169,7 +131,7 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
                 x * Tile<T>.PixelSize,
                 y * Tile<T>.PixelSize
             );
-            Collider.AddChild(tile.Collider);
+            collider.AddChild(tile.Collider);
         }
 
         for (int x2 = x - 1; x2 <= x + 1; x2++) {
@@ -179,7 +141,7 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
             }
         }
 
-        ((BoxCollider2D)Collider).Size = (tiles.Size.ToVector2() + new Vector2(2)) * Tile<T>.PixelSize;
+        collider.Size = (tiles.Size.ToVector2() + new Vector2(2)) * Tile<T>.PixelSize;
     }
 
     /// <summary>
@@ -189,14 +151,6 @@ public class TileMap<T> : IActor2D, IDebugDrawable2D where T : Enum {
     /// <param name="pos">X/Y index point to add tile to</param>
     public void AddTile(Tile<T> tile, Point pos) {
         AddTile(tile, pos.X, pos.Y);
-    }
-
-    public void InvokeOnAdded(Scene scene) {
-        OnAdded?.Invoke(scene);
-    }
-
-    public void InvokeOnRemoved(Scene scene) {
-        OnRemoved?.Invoke(scene);
     }
 
     private Rectangle GetTilespaceViewRect() {

@@ -152,7 +152,7 @@ public class Camera2D {
     /// <param name="target">Target actor to follow</param>
     /// <param name="lerpAmt">Speed/amount of linear interpolation to apply, must be >= 0</param>
     /// <param name="dt">Time passed since last frame</param>
-    public void SmoothFollow(IActor2D target, float lerpAmt, float dt) {
+    public void SmoothFollow(Actor2D target, float lerpAmt, float dt) {
         SmoothFollow(target.Transform.Position, lerpAmt, dt);
     }
 

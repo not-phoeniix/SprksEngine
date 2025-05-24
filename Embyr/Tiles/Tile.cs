@@ -9,7 +9,7 @@ namespace Embyr.Tiles;
 /// <summary>
 /// Immovable tile struct, collides with other actors and can be instantiated within a <c>TileMap</c>
 /// </summary>
-public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D where T : Enum {
+public abstract class Tile<T> : Actor2D where T : Enum {
     #region // Static members
 
     /// <summary>
@@ -422,16 +422,6 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     private byte neighborBitmask;
 
     /// <summary>
-    /// Gets the transform for this tile
-    /// </summary>
-    public Transform2D Transform { get; }
-
-    /// <summary>
-    /// Gets/sets the scene this tile is spawned in
-    /// </summary>
-    public Scene Scene { get; }
-
-    /// <summary>
     /// Gets the enumeration type of this tile
     /// </summary>
     public T Type { get; }
@@ -449,17 +439,19 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
     /// <summary>
     /// Gets the collider for for this tile
     /// </summary>
-    public BoxCollider2D Collider { get; }
+    public BoxColliderComponent2D Collider { get; }
 
     #endregion
 
     /// <summary>
     /// Creates a new Tile object, with given information
     /// </summary>
-    public Tile(T type, Texture2D texture, bool usesTileset, Scene scene) {
-        this.Scene = scene;
+    public Tile(T type, string name, Texture2D texture, bool usesTileset, Scene2D scene)
+        : base(name, Vector2.Zero, scene) {
         this.Transform = new Transform2D();
-        this.Collider = new BoxCollider2D(Transform, new Vector2(PixelSize));
+
+        Collider = AddComponent<BoxColliderComponent2D>();
+        Collider.Size = new Vector2(PixelSize);
         this.usesTileset = usesTileset;
         this.texture = texture;
         this.components = new List<ITileComponent<T>>();
@@ -468,21 +460,19 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
 
     #region Methods
 
-    /// <summary>
-    /// Updates general logic for this tile
-    /// </summary>
-    /// <param name="dt">Time passed since last frame</param>
-    public void Update(float dt) {
+    /// <inheritdoc/>
+    public override void Update(float dt) {
+        base.Update(dt);
+
         foreach (ITileComponent<T> c in components) {
             c.Update(dt);
         }
     }
 
-    /// <summary>
-    /// Updates physics logic for this tile
-    /// </summary>
-    /// <param name="fdt">Time passed since last physics update</param>
-    public void PhysicsUpdate(float fdt) {
+    /// <inheritdoc/>
+    public override void PhysicsUpdate(float fdt) {
+        base.PhysicsUpdate(fdt);
+
         foreach (ITileComponent<T> c in components) {
             c.PhysicsUpdate(fdt);
         }
@@ -504,27 +494,23 @@ public abstract class Tile<T> : ITransform2D, IDrawable2D, IDebugDrawable2D wher
         );
     }
 
-    /// <summary>
-    /// Draws this tile using provided SpriteBatch
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void Draw(SpriteBatch sb) {
+    /// <inheritdoc/>
+    public override void Draw(SpriteBatch sb) {
+        base.Draw(sb);
+
         DrawTinted(Color.White, sb);
         foreach (ITileComponent<T> c in components) {
             c.Draw(sb);
         }
     }
 
-    /// <summary>
-    /// Draws debug information for this tile such as collider and component info
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public void DebugDraw(SpriteBatch sb) {
+    /// <inheritdoc/>
+    public override void DebugDraw(SpriteBatch sb) {
+        base.DebugDraw(sb);
+
         foreach (ITileComponent<T> c in components) {
             c.DebugDraw(sb);
         }
-
-        Collider.DebugDraw(sb);
     }
 
     /// <summary>

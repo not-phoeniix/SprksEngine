@@ -35,7 +35,7 @@ public class MainScene(string name) : Scene2D(name) {
         Gravity = 400;
 
         Texture2D tileTexture = ContentHelper.I.Load<Texture2D>("tileset");
-        tilemap = new TileMap<TileType>(Vector2.Zero, 1000, "TileMap", this);
+        tilemap = new TileMap<TileType>("tile map", Vector2.Zero, 1000, this);
         for (int y = 0; y < layout.GetLength(0); y++) {
             for (int x = 0; x < layout.GetLength(1); x++) {
                 if (layout[y, x] == 1) {

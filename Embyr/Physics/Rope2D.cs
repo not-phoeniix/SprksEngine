@@ -187,7 +187,7 @@ public class Rope2D : IDrawable2D, IDebugDrawable2D {
     public void Update(float dt) {
         foreach (PhysicsComponent2D node in nodes) {
             node.EnableGravity = EnableGravity;
-            node.UpdateTransform();
+            node.Update(dt);
         }
 
         if (EnableStartAnchor) {
@@ -214,7 +214,7 @@ public class Rope2D : IDrawable2D, IDebugDrawable2D {
     public void PhysicsUpdate(Scene2D scene, float deltaTime) {
         // update physics
         foreach (PhysicsComponent2D node in nodes) {
-            node.Update(scene, deltaTime);
+            node.PhysicsUpdate(deltaTime);
         }
 
         // rope position correction

@@ -7,9 +7,9 @@ namespace Embyr.Physics;
 /// <summary>
 /// A 2D collider that has separated vertical and horizontal rectangle colliders, useful for platformer player controllers. Inherits from Collider2D.
 /// </summary>
-public class CrossCollider2D : Collider2D {
-    private readonly BoxCollider2D verticalCollider;
-    private readonly BoxCollider2D horizontalCollider;
+public class CrossColliderComponent2D : ColliderComponent2D {
+    private readonly BoxColliderComponent2D verticalCollider;
+    private readonly BoxColliderComponent2D horizontalCollider;
 
     /// <inheritdoc/>
     public override Vector2 Min => Vector2.Min(verticalCollider.Min, horizontalCollider.Min);
@@ -34,35 +34,32 @@ public class CrossCollider2D : Collider2D {
     }
 
     /// <summary>
-    /// Creates a new instance of a CrossCollider2D object
+    /// Creates a new instance of a CrossColliderComponent2D object
     /// </summary>
     /// <param name="actor">Actor to attach collider to</param>
-    /// <param name="verticalSize">Size of vertical rectangle collider</param>
-    /// <param name="horizontalSize">Size of the horizontal rectangle collider</param>
-    public CrossCollider2D(IActor2D actor, Vector2 verticalSize, Vector2 horizontalSize)
-    : base(actor.Transform) {
-        this.verticalCollider = new BoxCollider2D(actor, verticalSize);
-        this.horizontalCollider = new BoxCollider2D(actor, horizontalSize);
+    public CrossColliderComponent2D(Actor2D actor) : base(actor) {
+        this.verticalCollider = new BoxColliderComponent2D(actor);
+        this.horizontalCollider = new BoxColliderComponent2D(actor);
     }
 
     /// <inheritdoc/>
-    public override bool Intersects(Collider2D other) {
-        if (other is BoxCollider2D rect) {
+    public override bool Intersects(ColliderComponent2D other) {
+        if (other is BoxColliderComponent2D rect) {
             return Intersects(rect);
         }
 
-        if (other is CrossCollider2D cross) {
+        if (other is CrossColliderComponent2D cross) {
             return Intersects(cross);
         }
 
         return false;
     }
 
-    private bool Intersects(BoxCollider2D other) {
+    private bool Intersects(BoxColliderComponent2D other) {
         return verticalCollider.Intersects(other) || horizontalCollider.Intersects(other);
     }
 
-    private bool Intersects(CrossCollider2D other) {
+    private bool Intersects(CrossColliderComponent2D other) {
         return verticalCollider.Intersects(other.verticalCollider) ||
                horizontalCollider.Intersects(other.verticalCollider) ||
                verticalCollider.Intersects(other.horizontalCollider) ||
@@ -75,21 +72,21 @@ public class CrossCollider2D : Collider2D {
     }
 
     /// <inheritdoc/>
-    public override Vector2 GetDisplacementVector(Collider2D other) {
+    public override Vector2 GetDisplacementVector(ColliderComponent2D other) {
         other = other.GetMostSpecificCollidingChild(this);
 
         if (other == null || !other.Collidable) {
             return Vector2.Zero;
         }
 
-        if (other is BoxCollider2D rect) {
+        if (other is BoxColliderComponent2D rect) {
             return GetDisplacementVector(rect);
         }
 
         return Vector2.Zero;
     }
 
-    private Vector2 GetDisplacementVector(BoxCollider2D other) {
+    private Vector2 GetDisplacementVector(BoxColliderComponent2D other) {
         bool horizCollision = horizontalCollider.Intersects(other);
         bool vertCollision = verticalCollider.Intersects(other);
 

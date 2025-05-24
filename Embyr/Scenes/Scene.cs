@@ -140,10 +140,6 @@ public abstract class Scene : IResolution, IDebugDrawable2D {
 
         if (!Paused) {
             foreach (IActor actor in GetUpdatableActors(false)) {
-                if (actor is IAgent2D agent) {
-                    agent.Physics.ApplyForce(agent.UpdateBehavior(dt));
-                }
-
                 actor.PhysicsUpdate(dt);
                 CustomActorPhysicsUpdate(actor, dt);
             }

@@ -4,30 +4,54 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr;
 
-public class SpriteComponent2D : IDrawable2D {
-    private readonly IActor2D actor;
-    private readonly Texture2D sprite;
-
+/// <summary>
+/// 2D actor component used for rendering sprites for actors
+/// </summary>
+public class SpriteComponent2D : ActorComponent2D {
+    /// <summary>
+    /// Gets/sets the drawing color tint
+    /// </summary>
     public Color Color { get; set; }
 
-    // anchor for drawing, must be values (0 - 1)
+    /// <summary>
+    /// Gets/sets the anchor for drawing, values are normalized between 0-1
+    /// </summary>
     public Vector2 Anchor { get; set; }
 
+    /// <summary>
+    /// Gets/sets sprite effects to apply to this sprite
+    /// </summary>
     public SpriteEffects SpriteEffects { get; set; }
 
-    public SpriteComponent2D(IActor2D actor, Texture2D sprite) {
-        this.actor = actor;
-        this.sprite = sprite;
+    /// <summary>
+    /// Gets/sets the texture for this sprite component
+    /// </summary>
+    public Texture2D? Texture { get; set; }
+
+    /// <summary>
+    /// Creates a new SpriteComponent2D
+    /// </summary>
+    /// <param name="actor">Actor to attach component to</param>
+    public SpriteComponent2D(Actor2D actor) : base(actor) {
         Color = Color.White;
         Anchor = new Vector2(0.5f, 0.5f);
         SpriteEffects = SpriteEffects.None;
     }
 
-    public void Draw(SpriteBatch sb) {
-        Vector2 spriteSize = new(sprite.Width, sprite.Height);
-        spriteSize *= actor.Transform.GlobalScale;
+    /// <inheritdoc/>
+    public override void Update(float deltaTime) { }
 
-        Vector2 drawPos = actor.Transform.GlobalPosition;
+    /// <inheritdoc/>
+    public override void PhysicsUpdate(float deltaTime) { }
+
+    /// <inheritdoc/>
+    public override void Draw(SpriteBatch sb) {
+        if (Texture == null) return;
+
+        Vector2 spriteSize = new(Texture.Width, Texture.Height);
+        spriteSize *= Actor.Transform.GlobalScale;
+
+        Vector2 drawPos = Actor.Transform.GlobalPosition;
 
         Rectangle dest = new(
             Vector2.Floor(drawPos).ToPoint(),
@@ -35,14 +59,17 @@ public class SpriteComponent2D : IDrawable2D {
         );
 
         sb.Draw(
-            sprite,
+            Texture,
             dest,
             null,
             Color,
-            actor.Transform.GlobalRotation,
+            Actor.Transform.GlobalRotation,
             Anchor * spriteSize,
             SpriteEffects,
             0
         );
     }
+
+    /// <inheritdoc/>
+    public override void DebugDraw(SpriteBatch sb) { }
 }

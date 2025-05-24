@@ -9,16 +9,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Platformer;
 
-public class Player : PhysicsActor2D {
+public class Player : Actor2D {
     private readonly Light2D light;
-    private readonly SpriteComponent2D sprite;
-
-    private static readonly float jumpMaxTime = 0.3f;
-
-    public override bool ShouldBeSaved => false;
+    public readonly PhysicsComponent2D Physics;
 
     public Player(Vector2 position, Scene2D scene)
-    : base("Player", position, null, 1, 700, 2f, scene) {
+    : base("Player", position, scene) {
         light = new Light2D() {
             Color = Color.White,
             Radius = 70,
@@ -29,12 +25,16 @@ public class Player : PhysicsActor2D {
             }
         };
 
-        // TODO: make a component system!
-        Collider = new BoxCollider2D(this, new Vector2(6));
-        sprite = new SpriteComponent2D(this, ContentHelper.I.Load<Texture2D>("player"));
+        BoxColliderComponent2D box = AddComponent<BoxColliderComponent2D>();
+        box.Size = new Vector2(6);
 
+        Physics = AddComponent<PhysicsComponent2D>();
+        Physics.MaxSpeed = 700;
+        Physics.MinSpeed = 1;
         Physics.GroundFrictionScale = 20.0f;
-        Physics.OnCollide += () => Debug.WriteLine("wow");
+
+        SpriteComponent2D sprite = AddComponent<SpriteComponent2D>();
+        sprite.Texture = ContentHelper.I.Load<Texture2D>("player");
 
         OnAdded += (scene) => scene.AddLight(light);
         OnRemoved += (scene) => scene.RemoveLight(light);
@@ -52,14 +52,9 @@ public class Player : PhysicsActor2D {
 
         // jump logic
         if (Input.IsActionOnce("jump") && Physics.OnGround) {
-            Physics.ApplyImpulse(new Vector2(0, -100));
+            Physics.ApplyImpulse(new Vector2(0, -150));
         }
 
         base.PhysicsUpdate(deltaTime);
-    }
-
-    public override void Draw(SpriteBatch sb) {
-        sprite.Color = Physics.OnGround ? Color.White : Color.Red;
-        sprite.Draw(sb);
     }
 }

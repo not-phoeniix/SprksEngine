@@ -7,7 +7,7 @@ namespace Embyr.Scenes;
 
 public abstract class Scene2D : Scene {
     private Effect fxSolidColor;
-    private readonly Quadtree<IActor2D> actors;
+    private readonly Quadtree<Actor2D> actors;
     private readonly Quadtree<Light2D> localLights;
     private readonly List<Light2D> globalLights;
 
@@ -17,7 +17,7 @@ public abstract class Scene2D : Scene {
     public Camera2D Camera { get; private set; }
 
     public Scene2D(string name) : base(name) {
-        actors = new Quadtree<IActor2D>(new Point(-10_000), new Point(10_000));
+        actors = new Quadtree<Actor2D>(new Point(-10_000), new Point(10_000));
         localLights = new Quadtree<Light2D>(new Point(-10_000), new Point(10_000));
         globalLights = new List<Light2D>();
     }
@@ -71,7 +71,7 @@ public abstract class Scene2D : Scene {
 
     /// <inheritdoc/>
     protected override sealed void AddActor(IActor actor) {
-        if (actor is IActor2D a) {
+        if (actor is Actor2D a) {
             if (actor.Scene != this) {
                 throw new Exception("Cannot add actor that has already been added to a prior scene!");
             }
@@ -83,7 +83,7 @@ public abstract class Scene2D : Scene {
 
     /// <inheritdoc/>
     protected override sealed bool RemoveActor(IActor actor) {
-        if (actor is IActor2D a && actors.Remove(a)) {
+        if (actor is Actor2D a && actors.Remove(a)) {
             actor?.InvokeOnRemoved(this);
             return true;
         }

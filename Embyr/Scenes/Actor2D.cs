@@ -1,3 +1,4 @@
+using System.Reflection;
 using Embyr.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,8 +8,8 @@ namespace Embyr.Scenes;
 /// <summary>
 /// An abstract base class that implements all <c>IActor</c> members.
 /// </summary>
-public abstract class Actor2D : IActor2D, IDebugDrawable2D {
-    #region // Fields & Properties
+public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawable2D {
+    private readonly List<ActorComponent2D> components;
 
     /// <summary>
     /// Gets the transform of this actor
@@ -26,11 +27,6 @@ public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     public string Name { get; set; }
 
     /// <summary>
-    /// Gets whether or not this actor should be saved into the world file
-    /// </summary>
-    public abstract bool ShouldBeSaved { get; }
-
-    /// <summary>
     /// Gets/sets the action called when this actor is added to a scene
     /// </summary>
     public event Action<Scene>? OnAdded;
@@ -41,56 +37,95 @@ public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     public event Action<Scene>? OnRemoved;
 
     /// <summary>
-    /// Gets the collider of this actor in the world
-    /// </summary>
-    public Collider2D Collider { get; protected init; }
-
-    #endregion
-
-    /// <summary>
     /// Creates a new Actor2D object
     /// </summary>
     /// <param name="name">Name of this actor</param>
     /// <param name="position">Initial position</param>
-    /// <param name="collider">Collider to attach to this actor</param>
     /// <param name="scene">Scene to place this actor in</param>
     public Actor2D(
         string name,
         Vector2 position,
-        Collider2D collider,
         Scene2D scene
     ) {
         this.Transform = new Transform2D(position);
-        this.Collider = collider;
         this.Name = name;
         this.Scene = scene;
+        components = new List<ActorComponent2D>();
     }
 
-    #region // Methods
+    /// <summary>
+    /// Adds a component to this actor
+    /// </summary>
+    /// <typeparam name="T">Type of component to add</typeparam>
+    /// <returns>Reference to newly created component</returns>
+    protected T AddComponent<T>() where T : ActorComponent2D {
+        ConstructorInfo? ctor = typeof(T).GetConstructor([typeof(Actor2D)]);
+        if (ctor == null) {
+            throw new Exception("Component does not have a valid constructor, cannot add component to actor!");
+        }
+
+        T? component = ctor.Invoke([this]) as T;
+        if (component == null) {
+            throw new NullReferenceException("Created component returned null, cannot add component to actor!");
+        }
+
+        components.Add(component);
+
+        return component;
+    }
+
+    /// <summary>
+    /// Gets the first component of this actor of a given type
+    /// </summary>
+    /// <typeparam name="T">Type of component to get</typeparam>
+    /// <returns>Reference to first component of a given type, null if not found</returns>
+    public T? GetComponent<T>() where T : ActorComponent2D {
+        foreach (ActorComponent2D c in components) {
+            if (c is T t) return t;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Updates general logic for this actor
     /// </summary>
     /// <param name="deltaTime">Time passed since last frame</param>
-    public virtual void Update(float deltaTime) { }
+    public virtual void Update(float deltaTime) {
+        foreach (ActorComponent2D c in components) {
+            c.Update(deltaTime);
+        }
+    }
 
     /// <summary>
     /// Updates physics calculations for this actor
     /// </summary>
-    /// <param name="deltaTime">Time passed since last fixed update call</param>
-    public virtual void PhysicsUpdate(float deltaTime) { }
+    /// <param name="deltaTime">Time passed since last physics update</param>
+    public virtual void PhysicsUpdate(float deltaTime) {
+        foreach (ActorComponent2D c in components) {
+            c.PhysicsUpdate(deltaTime);
+        }
+    }
 
     /// <summary>
-    /// Draws this actor into the scene, must be defined in child classes
+    /// Draws this actor into the scene
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
-    public abstract void Draw(SpriteBatch sb);
+    public virtual void Draw(SpriteBatch sb) {
+        foreach (ActorComponent2D c in components) {
+            c.Draw(sb);
+        }
+    }
 
     /// <summary>
     /// Draws debug information for this actor
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DebugDraw(SpriteBatch sb) { }
+    public virtual void DebugDraw(SpriteBatch sb) {
+        foreach (ActorComponent2D c in components) {
+            c.DebugDraw(sb);
+        }
+    }
 
     /// <summary>
     /// Executes method group for when this actor is added to a scene
@@ -107,6 +142,4 @@ public abstract class Actor2D : IActor2D, IDebugDrawable2D {
     public void InvokeOnRemoved(Scene scene) {
         OnRemoved?.Invoke(scene);
     }
-
-    #endregion
 }
