@@ -58,10 +58,10 @@ public class BoxCollider2D : Collider2D {
         Vector2 otherMin = other.Transform.GlobalPosition - other.Size / 2;
         Vector2 otherMax = other.Transform.GlobalPosition + other.Size / 2;
 
-        return thisMin.X <= otherMax.X &&
-               thisMin.Y <= otherMax.Y &&
-               thisMax.X >= otherMin.X &&
-               thisMax.Y >= otherMin.Y;
+        return thisMin.X + CollisionTolerance <= otherMax.X &&
+               thisMin.Y + CollisionTolerance <= otherMax.Y &&
+               thisMax.X - CollisionTolerance >= otherMin.X &&
+               thisMax.Y - CollisionTolerance >= otherMin.Y;
     }
 
     /// <inheritdoc/>

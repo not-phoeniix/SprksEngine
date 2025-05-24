@@ -10,6 +10,8 @@ namespace Embyr.Physics;
 public abstract class Collider2D : IDebugDrawable2D {
     private readonly List<Collider2D> children;
 
+    protected static readonly float CollisionTolerance = 0.001f;
+
     /// <summary>
     /// Gets the reference to the parent of this collider
     /// </summary>

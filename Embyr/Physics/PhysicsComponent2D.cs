@@ -18,8 +18,6 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         Verlet
     }
 
-    #region // Fields & Properties
-
     private readonly IActor2D actor;
     private Vector2 prevTransformPos;
     private Vector2 prevPos;
@@ -146,10 +144,6 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     /// </summary>
     public event Action? OnCollide;
 
-    #endregion
-
-    #region // Constructors
-
     /// <summary>
     /// Creates a new physics component
     /// </summary>
@@ -173,10 +167,6 @@ public class PhysicsComponent2D : IDebugDrawable2D {
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
-
-    #endregion
-
-    #region // Methods
 
     /// <summary>
     /// Updates physics simulation for this component. Should be called every PhysicsUpdate.
@@ -212,11 +202,6 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         } else {
             OnGround = false;
         }
-        // if (chunk != null && EnableCollisions) {
-        //     CollisionCorrection(chunk);
-        // } else {
-        //     OnGround = false;
-        // }
 
         // update direction at the end of update cycle
         Direction = Vector2.Zero;
@@ -235,19 +220,19 @@ public class PhysicsComponent2D : IDebugDrawable2D {
     public void UpdateTransform() {
         // TODO: this causes lots of rope instability, fix plz <3
 
-        // if (transform.GlobalPosition != prevTransformPos) {
-        //     // if transform position has changed since last
-        //     //   update, set physics component's position
-        //     position = transform.GlobalPosition;
-        //     prevPos = transform.GlobalPosition;
-        // } else {
-        //     // otherwise, just normally update transform
-        //     //   position to current lerped position
-        //     transform.GlobalPosition = Position;
-        // }
+        if (actor.Transform.GlobalPosition != prevTransformPos) {
+            // if transform position has changed since last
+            //   update, set physics component's position
+            position = actor.Transform.GlobalPosition;
+            prevPos = actor.Transform.GlobalPosition;
+        } else {
+            // otherwise, just normally update transform
+            //   position to current lerped position
+            actor.Transform.GlobalPosition = Position;
+        }
 
         prevTransformPos = actor.Transform.GlobalPosition;
-        actor.Transform.GlobalPosition = Position;
+        // actor.Transform.GlobalPosition = Position;
     }
 
     /// <summary>
@@ -344,14 +329,16 @@ public class PhysicsComponent2D : IDebugDrawable2D {
         }
     }
 
-    #region // Collisions !!
-
     private void CollisionCorrection(Scene2D scene) {
-        OnGround = false;
         bool somethingCollided = false;
 
-        int numCollisionIterations = 4;
-        for (int i = 0; i < numCollisionIterations; i++) {
+        // we're not on the ground anymore if vertical velocity exists
+        if (Velocity.Y != 0 && OnGround) {
+            OnGround = false;
+        }
+
+        const int NumCollisionIterations = 5;
+        for (int i = 0; i < NumCollisionIterations; i++) {
             bool anyCollisionsOccured = false;
 
             Vector2 max = actor.Collider.Max;
@@ -370,24 +357,26 @@ public class PhysicsComponent2D : IDebugDrawable2D {
 
                     position += displacement;
 
-                    somethingCollided = true;
-                    anyCollisionsOccured = true;
+                    if (displacement != Vector2.Zero) {
+                        somethingCollided = true;
+                        anyCollisionsOccured = true;
+                    }
 
                     // stop velocity in each axis if
                     //   that axis has any displacement
                     velocity.X *= displacement.X != 0 ? 0 : 1;
                     velocity.Y *= displacement.Y != 0 ? 0 : 1;
 
+                    // apply new position to the transform so that
+                    //   the collider doesn't calculate and apply
+                    //   displacements multiple times
+                    this.actor.Transform.GlobalPosition = position;
+
                     // we are on the ground if we are displacing up
                     if (displacement.Y < 0) {
                         OnGround = true;
                     }
                 }
-
-                // apply new position to the transform so that
-                //   the collider doesn't calculate and apply
-                //   displacements multiple times
-                this.actor.Transform.GlobalPosition = position;
             }
 
             // no need to do collision checks anymore if
@@ -409,193 +398,4 @@ public class PhysicsComponent2D : IDebugDrawable2D {
             ApplyFriction(velLen * Mass * GroundFrictionScale);
         }
     }
-
-    /*
-
-    private void CollisionCorrection(Chunk chunk) {
-        // world-space locations for top left and bottom right for iteration
-        Vector2 startWorldPos = new(Bounds.X, Bounds.Y);
-        Vector2 endWorldPos = new(Bounds.X + Bounds.Width, Bounds.Y + Bounds.Height);
-
-        // array/tile-space locations for TL/BR iteration (used in loops)
-        Point min = chunk.GetArrayCoords(startWorldPos) - new Point(2);
-        Point max = chunk.GetArrayCoords(endWorldPos) + new Point(2);
-
-        OnGround = false;
-        bool somethingCollided = false;
-
-        int numCollisionIterations = 4;
-        for (int i = 0; i < numCollisionIterations; i++) {
-            // track whether or not any object is colliding
-            // at the end of collision loop
-            bool anythingColliding = false;
-
-            // collision loop checking itself
-            for (int y = min.Y; y <= max.Y; y++) {
-                for (int x = min.X; x <= max.X; x++) {
-
-                    // ~~ grab reference to tile ~~
-
-                    // difference offset in entire chunk indices... -1 when x/y
-                    //   negative, +1 when x/y too big, 0 if in bounds
-                    Point diff = new(
-                        x < 0 ? -1 : x >= Chunk.Width ? 1 : 0,
-                        y < 0 ? -1 : y >= Chunk.Height ? 1 : 0
-                    );
-
-                    // check if position is in bounds beforehand
-                    //   to prevent out of range exception in
-                    //   NegativeCollection
-                    Chunk adjChunk = null;
-                    Point adjPos = chunk.Position + diff;
-                    if (chunk.Container.InBounds(adjPos.X, adjPos.Y)) {
-                        // get reference to the chunk this iteration's tile is in
-                        adjChunk = chunk.Container[adjPos.X, adjPos.Y];
-                    }
-
-                    // resolve collisions with the entire hypothetical
-                    //   chunk bounds if one is not yet generated
-                    if (adjChunk == null) {
-                        if (EnableNullChunkCollision) {
-                            Rectangle nullChunkBounds = new(
-                                adjPos * Chunk.PixelSize,
-                                Chunk.PixelSize
-                            );
-
-                            if (ResolveCollision(nullChunkBounds)) {
-                                anythingColliding = true;
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    // get reference to tile in the chunk outside of this one,
-                    //    use modulo to "wrap around" the index, where...
-                    //    16 becomes 0,
-                    //    17 becomes 1,
-                    //    the negative checks make -1 become 15,
-                    //    -2 becomes 14,
-                    //    etc.
-                    int xWrap = x % Chunk.Width;
-                    int yWrap = y % Chunk.Height;
-                    if (xWrap < 0) xWrap += Chunk.Width;
-                    if (yWrap < 0) yWrap += Chunk.Height;
-
-                    Tile tile = adjChunk[xWrap, yWrap, WorldLayer.Main];
-
-                    // ~~ actual collision resolution ~~
-
-                    // skip if tile data is null or tile isn't collidable
-                    if (!tile.Data.Collidable) continue;
-
-                    // resolve collisions, if any collisions still
-                    //   occur during resolution, mark that things
-                    //   are colliding this frame !!
-                    if (ResolveCollision(tile.Bounds)) {
-                        anythingColliding = true;
-                    }
-                }
-            }
-
-            // update flag if anything collided at all this iteration
-            if (anythingColliding) somethingCollided = true;
-
-            // end loop if no collisions occur this frame for efficiency
-            if (!anythingColliding) break;
-        }
-
-        // invoke collision callback when a collision occurs for the first frame
-        if (somethingCollided && !somethingCollidedPrev) {
-            OnCollide?.Invoke();
-        }
-
-        // update previous collision state
-        somethingCollidedPrev = somethingCollided;
-
-        // only apply ground friction if velocity isn't a really really small number
-        float velLen = velocity.Length();
-        if (OnGround && velLen > 0.01f) {
-            ApplyFriction(velLen * Mass * GroundFrictionScale);
-        }
-    }
-
-    */
-
-    // returns whether or not a collision exists
-    // private bool ResolveCollision(Rectangle target) {
-    //     bool collisionExists = false;
-
-    //     Rectangle currentVertBounds = new(
-    //         VerticalCollisionBox.X + (int)position.X,
-    //         VerticalCollisionBox.Y + (int)position.Y,
-    //         VerticalCollisionBox.Width,
-    //         VerticalCollisionBox.Height
-    //     );
-
-    //     Rectangle currentHorizBounds = new(
-    //         HorizontalCollisionBox.X + (int)position.X,
-    //         HorizontalCollisionBox.Y + (int)position.Y,
-    //         HorizontalCollisionBox.Width,
-    //         HorizontalCollisionBox.Height
-    //     );
-
-    //     // detect by expanding bottom bounds by 1 pixel
-    //     //   when object is colliding with ground
-    //     bool isBelow = Utils.IsBelow(target, currentVertBounds);
-    //     bool verticalCollision = target.Top <= currentVertBounds.Bottom + 1;
-    //     if (isBelow && verticalCollision) {
-    //         OnGround = true;
-    //     }
-
-    //     // vertical collision resolution
-    //     if (target.Intersects(currentVertBounds)) {
-    //         collisionExists = true;
-
-    //         int displacement;
-    //         bool tileBelow = target.Top >= currentVertBounds.Top;
-
-    //         if (tileBelow) {
-    //             // for when object/entity is above the object
-    //             displacement = currentVertBounds.Bottom - target.Top;
-    //         } else {
-    //             // for when object/entity is below the object
-    //             displacement = currentVertBounds.Top - target.Bottom;
-    //         }
-
-    //         position.Y -= displacement;
-    //         velocity.Y = 0;
-    //         toChangeVelocity = true;
-
-    //         position.Y = (int)position.Y;
-    //     }
-
-    //     // horizontal collision resolution
-    //     if (target.Intersects(currentHorizBounds)) {
-    //         collisionExists = true;
-
-    //         int displacement;
-    //         bool tileToRight = target.Left >= currentHorizBounds.Left;
-
-    //         if (tileToRight) {
-    //             // for when object/entity is to the left of the object
-    //             displacement = currentHorizBounds.Right - target.Left;
-    //         } else {
-    //             // for when object/entity is to the right of the object
-    //             displacement = currentHorizBounds.Left - target.Right;
-    //         }
-
-    //         position.X -= displacement;
-    //         velocity.X = 0;
-    //         toChangeVelocity = true;
-
-    //         position.X = (int)position.X;
-    //     }
-
-    //     return collisionExists;
-    // }
-
-    #endregion
-
-    #endregion
 }

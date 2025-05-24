@@ -13,14 +13,12 @@ public class Game : Embyr.Game {
         ActionBindingPreset binds = new("default");
         binds.AddActionBind("left", Keys.A);
         binds.AddActionBind("right", Keys.D);
-        binds.AddActionBind("up", Keys.W);
-        binds.AddActionBind("down", Keys.S);
         binds.AddActionBind("jump", Keys.Space);
 
         return new GameSetupParams() {
             InitialScene = scene,
             WindowTitle = "Platformer Sample !!",
-            CanvasRes = new Point(150, 100),
+            CanvasRes = new Point(300, 200),
             WindowRes = new Point(900, 600),
             EnableVSync = true,
             RenderClearColor = Color.Gray,
