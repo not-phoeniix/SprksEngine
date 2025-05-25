@@ -93,8 +93,8 @@ public class CrossColliderComponent2D : ColliderComponent2D {
         Vector2 displacement = Vector2.Zero;
 
         if (vertCollision) {
-            float yMin = MathF.Max(horizontalCollider.Min.Y, other.Min.Y);
-            float yMax = MathF.Min(horizontalCollider.Max.Y, other.Max.Y);
+            float yMin = MathF.Max(verticalCollider.Min.Y, other.Min.Y);
+            float yMax = MathF.Min(verticalCollider.Max.Y, other.Max.Y);
 
             // invert offset if this collider above
             //   the other collider
