@@ -90,18 +90,18 @@ public class CrossColliderComponent2D : ColliderComponent2D {
         bool horizCollision = horizontalCollider.Intersects(other);
         bool vertCollision = verticalCollider.Intersects(other);
 
-        Vector2 displacement = Vector2.Zero;
-
         if (vertCollision) {
             float yMin = MathF.Max(verticalCollider.Min.Y, other.Min.Y);
             float yMax = MathF.Min(verticalCollider.Max.Y, other.Max.Y);
 
             // invert offset if this collider above
             //   the other collider
-            displacement.Y = yMax - yMin;
+            Vector2 displacement = new(0, yMax - yMin);
             if (Min.Y < other.Min.Y) {
                 displacement.Y *= -1;
             }
+
+            return displacement;
         }
 
         if (horizCollision) {
@@ -110,13 +110,15 @@ public class CrossColliderComponent2D : ColliderComponent2D {
 
             // invert offset if this collider is to the
             //   left of the other collider
-            displacement.X = xMax - xMin;
+            Vector2 displacement = new(xMax - xMin, 0);
             if (Min.X < other.Min.X) {
                 displacement.X *= -1;
             }
+
+            return displacement;
         }
 
-        return displacement;
+        return Vector2.Zero;
     }
 
     /// <inheritdoc/>
