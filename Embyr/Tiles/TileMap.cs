@@ -6,10 +6,10 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr.Tiles;
 
 /// <summary>
-/// A 2D grid/map of tiles, implements <c>IActor</c>
+/// A 2D grid/map of tiles, inherits from Actor2D
 /// </summary>
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
-public class TileMap<T> : Actor2D, IDebugDrawable2D where T : Enum {
+public class TileMap<T> : Actor2D where T : Enum {
     private readonly NList2D<Tile<T>?> tiles;
     private readonly BoxColliderComponent2D collider;
 
