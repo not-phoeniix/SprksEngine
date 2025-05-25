@@ -1,5 +1,6 @@
 using System;
 using Embyr;
+using Embyr.Physics;
 using Embyr.Scenes;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
@@ -7,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BoidsDemo;
 
-public class Boid : PhysicsActor2D, IAgent2D {
+public class Boid : Agent2D {
     private static readonly float wanderTime = 0.3f;
     private static readonly float wanderRadius = 50;
 
@@ -15,18 +16,19 @@ public class Boid : PhysicsActor2D, IAgent2D {
     private readonly float cohesionStrength;
     private readonly float alignStrength;
 
-    public override bool ShouldBeSaved => false;
-
     public Boid(Rectangle containingRect, Vector2 position, Scene2D scene)
-    : base("boid", position, new Rectangle(-2, -2, 4, 4), 1, Random.Shared.NextSingle(180, 240), scene) {
-        Physics.EnableGravity = false;
-        Physics.EnableCollisions = false;
+    : base("boid", position, scene) {
+        PhysicsComponent2D physics = AddComponent<PhysicsComponent2D>();
+        physics.EnableGravity = false;
+        physics.EnableCollisions = false;
+        physics.MaxSpeed = Random.Shared.NextSingle(180, 240);
+
         this.containingRect = containingRect;
         this.cohesionStrength = Random.Shared.NextSingle(0.5f, 2);
         this.alignStrength = Random.Shared.NextSingle(1.5f, 3);
     }
 
-    public Vector2 UpdateBehavior(float dt) {
+    public override Vector2 UpdateBehavior(float dt) {
         if (Input.IsLeftMouseDown()) {
             return this.Seek(Input.MouseWorldPos) * 0.4f;
         }

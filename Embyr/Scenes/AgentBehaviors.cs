@@ -242,6 +242,7 @@ public static class AgentBehaviors {
     /// <param name="alignStrength">Strength multiplier for alignment force</param>
     /// <param name="container">Container of other agents to flock with</param>
     /// <param name="agent">Physics component agent to base forces upon</param>
+    /// <param name="flockWithSameTypeOnly">Whether or not to ignore other agent class types when flocking</param>
     /// <returns>Vector2 force to apply that flocks with other agents in the specified container</returns>
     public static Vector2 Flock(
         this Agent2D agent,
@@ -250,7 +251,8 @@ public static class AgentBehaviors {
         float cohesionRadius,
         float cohesionStrength,
         float alignRadius,
-        float alignStrength
+        float alignStrength,
+        bool flockWithSameTypeOnly = true
     ) {
         if (agent.Scene is not Scene2D scene) return Vector2.Zero;
 
@@ -266,7 +268,7 @@ public static class AgentBehaviors {
         float searchRadius = MathF.Max(MathF.Max(separateRadius, cohesionRadius), alignRadius);
         foreach (IActor actor in scene.GetActorsInRadius(agent.Transform.GlobalPosition, searchRadius)) {
             // skip flocking with self or actors of other types
-            if (actor == agent || !actor.GetType().Equals(agent.GetType())) continue;
+            if (actor == agent || (flockWithSameTypeOnly && !actor.GetType().Equals(agent.GetType()))) continue;
             if (actor is not Agent2D target) continue;
 
             float dSqr = Vector2.DistanceSquared(agent.Transform.GlobalPosition, target.Transform.GlobalPosition);
