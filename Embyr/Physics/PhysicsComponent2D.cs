@@ -388,7 +388,7 @@ public class PhysicsComponent2D : ActorComponent2D {
 
         // only apply ground friction if velocity isn't a really really small number
         float velLen = velocity.Length();
-        if (OnGround && velLen > 0.01f) {
+        if (OnGround && velLen > 0.1f) {
             ApplyFriction(velLen * Mass * GroundFrictionScale);
         }
     }
