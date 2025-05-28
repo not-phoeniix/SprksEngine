@@ -47,11 +47,6 @@ public class PhysicsComponent2D : ActorComponent2D {
     public bool EnableCollisions { get; set; } = true;
 
     /// <summary>
-    /// Gets/sets whether or not this entity will collide with the borders of null chunks
-    /// </summary>
-    public bool EnableNullChunkCollision { get; set; } = true;
-
-    /// <summary>
     /// The type of solver used for this physics component, is Euler by default
     /// </summary>
     public PhysicsSolver Solver { get; set; } = PhysicsSolver.Euler;
@@ -158,7 +153,7 @@ public class PhysicsComponent2D : ActorComponent2D {
         this.GravityScale = 1;
         this.collider = actor.GetComponent<ColliderComponent2D>();
         if (collider == null) {
-            Debug.WriteLine("Warning: PhysicsComponent2D created without finding a Collider2D! Collisions will be permanently disabled for this actor!");
+            Debug.WriteLine("Warning: PhysicsComponent2D created without finding a Collider2D! Collisions will be permanently disabled for this actor! If this is intended then please set PhysicsComponent2D.EnableCollisions to FALSE :]");
         }
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);

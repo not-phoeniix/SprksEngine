@@ -217,15 +217,15 @@ public class Rope2D : Actor2D {
 
         // draw entity and node together with a force
         if (endEntity != null) {
-            PhysicsComponent2D nodePhys = nodes[nodes.Length - 1].Physics;
-            Vector2 toNode = nodePhys.NonLerpedPosition - endEntity.NonLerpedPosition;
-            Vector2 toEntity = endEntity.NonLerpedPosition - nodePhys.NonLerpedPosition;
+            PhysicsComponent2D node = nodes[nodes.Length - 1].Physics;
+            Vector2 toNode = node.NonLerpedPosition - endEntity.NonLerpedPosition;
+            Vector2 toEntity = endEntity.NonLerpedPosition - node.NonLerpedPosition;
 
             float scale = 2000;
 
             endEntity.ApplyForce(toNode * scale);
             endEntity.ApplyFriction(EntityAttachFriction);
-            nodePhys.ApplyForce(toEntity * scale * endEntity.Mass / 1.8f);
+            node.ApplyForce(toEntity * scale * endEntity.Mass / 1.8f);
         }
     }
 
