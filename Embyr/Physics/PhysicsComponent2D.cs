@@ -205,9 +205,6 @@ public class PhysicsComponent2D : ActorComponent2D {
             // direction of motion equals normalized velocity vector
             Direction = Vector2.Normalize(Velocity);
         }
-
-        // updates the value of the transform every update
-        Actor.Transform.GlobalPosition = position;
     }
 
     /// <inheritdoc/>
