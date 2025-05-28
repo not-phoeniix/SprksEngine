@@ -29,7 +29,6 @@ public class Rope2D : Actor2D {
     private float segmentLength;
 
     private PhysicsComponent2D? endEntity;
-    private PhysicsComponent2D? startEntity;
 
     /// <summary>
     /// Color to draw rope
@@ -96,6 +95,16 @@ public class Rope2D : Actor2D {
     public float GravityScale { get; set; }
 
     /// <summary>
+    /// Gets/sets the mass of the rope
+    /// </summary>
+    public float Mass { get; set; }
+
+    /// <summary>
+    /// Gets/sets the number of iterations performed to perform rope physics constraint corrections
+    /// </summary>
+    public int CorrectionIterations { get; set; }
+
+    /// <summary>
     /// Creates a new rope
     /// </summary>
     /// <param name="startPoint">Starting position of the rope</param>
@@ -115,9 +124,11 @@ public class Rope2D : Actor2D {
         DrawColor = Color.White;
         DrawThickness = 1;
         GravityScale = 1;
+        Mass = 0.5f;
 
         // when there's 0 subdivisions, there will be 2 nodes
         int numNodes = segments + 1;
+        CorrectionIterations = numNodes * 2;
 
         // initialize arrays
         nodes = new RopeNode[numNodes];
@@ -200,12 +211,12 @@ public class Rope2D : Actor2D {
         foreach (RopeNode node in nodes) {
             node.Physics.EnableGravity = EnableGravity;
             node.Physics.GravityScale = GravityScale;
+            node.Physics.Mass = Mass;
             node.PhysicsUpdate(deltaTime);
         }
 
         // rope position correction
-        int iterations = nodes.Length;
-        for (int i = 0; i < iterations; i++) {
+        for (int i = 0; i < CorrectionIterations; i++) {
             for (int j = 1; j < nodes.Length; j++) {
                 RelaxConstraint(
                     nodes[j - 1].Physics,
