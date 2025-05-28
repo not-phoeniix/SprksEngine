@@ -21,7 +21,7 @@ public abstract class ActorComponent2D : IDrawable2D, IDebugDrawable2D {
     /// Creates a new ActorComponent2D instance
     /// </summary>
     /// <param name="actor">Actor this component is attached to</param>
-    public ActorComponent2D(Actor2D actor) {
+    internal ActorComponent2D(Actor2D actor) {
         this.Actor = actor;
         this.Enabled = true;
     }

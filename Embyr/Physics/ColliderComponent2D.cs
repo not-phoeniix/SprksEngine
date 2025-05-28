@@ -36,7 +36,7 @@ public abstract class ColliderComponent2D : ActorComponent2D {
     /// Creates a new instance of a collider object
     /// </summary>
     /// <param name="transform">Transform to associate collider with</param>
-    public ColliderComponent2D(Actor2D actor) : base(actor) {
+    internal ColliderComponent2D(Actor2D actor) : base(actor) {
         this.children = new List<ColliderComponent2D>();
         this.Collidable = true;
     }

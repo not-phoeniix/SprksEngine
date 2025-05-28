@@ -37,7 +37,7 @@ public class CrossColliderComponent2D : ColliderComponent2D {
     /// Creates a new instance of a CrossColliderComponent2D object
     /// </summary>
     /// <param name="actor">Actor to attach collider to</param>
-    public CrossColliderComponent2D(Actor2D actor) : base(actor) {
+    internal CrossColliderComponent2D(Actor2D actor) : base(actor) {
         this.verticalCollider = new BoxColliderComponent2D(actor);
         this.horizontalCollider = new BoxColliderComponent2D(actor);
     }

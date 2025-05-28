@@ -23,8 +23,7 @@ public class BoxColliderComponent2D : ColliderComponent2D {
     /// Creates a new BoxColliderComponent2D instance
     /// </summary>
     /// <param name="actor">Actor to attach to collider</param>
-    public BoxColliderComponent2D(Actor2D actor)
-    : base(actor) {
+    internal BoxColliderComponent2D(Actor2D actor) : base(actor) {
         this.Size = Vector2.One;
     }
 

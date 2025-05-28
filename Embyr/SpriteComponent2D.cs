@@ -32,7 +32,7 @@ public class SpriteComponent2D : ActorComponent2D {
     /// Creates a new SpriteComponent2D
     /// </summary>
     /// <param name="actor">Actor to attach component to</param>
-    public SpriteComponent2D(Actor2D actor) : base(actor) {
+    internal SpriteComponent2D(Actor2D actor) : base(actor) {
         Color = Color.White;
         Anchor = new Vector2(0.5f, 0.5f);
         SpriteEffects = SpriteEffects.None;

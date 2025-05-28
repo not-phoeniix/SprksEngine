@@ -414,7 +414,6 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     private Rectangle? sourceRect;
     private readonly bool usesTileset;
     private readonly Texture2D texture;
-    private readonly List<ITileComponent<T>> components;
 
     // 8 Bit integer that holds 8-directional exposed information.
     //   1 means tile exists, 0 means air.
@@ -454,29 +453,10 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         Collider.Size = new Vector2(PixelSize);
         this.usesTileset = usesTileset;
         this.texture = texture;
-        this.components = new List<ITileComponent<T>>();
         this.Type = type;
     }
 
     #region Methods
-
-    /// <inheritdoc/>
-    public override void Update(float dt) {
-        base.Update(dt);
-
-        foreach (ITileComponent<T> c in components) {
-            c.Update(dt);
-        }
-    }
-
-    /// <inheritdoc/>
-    public override void PhysicsUpdate(float fdt) {
-        base.PhysicsUpdate(fdt);
-
-        foreach (ITileComponent<T> c in components) {
-            c.PhysicsUpdate(fdt);
-        }
-    }
 
     /// <summary>
     /// Draws this tile to the screen with a tinted color
@@ -497,20 +477,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// <inheritdoc/>
     public override void Draw(SpriteBatch sb) {
         base.Draw(sb);
-
         DrawTinted(Color.White, sb);
-        foreach (ITileComponent<T> c in components) {
-            c.Draw(sb);
-        }
-    }
-
-    /// <inheritdoc/>
-    public override void DebugDraw(SpriteBatch sb) {
-        base.DebugDraw(sb);
-
-        foreach (ITileComponent<T> c in components) {
-            c.DebugDraw(sb);
-        }
     }
 
     /// <summary>

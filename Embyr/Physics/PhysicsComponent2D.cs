@@ -146,7 +146,7 @@ public class PhysicsComponent2D : ActorComponent2D {
     /// <param name="actor">Actor to attach this component to</param>
     /// <param name="mass">Mass of object</param>
     /// <param name="maxSpeed">Maximum speed of object</param>
-    public PhysicsComponent2D(Actor2D actor) : base(actor) {
+    internal PhysicsComponent2D(Actor2D actor) : base(actor) {
         this.prevTransformPos = actor.Transform.GlobalPosition;
         this.position = actor.Transform.GlobalPosition;
         this.prevPos = position;

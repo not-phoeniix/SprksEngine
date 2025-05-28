@@ -59,7 +59,10 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
     /// <typeparam name="T">Type of component to add</typeparam>
     /// <returns>Reference to newly created component</returns>
     protected T AddComponent<T>() where T : ActorComponent2D {
-        ConstructorInfo? ctor = typeof(T).GetConstructor([typeof(Actor2D)]);
+        ConstructorInfo? ctor = typeof(T).GetConstructor(
+            BindingFlags.NonPublic | BindingFlags.Instance,
+            [typeof(Actor2D)]
+        );
         if (ctor == null) {
             throw new Exception("Component does not have a valid constructor, cannot add component to actor!");
         }
