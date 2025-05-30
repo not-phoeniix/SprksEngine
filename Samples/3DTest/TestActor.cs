@@ -12,8 +12,6 @@ public class TestActor : Actor3D, IDebugDrawable3D {
         Transform.GlobalPosition + Transform.GlobalScale
     );
 
-    public override bool ShouldBeSaved => false;
-
     public TestActor(string name, Vector3 position, GameMesh mesh, Material3D material, Scene3D scene)
     : base(name, position, mesh, material, scene) {
     }
