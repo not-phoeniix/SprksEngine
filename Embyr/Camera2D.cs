@@ -157,17 +157,26 @@ public class Camera2D {
     }
 
     private void CalculateMatrices() {
+        // https://stackoverflow.com/questions/53093408/how-to-zoom-towards-mouse-position-in-2d-in-monogame
+
         Vector2 pos = transform.GlobalPosition;
         float rot = transform.GlobalRotation;
         float zoom = transform.GlobalScale.X;
 
         Vector2 halfSize = new(width / 2, height / 2);
-        Vector3 pos3 = new((-pos + halfSize) * zoom, 0);
 
-        matrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rot) * Matrix.CreateTranslation(pos3);
+        matrix =
+            Matrix.CreateTranslation(new Vector3(-pos, 0)) *
+            Matrix.CreateRotationZ(rot) *
+            Matrix.CreateScale(zoom) *
+            Matrix.CreateTranslation(new Vector3(halfSize, 0));
         invertedMatrix = Matrix.Invert(matrix);
 
-        flooredMatrix = Matrix.CreateScale(zoom) * Matrix.CreateRotationZ(rot) * Matrix.CreateTranslation(Vector3.Floor(pos3));
+        flooredMatrix =
+            Matrix.CreateTranslation(Vector3.Floor(new Vector3(-pos, 0))) *
+            Matrix.CreateRotationZ(rot) *
+            Matrix.CreateScale(zoom) *
+            Matrix.CreateTranslation(new Vector3(halfSize, 0));
         invertedFlooredMatrix = Matrix.Invert(flooredMatrix);
     }
 }
