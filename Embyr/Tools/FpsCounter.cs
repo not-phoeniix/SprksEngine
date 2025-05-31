@@ -34,6 +34,11 @@ public class FpsCounter {
     public float DeltaTime { get; private set; }
 
     /// <summary>
+    /// Gets the time since the start of the game
+    /// </summary>
+    public float TotalTime { get; private set; }
+
+    /// <summary>
     /// Creates a new FpsCounter object, resetting internal timers to zero
     /// </summary>
     public FpsCounter() {
@@ -54,6 +59,7 @@ public class FpsCounter {
 
         // calculations
         DeltaTime = (float)gt.ElapsedGameTime.TotalSeconds;
+        TotalTime += DeltaTime;
         CurrentFps = 1.0f / DeltaTime;
         AvgFps = frameCounter / (now - start);
 

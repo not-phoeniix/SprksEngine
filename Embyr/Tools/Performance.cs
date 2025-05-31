@@ -61,6 +61,11 @@ public static class Performance {
     public static float DeltaTime => fps.DeltaTime;
 
     /// <summary>
+    /// Gets the total time since game has started in seconds
+    /// </summary>
+    public static float TotalTime => fps.TotalTime;
+
+    /// <summary>
     /// Gets current instantaneous framerate
     /// </summary>
     public static float Framerate => fps.CurrentFps;
