@@ -119,10 +119,10 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <summary>
     /// Adds a tile to this map
     /// </summary>
-    /// <param name="tile">Tile to add</param>
+    /// <param name="tile">Tile to add, removes if null</param>
     /// <param name="x">X index to add, can be negative</param>
     /// <param name="y">Y index to add, can be negative</param>
-    public void AddTile(Tile<T> tile, int x, int y) {
+    public void AddTile(Tile<T>? tile, int x, int y) {
         tiles.Add(tile, x, y);
 
         if (tile != null) {
@@ -147,9 +147,9 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <summary>
     /// Adds a tile to this map
     /// </summary>
-    /// <param name="tile">Tile to add</param>
+    /// <param name="tile">Tile to add, removes if null</param>
     /// <param name="pos">X/Y index point to add tile to</param>
-    public void AddTile(Tile<T> tile, Point pos) {
+    public void AddTile(Tile<T>? tile, Point pos) {
         AddTile(tile, pos.X, pos.Y);
     }
 
@@ -173,12 +173,39 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <param name="rect">Rectangle to convert</param>
     /// <param name="padding">Number of tile padding to expand</param>
     /// <returns>Rectangle converted into tile-space</returns>
-    public static Rectangle PixelToTileSpace(Rectangle rect, int padding = 0) {
+    public Rectangle PixelToTileSpace(Rectangle rect, int padding = 0) {
+        rect.Location -= Vector2.Floor(
+            Transform.GlobalPosition - new Vector2(Tile<T>.PixelSize / 2)
+        ).ToPoint();
         return new Rectangle(
             (int)MathF.Floor(rect.X / Tile<T>.PixelSize) - padding,
             (int)MathF.Floor(rect.Y / Tile<T>.PixelSize) - padding,
             (int)MathF.Ceiling(rect.Size.X / Tile<T>.PixelSize) + padding * 2,
             (int)MathF.Ceiling(rect.Size.Y / Tile<T>.PixelSize) + padding * 2
         );
+    }
+
+    /// <summary>
+    /// Converts a Vector2 position in pixel-space to a tile-space Point
+    /// </summary>
+    /// <param name="pos">Pixel-space position to convert</param>
+    /// <returns>Point coordinate converted into tile-space</returns>
+    public Point PixelToTileSpace(Vector2 pos) {
+        pos -= Transform.GlobalPosition - new Vector2(Tile<T>.PixelSize / 2);
+        return new Point(
+            (int)MathF.Floor(pos.X / Tile<T>.PixelSize),
+            (int)MathF.Floor(pos.Y / Tile<T>.PixelSize)
+        );
+    }
+
+    /// <summary>
+    /// Converts a Point position in tile-space to a pixel-space Vector2
+    /// </summary>
+    /// <param name="pos">Tile-space position to convert</param>
+    /// <returns>Vector2 coordinate converted into pixel-space</returns>
+    public Vector2 TileToPixelSpace(Point pos) {
+        Vector2 vec = pos.ToVector2() * Tile<T>.PixelSize;
+        vec += Transform.GlobalPosition - new Vector2(Tile<T>.PixelSize / 2);
+        return vec;
     }
 }
