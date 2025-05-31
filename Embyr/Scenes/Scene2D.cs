@@ -180,7 +180,9 @@ public abstract class Scene2D : Scene {
 
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         Camera = new Camera2D(width + canvasExpandSize, height + canvasExpandSize) {
-            Position = Camera.Position
+            Position = Camera.Position,
+            Zoom = Camera.Zoom,
+            Rotation = Camera.Rotation
         };
     }
 }
