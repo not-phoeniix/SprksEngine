@@ -18,9 +18,19 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// </summary>
     public float SimulationDistance { get; set; }
 
+    /// <summary>
+    /// Gets the inclusive minimum tilespace coordinates for tiles within this map
+    /// </summary>
+    public Point Min => tiles.Min;
+
+    /// <summary>
+    /// Gets the exclusive maximum tilespace coordinates for tiles within this map
+    /// </summary>
+    public Point Max => tiles.Max;
+
     public Tile<T>? this[int x, int y] {
         get => tiles.InBounds(x, y) ? tiles[x, y] : null;
-        set => tiles[x, y] = value;
+        set => AddTile(value, x, y);
     }
 
     /// <summary>
