@@ -8,6 +8,7 @@ namespace Embyr.Rendering;
 internal class RendererDeferred2D : Renderer2D {
     // shaders
     private readonly Effect fxRenderGBuffer;
+    private readonly Effect fxRenderGBufferClear;
     private readonly Effect fxLightCombine;
     private readonly Effect fxJumpFloodSeed;
     private readonly Effect fxJumpFloodStep;
@@ -17,13 +18,13 @@ internal class RendererDeferred2D : Renderer2D {
     // render targets/layers
     private readonly RenderTargetBinding[] sceneMRTTargets;
     private RenderTarget2D albedoBuffer;
-    private RenderTarget2D normalDepthBuffer;
-    // private RenderTarget2D depthBuffer;
+    private RenderTarget2D normalBuffer;
+    private RenderTarget2D depthBuffer;
     private RenderTarget2D lightBuffer;
     private RenderTarget2D distanceBackBuffer;
     private RenderTarget2D distanceFrontBuffer;
-    private RenderTarget2D worldLayerDistanceField;
-    private RenderTarget2D skyLayerDistanceField;
+    private RenderTarget2D nonObstructorDistanceField;
+    private RenderTarget2D obstructorDistanceField;
 
     private const int MaxLightsPerPass = 8;
     private Color globalLightTint;
@@ -41,8 +42,9 @@ internal class RendererDeferred2D : Renderer2D {
         fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step");
         fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render");
         fxRenderGBuffer = ShaderManager.I.LoadShader("2d_deferred_gbuffer");
+        fxRenderGBufferClear = ShaderManager.I.LoadShader("2d_deferred_gbuffer_clear");
 
-        sceneMRTTargets = new RenderTargetBinding[2];
+        sceneMRTTargets = new RenderTargetBinding[3];
 
         RecreateRenderTargets(
             EngineSettings.GameCanvasResolution.X,
@@ -58,35 +60,16 @@ internal class RendererDeferred2D : Renderer2D {
 
         Matrix worldMatrix = scene.Camera.FlooredMatrix;
 
-        // draw to buffers, render lighting
-        // SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
-        // SpriteBatch.GraphicsDevice.Clear(Color.White);
-        // scene.DrawDepthmap(SpriteBatch);
-        // RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
-        // RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
-
-        // if (Settings.EnableLighting) {
-        //     DrawLightsDeferred(scene, SpriteBatch);
-        // }
-
-        // ~~~ draw all game layers to their respective RenderLayers ~~~
-
-        // fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-        // fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
-        // fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
-        // fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
-        // Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
-        // Layers[GameLayer.World].IndividualEffect = null;
-        // if (Settings.EnableLighting) {
-        //     Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
-        // } else {
-        //     Layers[GameLayer.World].ScreenSpaceEffect = null;
-        // }
-        // Layers[GameLayer.World].DrawTo(scene.Draw, SpriteBatch, worldMatrix);
-
         SpriteBatch.GraphicsDevice.SetRenderTargets(sceneMRTTargets);
-        SpriteBatch.GraphicsDevice.Clear(Color.Transparent);
-        ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
+
+        // use gbuffer clear shader to set default values and
+        //   draw a single rectangle to clear the buffers
+        fxRenderGBufferClear.Parameters["AlbedoClearColor"].SetValue(new Vector4(0.0f));
+        fxRenderGBufferClear.Parameters["NormalDepthClearColor"].SetValue(new Vector4(0.5f, 0.5f, 1.0f, 1.0f));
+        fxRenderGBufferClear.Parameters["ObstructorsClearColor"].SetValue(new Vector4(1.0f));
+        SpriteBatch.Begin(SpriteSortMode.Immediate, effect: fxRenderGBufferClear);
+        SpriteBatch.DrawRectFill(new Rectangle(0, 0, albedoBuffer.Width, albedoBuffer.Height), Color.Black);
+        SpriteBatch.End();
 
         //! NOTE: we are using immediate mode for all actors in the scene!
         //!   this may be a performance issue later! keep in mind!
@@ -97,6 +80,7 @@ internal class RendererDeferred2D : Renderer2D {
         //! maybe sort based on whether or not the previous value ever
         //!   changes and SB.End() and SB.Begin() whenever you want to
         //!   change a shader parameter...
+        ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
         SpriteBatch.Begin(
             SpriteSortMode.Immediate,
             null,
@@ -114,6 +98,22 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.End();
         ShaderManager.I.CurrentActorEffect = null;
 
+        // draw lighting itself with needed obstructor distance fields,
+        //   set up screen space effect for combining lighting and albedo
+        if (Settings.EnableLighting) {
+            RenderDistanceField(obstructorDistanceField, 0.0f);
+            RenderDistanceField(nonObstructorDistanceField, 1.0f);
+            DrawLightsDeferred(scene, SpriteBatch);
+
+            fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
+            fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
+            fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
+            Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
+        } else {
+            Layers[GameLayer.World].ScreenSpaceEffect = null;
+        }
+
+        // draw albedo itself to the actual render layer
         Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
 
         RenderPostProcessing(Layers[GameLayer.World]);
@@ -161,24 +161,25 @@ internal class RendererDeferred2D : Renderer2D {
         }
 
         ResizeBuffer(ref albedoBuffer);
-        ResizeBuffer(ref normalDepthBuffer);
+        ResizeBuffer(ref normalBuffer);
+        ResizeBuffer(ref depthBuffer);
         ResizeBuffer(ref lightBuffer);
         ResizeBuffer(ref distanceBackBuffer);
         ResizeBuffer(ref distanceFrontBuffer);
-        ResizeBuffer(ref worldLayerDistanceField);
-        ResizeBuffer(ref skyLayerDistanceField);
+        ResizeBuffer(ref nonObstructorDistanceField);
+        ResizeBuffer(ref obstructorDistanceField);
 
         sceneMRTTargets[0] = new RenderTargetBinding(albedoBuffer);
-        sceneMRTTargets[1] = new RenderTargetBinding(normalDepthBuffer);
+        sceneMRTTargets[1] = new RenderTargetBinding(normalBuffer);
+        sceneMRTTargets[2] = new RenderTargetBinding(depthBuffer);
     }
 
     /// <summary>
     /// Renders a distance field to a render target based on a defined target depth
     /// </summary>
     /// <param name="destination">Final destination target for distance field</param>
-    /// <param name="depthBuffer">Depth buffer of world</param>
     /// <param name="targetDepth">Target depth to generate distance from in buffer</param>
-    private void RenderDistanceField(RenderTarget2D destination, RenderTarget2D depthBuffer, float targetDepth) {
+    private void RenderDistanceField(RenderTarget2D destination, float targetDepth) {
         // https://blog.demofox.org/2016/02/29/fast-voronoi-diagrams-and-distance-dield-textures-on-the-gpu-with-the-jump-flooding-algorithm/
 
         // render depth buffer initially as seed
@@ -215,7 +216,7 @@ internal class RendererDeferred2D : Renderer2D {
         }
 
         // offest should be: 2 ^ (ceil(log2(N)) – passIndex – 1),
-        int N = Math.Max(worldLayerDistanceField.Width / 2, worldLayerDistanceField.Height / 2);
+        int N = Math.Max(destination.Width / 2, destination.Height / 2);
         int offset = 100;
         int i = 0;
         while (offset > 0) {
@@ -240,7 +241,6 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.GraphicsDevice.SetRenderTarget(destination);
         SpriteBatch.GraphicsDevice.Clear(Color.Black);
         SpriteBatch.Begin(effect: fxJumpFloodDistRender);
-        // spriteBatch.Draw(finalTarget, Vector2.Zero, Color.White);
         SpriteBatch.Draw(finalTarget, new Rectangle(0, 0, destination.Width, destination.Height), Color.White);
         SpriteBatch.End();
     }
@@ -290,13 +290,15 @@ internal class RendererDeferred2D : Renderer2D {
             fxLightRender.Parameters["Intensities"].SetValue(lightIntensities);
             fxLightRender.Parameters["Rotations"].SetValue(lightRotations);
             fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
-            fxLightRender.Parameters["SkyDistanceField"].SetValue(skyLayerDistanceField);
+            fxLightRender.Parameters["NormalMap"].SetValue(normalBuffer);
+            fxLightRender.Parameters["NonObstructorDistanceField"].SetValue(nonObstructorDistanceField);
+            fxLightRender.Parameters["LightZValue"].SetValue(0.2f);
 
             // ~~~ DRAW TO BUFFER ~~~
             sb.Begin(samplerState: SamplerState.PointClamp, effect: fxLightRender);
             // lights draw on top of distance field, easier
             //   than passing in a texture via parameters
-            sb.Draw(worldLayerDistanceField, new Rectangle(0, 0, lightBuffer.Width, lightBuffer.Height), Color.White);
+            sb.Draw(obstructorDistanceField, new Rectangle(0, 0, lightBuffer.Width, lightBuffer.Height), Color.White);
             sb.End();
         }
 

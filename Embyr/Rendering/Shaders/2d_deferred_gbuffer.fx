@@ -1,8 +1,9 @@
 #include "2d_defines.fxh"
 
 struct PSOutput {
-    float4 Albedo : COLOR0;       // render target 0
-    float4 NormalDepth : COLOR1;  // render target 1
+    float4 Albedo : COLOR0;  // render target 0
+    float4 Normal : COLOR1;  // render target 1
+    float4 Depth : COLOR2;   // render target 2
 };
 
 Texture2D SpriteTexture;
@@ -18,16 +19,20 @@ sampler2D NormalTextureSampler = sampler_state {
 #define MAX_Z_INDEX 1000
 
 int ZIndex;
+bool ObstructsLight;
 
 PSOutput MainPS(VSOutput input) {
     PSOutput output;
 
     output.Albedo = tex2D(SpriteTextureSampler, input.UV) * input.Color;
 
-    float depth = 1.0f - float(ZIndex) / float(MAX_Z_INDEX);
-    float2 normal = tex2D(NormalTextureSampler, input.UV).xy;
+    float3 normal = tex2D(NormalTextureSampler, input.UV).xyz;
+    output.Normal = float4(normal, 1.0);
 
-    output.NormalDepth = float4(normal.x, normal.y, depth, 1.0f);
+    float depth = float(ZIndex) / float(MAX_Z_INDEX);
+    // black means obstructs light, white means doesn't
+    float obstruct = 1.0f - (float)ObstructsLight;
+    output.Depth = float4(depth, obstruct, 1.0, 1.0f);
 
     return output;
 }

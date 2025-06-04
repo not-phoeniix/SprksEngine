@@ -15,6 +15,7 @@
     <EmbeddedResource Include="Rendering/Shaders/3d_forward_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/3d_single_color_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_clear_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/bloom_blur_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/bloom_combine_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/bloom_threshold_gl.xnb" />

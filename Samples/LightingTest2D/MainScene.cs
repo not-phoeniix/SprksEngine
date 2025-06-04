@@ -28,11 +28,14 @@ public class MainScene(string name) : Scene2D(name) {
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
 
-    private Light2D light;
+    private Light2D mouseLight;
+    private Light2D redLight;
+    private Light2D greenLight;
 
     public override void LoadContent() {
         AmbientColor = Color.Black;
         base.Gravity = 0;
+        // EngineSettings.ShowDebugDrawing = true;
 
         Texture2D tileset = ContentHelper.I.Load<Texture2D>("tileset");
         Texture2D tileNormals = ContentHelper.I.Load<Texture2D>("normals");
@@ -53,18 +56,44 @@ public class MainScene(string name) : Scene2D(name) {
         }
         AddActor(map);
 
-        light = new Light2D() {
+        mouseLight = new Light2D() {
             Color = Color.White,
             Intensity = 1.0f,
             Radius = 50
         };
-        AddLight(light);
+        AddLight(mouseLight);
+
+        redLight = new Light2D() {
+            Color = new Color(1.0f, 0.5f, 0.5f),
+            Intensity = 0.7f,
+            Radius = 40,
+            LinearFalloff = 30
+        };
+        AddLight(redLight);
+
+        greenLight = new Light2D() {
+            Color = new Color(0.6f, 1.0f, 0.6f),
+            Intensity = 1.5f,
+            Radius = 60,
+            LinearFalloff = 50
+        };
+        AddLight(greenLight);
 
         base.LoadContent();
     }
 
     public override void Update(float dt) {
-        light.Transform.GlobalPosition = Input.MouseWorldPos;
+        mouseLight.Transform.GlobalPosition = Input.MouseWorldPos;
+
+        redLight.Transform.GlobalPosition = new Vector2(
+            -50,
+            MathF.Sin(Performance.TotalTime * 2) * 40
+        );
+
+        greenLight.Transform.GlobalPosition = new Vector2(50, 50) + new Vector2(
+            MathF.Cos(Performance.TotalTime) * 50,
+            MathF.Sin(Performance.TotalTime) * 50
+        );
 
         base.Update(dt);
     }

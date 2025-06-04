@@ -10,12 +10,7 @@ sampler2D LightBufferSampler = sampler_state {
     Texture = <LightBuffer>;
 };
 
-Texture2D DistanceField;
-sampler2D DistanceFieldSampler = sampler_state {
-    Texture = <DistanceField>;
-};
-
-float VolumetricScalar = 0.0;
+float VolumetricScalar;
 float3 AmbientColor;
 
 float4 MainPS(VSOutput input) : COLOR {

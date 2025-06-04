@@ -442,6 +442,11 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// </summary>
     public BoxColliderComponent2D Collider { get; }
 
+    /// <summary>
+    /// Gets/sets whether or not this tile obstructs light
+    /// </summary>
+    public bool ObstructsLight { get; set; }
+
     #endregion
 
     /// <summary>
@@ -457,6 +462,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         this.texture = texture;
         this.normal = normal;
         this.Type = type;
+        ObstructsLight = false;
     }
 
     #region Methods
@@ -474,6 +480,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         if (effect != null) {
             effect.Parameters["ZIndex"]?.SetValue(Math.Clamp(Transform.GlobalZIndex, 0, 1000));
             effect.Parameters["NormalTexture"]?.SetValue(normal);
+            effect.Parameters["ObstructsLight"]?.SetValue(ObstructsLight);
         }
 
         sb.Draw(

@@ -13,7 +13,7 @@ float TargetDepth;
 //! input should be depth buffer!
 
 float4 MainPS(VSOutput input) : COLOR {
-    float depth = tex2D(SpriteTextureSampler, input.UV).r;
+    float depth = tex2D(SpriteTextureSampler, input.UV).g;
 
     float4 seed = float4(0.0, 0.0, depth, 0.0);
 
