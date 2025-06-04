@@ -12,11 +12,9 @@ sampler2D NormalMapSampler = sampler_state {
     Texture = <NormalMap>;
 };
 
-// distance field where each pixel represents the distance to
-//   a non-light-obstructing object, should be inverse of input SpriteTexture
-Texture2D NonObstructorDistanceField;
-sampler2D NonObstructorDistanceFieldSampler = sampler_state {
-    Texture = <NonObstructorDistanceField>;
+Texture2D DepthBuffer;
+sampler2D DepthBufferSampler = sampler_state {
+    Texture = <DepthBuffer>;
 };
 
 //* ~~~ parameters ~~~
@@ -27,11 +25,6 @@ sampler2D NonObstructorDistanceFieldSampler = sampler_state {
 #define RAYMARCH_DIST_THRESHOLD 0.0001
 #define MAIN_TILE_DEPTH 0.25
 
-// "SKY" is just any non-obstructor, used to just be the sky lol
-#define SKY_DEPTH 1.0
-#define SKY_EXP 25.0
-#define SKY_BUMP_VALUE 0.01
-
 int NumLights;
 float2 ScreenRes;
 float3 Positions[MAX_LIGHTS];
@@ -40,6 +33,7 @@ float Intensities[MAX_LIGHTS];
 float Rotations[MAX_LIGHTS];
 float4 SizeParams[MAX_LIGHTS];
 float LightZValue;
+float Depth3DScalar;
 
 //* ~~~ functions ~~~
 
@@ -164,7 +158,7 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
     return penumbraVal;
 }
 
-float4 LocalLight(float2 uv, float3 normal, float2 position, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
+float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
     float2 fragCoordPixel = uv * ScreenRes;
     float2 centerPixelPos = position * ScreenRes;
     float aspect = ScreenRes.x / ScreenRes.y;
@@ -181,14 +175,14 @@ float4 LocalLight(float2 uv, float3 normal, float2 position, float rotation, flo
     float angleScalar = clamp(1.0 - angleDist(angleToFrag, rotation, angularWidth, angularFalloff), 0.0, 1.0);
 
     // ~~~ normal calculations ~~~
-    float3 lightPos = float3(position, LightZValue);
-    float3 surfacePos = float3(uv, 0.0);
+    float3 lightPos = float3(position, LightZValue * Depth3DScalar);
+    float3 surfacePos = float3(uv, depth.x * Depth3DScalar);
     float3 dir = normalize(lightPos - surfacePos);
     float normalTerm = dot(normal, dir);
 
     // calculate color before shadow scaling
     float finalIntensity = linearScalar * angleScalar * normalTerm * intensity;
-    float4 lightColor = float4(color, 1.0) * finalIntensity;
+    float3 lightColor = color * finalIntensity;
 
     // do raymarch, multiply output scalar to mask lights when in shadow
     lightColor *= softShadow(position, uv, 8.0);
@@ -196,31 +190,16 @@ float4 LocalLight(float2 uv, float3 normal, float2 position, float rotation, flo
     return lightColor;
 }
 
-float4 GlobalLight(float2 uv, float3 normal, float rotation, float3 color, float intensity) {
-    float4 globalColor = float4(color, 1.0) * intensity;
-
-    // scale based on distance to edge of obstructors
-
-    float4 sampleVal = tex2D(NonObstructorDistanceFieldSampler, uv);
-    float distToEdge = sampleVal.x;
-    float depth = sampleVal.z;
-
-    float expScalar = depth <= 0.26 ? 1.0 : 0.2;
-    float exp = SKY_EXP * expScalar;
-    float skyTerm = pow(saturate(1.0 - distToEdge + SKY_BUMP_VALUE), exp);
-
-    // scale by normals
-    float3 dir = normalize(float3(cos(rotation), sin(rotation), LightZValue));
-    float normalTerm = dot(normal, dir);
-
-    globalColor *= skyTerm * normalTerm;
+float3 GlobalLight(float2 uv, float3 normal, float4 depth, float rotation, float3 color, float intensity) {
+    float3 dir = normalize(float3(cos(rotation), sin(rotation), -LightZValue * Depth3DScalar));
+    float normalTerm = dot(normal, -dir);
 
     // position to light is relative to direction per frag
     // float2 globalPos = uv + dir * 3.0;
 
     // globalColor *= softShadow(globalPos, uv, 512.0);
 
-    return globalColor;
+    return color * intensity * normalTerm;
 }
 
 //* ~~~ main stuff ~~~
@@ -229,12 +208,15 @@ float4 GlobalLight(float2 uv, float3 normal, float rotation, float3 color, float
 
 float4 MainPS(VSOutput input) : COLOR {
     float2 fragCoordPixel = input.UV * ScreenRes;
-    float4 additiveTotalColor = float4(0.0, 0.0, 0.0, 0.0);
+    float3 additiveTotalColor = float3(0.0, 0.0, 0.0);
 
     // unpack normals, get in range of -1 to 1
     float3 normal = tex2D(NormalMapSampler, input.UV).xyz;
     normal.y = 1.0f - normal.y;
     normal = normalize((normal * 2.0) - float3(1.0, 1.0, 1.0));
+
+    // get depth color
+    float4 depth = tex2D(DepthBufferSampler, input.UV);
 
     // iterate across all lights and sum all light colors
     [unroll(MAX_LIGHTS)] for (int i = 0; i < NumLights; i++) {
@@ -246,12 +228,13 @@ float4 MainPS(VSOutput input) : COLOR {
         bool isGlobal = Positions[i].z > 0.0;
         float2 position = Positions[i].xy;
 
-        float4 lightColor = float4(0.0, 0.0, 0.0, 0.0);
+        float3 lightColor = float3(0.0, 0.0, 0.0);
 
         if (isGlobal) {
             lightColor = GlobalLight(
                 input.UV,
                 normal,
+                depth,
                 Rotations[i],
                 Colors[i],
                 Intensities[i]);
@@ -259,6 +242,7 @@ float4 MainPS(VSOutput input) : COLOR {
             lightColor = LocalLight(
                 input.UV,
                 normal,
+                depth,
                 position,
                 Rotations[i],
                 Colors[i],
@@ -272,8 +256,7 @@ float4 MainPS(VSOutput input) : COLOR {
         additiveTotalColor += lightColor;
     }
 
-    return additiveTotalColor;
-    // return lerp(additiveTotalColor, float4(normal, 1.0), 0.99);
+    return float4(additiveTotalColor, 1.0f);
 }
 
 technique SpriteDrawing {

@@ -18,4 +18,9 @@ public sealed class RendererSettings {
     /// Gets/sets the volumetric scalar factor for lighting
     /// </summary>
     public float VolumetricScalar { get; set; } = 0.0f;
+
+    /// <summary>
+    /// Gets/sets the value of pseudo-3D depth scaling for 2D lighting with normals
+    /// </summary>
+    public float Depth3DScalar { get; set; } = 0.01f;
 }

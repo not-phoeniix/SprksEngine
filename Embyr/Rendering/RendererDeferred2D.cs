@@ -23,7 +23,6 @@ internal class RendererDeferred2D : Renderer2D {
     private RenderTarget2D lightBuffer;
     private RenderTarget2D distanceBackBuffer;
     private RenderTarget2D distanceFrontBuffer;
-    private RenderTarget2D nonObstructorDistanceField;
     private RenderTarget2D obstructorDistanceField;
 
     private const int MaxLightsPerPass = 8;
@@ -86,7 +85,6 @@ internal class RendererDeferred2D : Renderer2D {
         //   set up screen space effect for combining lighting and albedo
         if (Settings.EnableLighting) {
             RenderDistanceField(obstructorDistanceField, 0.0f);
-            RenderDistanceField(nonObstructorDistanceField, 1.0f);
             DrawLightsDeferred(scene, SpriteBatch);
 
             fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
@@ -183,7 +181,6 @@ internal class RendererDeferred2D : Renderer2D {
         ResizeBuffer(ref lightBuffer);
         ResizeBuffer(ref distanceBackBuffer);
         ResizeBuffer(ref distanceFrontBuffer);
-        ResizeBuffer(ref nonObstructorDistanceField);
         ResizeBuffer(ref obstructorDistanceField);
 
         sceneMRTTargets[0] = new RenderTargetBinding(albedoBuffer);
@@ -308,10 +305,11 @@ internal class RendererDeferred2D : Renderer2D {
             fxLightRender.Parameters["Rotations"].SetValue(lightRotations);
             fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
             fxLightRender.Parameters["NormalMap"].SetValue(normalBuffer);
-            fxLightRender.Parameters["NonObstructorDistanceField"].SetValue(nonObstructorDistanceField);
+            fxLightRender.Parameters["DepthBuffer"].SetValue(depthBuffer);
+            fxLightRender.Parameters["Depth3DScalar"].SetValue(Settings.Depth3DScalar);
 
             // TODO: make this a parameter of individual lights themselves
-            fxLightRender.Parameters["LightZValue"].SetValue(0.2f);
+            fxLightRender.Parameters["LightZValue"].SetValue(20f);
 
             // ~~~ DRAW TO BUFFER ~~~
             sb.Begin(samplerState: SamplerState.PointClamp, effect: fxLightRender);

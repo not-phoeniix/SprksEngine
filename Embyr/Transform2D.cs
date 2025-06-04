@@ -227,6 +227,15 @@ public sealed class Transform2D {
         children.Clear();
     }
 
+    /// <summary>
+    /// Adjusts global rotation to look at a world position
+    /// </summary>
+    /// <param name="target">Position to look at</param>
+    public void LookAt(Vector2 target) {
+        Vector2 diff = target - GlobalPosition;
+        GlobalRotation = MathF.Atan2(diff.Y, diff.X);
+    }
+
     private void Recalculate() {
         if (parent != null) {
             // this will recursively go up the transform tree

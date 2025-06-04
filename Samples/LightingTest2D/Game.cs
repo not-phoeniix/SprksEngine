@@ -26,9 +26,10 @@ public class Game : Embyr.Game {
 
     protected override RendererSetupParams SetupRenderer() {
         RendererSettings settings = new() {
-            VolumetricScalar = 0.05f,
+            VolumetricScalar = 0.1f,
             EnablePostProcessing = false,
-            EnableLighting = true
+            EnableLighting = true,
+            Depth3DScalar = 0.01f
         };
 
         PostProcessingEffect[] fx = [

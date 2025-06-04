@@ -26,8 +26,9 @@ PSOutput MainPS(VSOutput input) {
 
     output.Albedo = tex2D(SpriteTextureSampler, input.UV) * input.Color;
 
+    // if sampled color is black set default normal values
     float3 normal = tex2D(NormalTextureSampler, input.UV).xyz;
-    output.Normal = float4(normal, 1.0);
+    output.Normal = any(normal) ? float4(normal, 1.0) : float4(0.5, 0.5, 1.0, 1.0);
 
     float depth = float(ZIndex) / float(MAX_Z_INDEX);
     // black means obstructs light, white means doesn't
