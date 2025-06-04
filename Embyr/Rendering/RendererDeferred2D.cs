@@ -292,6 +292,8 @@ internal class RendererDeferred2D : Renderer2D {
             fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
             fxLightRender.Parameters["NormalMap"].SetValue(normalBuffer);
             fxLightRender.Parameters["NonObstructorDistanceField"].SetValue(nonObstructorDistanceField);
+
+            // TODO: make this a parameter of individual lights themselves
             fxLightRender.Parameters["LightZValue"].SetValue(0.2f);
 
             // ~~~ DRAW TO BUFFER ~~~
