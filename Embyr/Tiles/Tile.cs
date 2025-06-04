@@ -412,6 +412,8 @@ public abstract class Tile<T> : Actor2D where T : Enum {
 
     #region // Fields & Properties
 
+    // TODO: make tiles have sprite components rather than manual drawing?
+
     private Rectangle? sourceRect;
     private readonly bool usesTileset;
     private readonly Texture2D texture;
@@ -463,6 +465,10 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         this.normal = normal;
         this.Type = type;
         ObstructsLight = false;
+
+        if (usesTileset) {
+            sourceRect = GetBlobSource(0);
+        }
     }
 
     #region Methods
@@ -478,9 +484,25 @@ public abstract class Tile<T> : Actor2D where T : Enum {
 
         Effect? effect = ShaderManager.I.CurrentActorEffect;
         if (effect != null) {
-            effect.Parameters["ZIndex"]?.SetValue(Math.Clamp(Transform.GlobalZIndex, 0, 1000));
-            effect.Parameters["NormalTexture"]?.SetValue(normal);
-            effect.Parameters["ObstructsLight"]?.SetValue(ObstructsLight);
+            EffectParameter zIndex = effect.Parameters["ZIndex"];
+            EffectParameter normalTexture = effect.Parameters["NormalTexture"];
+            EffectParameter obstructsLight = effect.Parameters["ObstructsLight"];
+
+            bool paramsChanged =
+                zIndex.GetValueInt32() != Transform.GlobalZIndex ||
+                normalTexture.GetValueTexture2D() != normal ||
+                obstructsLight.GetValueBoolean() != ObstructsLight;
+
+            // if the parameters have changed, update the
+            //   parameters and restart spritebatch
+            if (paramsChanged) {
+                zIndex.SetValue(Transform.GlobalZIndex);
+                normalTexture.SetValue(normal);
+                obstructsLight.SetValue(ObstructsLight);
+
+                //! NOTE: this isn't super modular for future 2D renderers...
+                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Scene as Scene2D);
+            }
         }
 
         sb.Draw(

@@ -66,8 +66,22 @@ public class SpriteComponent2D : ActorComponent2D {
 
         Effect? effect = ShaderManager.I.CurrentActorEffect;
         if (effect != null) {
-            effect.Parameters["ZIndex"]?.SetValue(Math.Clamp(Actor.Transform.GlobalZIndex, 0, 1000));
-            effect.Parameters["NormalTexture"]?.SetValue(Normal);
+            EffectParameter zIndex = effect.Parameters["ZIndex"];
+            EffectParameter normalTexture = effect.Parameters["NormalTexture"];
+
+            bool paramsChanged =
+                zIndex.GetValueInt32() != Actor.Transform.GlobalZIndex ||
+                normalTexture.GetValueTexture2D() != Normal;
+
+            // if the parameters have changed, update the
+            //   parameters and restart spritebatch
+            if (paramsChanged) {
+                zIndex.SetValue(Actor.Transform.GlobalZIndex);
+                normalTexture.SetValue(Normal);
+
+                //! NOTE: this isn't super modular for future 2D renderers...
+                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Actor.Scene as Scene2D);
+            }
         }
 
         sb.Draw(

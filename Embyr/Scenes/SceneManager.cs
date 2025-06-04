@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.UI;
 using System.Reflection;
+using Embyr.Rendering;
 
 namespace Embyr.Scenes;
 
@@ -14,7 +15,7 @@ namespace Embyr.Scenes;
 /// </summary>
 public class SceneManager : Singleton<SceneManager>, IResolution {
     private Dictionary<string, Scene> scenes;
-    private Microsoft.Xna.Framework.Game game;
+    private Game game;
 
     /// <summary>
     /// Gets whether or not the scene manager is currently loading a scene
@@ -43,6 +44,11 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     internal GraphicsDevice GraphicsDevice => game.GraphicsDevice;
 
     /// <summary>
+    /// Access to the game renderer, used for batch restarting and other info access
+    /// </summary>
+    internal Renderer Renderer => game.Renderer;
+
+    /// <summary>
     /// Gets the menu bounds for any new menu to be created
     /// </summary>
     public Rectangle MenuBounds => new(
@@ -55,7 +61,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// </summary>
     /// <param name="game">Game reference to use ContentManager from</param>
     /// <param name="initialScene">Initial scene to use in game</param>
-    public void Init(Microsoft.Xna.Framework.Game game, Scene initialScene) {
+    public void Init(Game game, Scene initialScene) {
         this.game = game;
 
         // on game exit, unload current scene

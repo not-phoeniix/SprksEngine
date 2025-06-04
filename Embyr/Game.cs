@@ -130,7 +130,11 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     private float canvasScaling;
     private Matrix mouseMatrix;
     private bool isResizing;
-    private Renderer renderer;
+
+    /// <summary>
+    /// Gets the current renderer used for the game
+    /// </summary>
+    internal Renderer Renderer { get; private set; }
 
     /// <summary>
     /// Action called when focus is lost on window
@@ -214,14 +218,14 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         RendererSetupParams rParams = SetupRenderer();
 
-        renderer = setupParams.RenderPipeline switch {
+        Renderer = setupParams.RenderPipeline switch {
             RenderPipeline.Deferred2D => new RendererDeferred2D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
             RenderPipeline.Forward3D => new RendererForward3D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
             _ => throw new Exception("Inputted render pipeline not recognized!")
         };
 
         foreach (PostProcessingEffect fx in rParams.PostProcessingEffects) {
-            renderer.AddPostProcessingEffect(fx);
+            Renderer.AddPostProcessingEffect(fx);
         }
 
         // set up scene when loading content !!
@@ -319,12 +323,12 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.DrawMeasureStart();
 
         if (!SceneManager.I.IsLoading) {
-            renderer.RenderScene(SceneManager.I.CurrentScene);
+            Renderer.RenderScene(SceneManager.I.CurrentScene);
         } else {
-            renderer.RenderLoading();
+            Renderer.RenderLoading();
         }
 
-        renderer.Render(canvasDestination, canvasScaling);
+        Renderer.Render(canvasDestination, canvasScaling);
 
         base.Draw(gameTime);
 
@@ -422,7 +426,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
     private void ChangeResolution(int width, int height) {
         SceneManager.I.ChangeResolution(width, height, CanvasExpandSize);
-        renderer?.ChangeResolution(width, height, CanvasExpandSize);
+        Renderer?.ChangeResolution(width, height, CanvasExpandSize);
 
         OnResolutionChange?.Invoke(width, height, CanvasExpandSize);
 

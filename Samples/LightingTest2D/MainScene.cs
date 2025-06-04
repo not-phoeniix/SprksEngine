@@ -44,7 +44,13 @@ public class MainScene(string name) : Scene2D(name) {
         for (int x = 0; x < types.GetLength(1); x++) {
             for (int y = 0; y < types.GetLength(0); y++) {
                 if (types[y, x] == 1) {
-                    Tile t = new(TileType.Tile, tileset, tileNormals, this);
+                    Tile t = new(
+                        TileType.Tile,
+                        tileset,
+                        Random.Shared.Next(2) == 0 ? tileNormals : null,
+                        // null,
+                        this
+                    );
                     Point pos = new(
                         x - types.GetLength(1) / 2,
                         y - types.GetLength(0) / 2
@@ -54,7 +60,20 @@ public class MainScene(string name) : Scene2D(name) {
                 }
             }
         }
+        map.Transform.GlobalZIndex = 5;
         AddActor(map);
+
+        void AddTile(Vector2 pos, int zIndex) {
+            Tile newTile = new(TileType.Tile, tileset, tileNormals, this);
+            newTile.Transform.GlobalPosition = pos;
+            newTile.Transform.GlobalZIndex = zIndex;
+            AddActor(newTile);
+        }
+
+        AddTile(new Vector2(-20, 20), 1);
+        AddTile(new Vector2(-22, 18), 0);
+        AddTile(new Vector2(8, 0), 0);
+        AddTile(new Vector2(10, 0), 1);
 
         mouseLight = new Light2D() {
             Color = Color.White,
@@ -75,7 +94,7 @@ public class MainScene(string name) : Scene2D(name) {
             Color = new Color(0.6f, 1.0f, 0.6f),
             Intensity = 1.5f,
             Radius = 60,
-            LinearFalloff = 50
+            LinearFalloff = 120
         };
         AddLight(greenLight);
 
@@ -91,8 +110,8 @@ public class MainScene(string name) : Scene2D(name) {
         );
 
         greenLight.Transform.GlobalPosition = new Vector2(50, 50) + new Vector2(
-            MathF.Cos(Performance.TotalTime) * 50,
-            MathF.Sin(Performance.TotalTime) * 50
+            MathF.Cos(Performance.TotalTime) * 30,
+            MathF.Sin(Performance.TotalTime) * 30
         );
 
         base.Update(dt);

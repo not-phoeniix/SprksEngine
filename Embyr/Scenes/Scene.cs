@@ -10,7 +10,7 @@ namespace Embyr.Scenes;
 /// <summary>
 /// A scene in the game, contains data for lights, entities, menus, and other game logic
 /// </summary>
-public abstract class Scene : IResolution, IDebugDrawable2D {
+public abstract class Scene : IResolution {
     private readonly Queue<IActor> actorsToRemove = new();
     private readonly Queue<IActor> actorsToAdd = new();
     private readonly Stack<Menu> menuStack = new();
@@ -142,18 +142,6 @@ public abstract class Scene : IResolution, IDebugDrawable2D {
             foreach (IActor actor in GetUpdatableActors(false)) {
                 actor.PhysicsUpdate(dt);
                 CustomActorPhysicsUpdate(actor, dt);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Draws all debug information for this scene
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DebugDraw(SpriteBatch sb) {
-        foreach (IActor actor in GetDrawableActors()) {
-            if (actor is IDebugDrawable2D debug) {
-                debug.DebugDraw(sb);
             }
         }
     }

@@ -71,25 +71,9 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.DrawRectFill(new Rectangle(0, 0, albedoBuffer.Width, albedoBuffer.Height), Color.Black);
         SpriteBatch.End();
 
-        //! NOTE: we are using immediate mode for all actors in the scene!
-        //!   this may be a performance issue later! keep in mind!
-        //!
-        //! it's just that this is the only thing that works for
-        //!   deferred rendering using the gbuffer shader...
-        //!
-        //! maybe sort based on whether or not the previous value ever
-        //!   changes and SB.End() and SB.Begin() whenever you want to
-        //!   change a shader parameter...
+
         ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
-        SpriteBatch.Begin(
-            SpriteSortMode.Immediate,
-            null,
-            SamplerState.PointClamp,
-            null,
-            null,
-            fxRenderGBuffer,
-            worldMatrix
-        );
+        SpriteBatchBegin(scene);
 
         foreach (Actor2D actor in scene.GetDrawableActors()) {
             actor.Draw(SpriteBatch);
@@ -114,12 +98,23 @@ internal class RendererDeferred2D : Renderer2D {
         }
 
         // draw albedo itself to the actual render layer
+        Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
         Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
 
         RenderPostProcessing(Layers[GameLayer.World]);
 
-        Layers[GameLayer.WorldDebug].SmoothingOffset = scene.Camera.Position;
-        Layers[GameLayer.WorldDebug].DrawTo(scene.DebugDraw, SpriteBatch, worldMatrix);
+        if (EngineSettings.ShowDebugDrawing) {
+            Layers[GameLayer.WorldDebug].SmoothingOffset = scene.Camera.Position;
+            Layers[GameLayer.WorldDebug].DrawTo(
+                sb => {
+                    foreach (Actor2D actor in scene.GetDrawableActors()) {
+                        actor.DebugDraw(sb);
+                    }
+                },
+                SpriteBatch,
+                worldMatrix
+            );
+        }
 
         Layers[GameLayer.UI].DrawTo(scene.DrawOverlays, SpriteBatch);
         Layers[GameLayer.UIDebug].DrawTo(scene.DebugDrawOverlays, SpriteBatch);
@@ -148,6 +143,28 @@ internal class RendererDeferred2D : Renderer2D {
         foreach (RenderLayer layer in Layers.Values) {
             layer.ChangeResolution(width, height, canvasExpandSize);
         }
+    }
+
+    /// <summary>
+    /// Restarts sprite batch, flushing buffer and drawing to the screen
+    /// </summary>
+    /// <param name="scene">Scene to continue rendering from</param>
+    public void RestartSpriteBatch(Scene2D scene) {
+        SpriteBatch.End();
+        SpriteBatchBegin(scene);
+    }
+
+    private void SpriteBatchBegin(Scene2D scene) {
+        Matrix worldMatrix = scene.Camera.FlooredMatrix;
+        SpriteBatch.Begin(
+            SpriteSortMode.Deferred,
+            null,
+            SamplerState.PointClamp,
+            null,
+            null,
+            fxRenderGBuffer,
+            worldMatrix
+        );
     }
 
     private void RecreateRenderTargets(int width, int height, int canvasExpandSize) {

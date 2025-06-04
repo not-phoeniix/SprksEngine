@@ -8,6 +8,7 @@ namespace Embyr.Scenes;
 public abstract class Scene2D : Scene {
     private Effect fxSolidColor;
     private readonly Quadtree<Actor2D> actors;
+    private readonly List<Actor2D>[] actorsToDraw;
     private readonly Quadtree<Light2D> localLights;
     private readonly List<Light2D> globalLights;
 
@@ -21,6 +22,11 @@ public abstract class Scene2D : Scene {
         localLights = new Quadtree<Light2D>(new Point(-10_000), new Point(10_000));
         globalLights = new List<Light2D>();
         Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
+
+        actorsToDraw = new List<Actor2D>[Transform2D.MaxZInex];
+        for (int i = 0; i < actorsToDraw.Length; i++) {
+            actorsToDraw[i] = new List<Actor2D>();
+        }
     }
 
     public override void LoadContent() {
@@ -38,23 +44,33 @@ public abstract class Scene2D : Scene {
 
     #region // Game loop
 
-    public override void DebugDraw(SpriteBatch sb) {
-        base.DebugDraw(sb);
-        actors.DebugDraw(sb);
-    }
-
+    /// <inheritdoc/>
     protected override sealed IEnumerable<IActor> GetUpdatableActors(bool reorganize) {
         foreach (IActor actor in actors.GetData(Camera.Position, EngineSettings.SimulationDistance, reorganize)) {
             yield return actor;
         }
     }
 
+    /// <inheritdoc/>
     public override sealed IEnumerable<IActor> GetDrawableActors() {
-        foreach (IActor actor in GetActorsInViewport(Camera.ViewBounds)) {
-            yield return actor;
+        // get all visible actors, toss them in the correct index
+        foreach (Actor2D actor in GetActorsInViewport(Camera.ViewBounds)) {
+            actorsToDraw[actor.Transform.GlobalZIndex].Add(actor);
+        }
+
+        // return the sorted actors in the correct order
+        foreach (List<Actor2D> list in actorsToDraw) {
+            foreach (Actor2D a in list) {
+                yield return a;
+            }
+
+            // clear at the end of each return so lists are
+            //   ready for next frame
+            list.Clear();
         }
     }
 
+    /// <inheritdoc/>
     internal override sealed IEnumerable<Light2D> GetAllLightsToRender() {
         foreach (Light2D light in globalLights) {
             yield return light;
