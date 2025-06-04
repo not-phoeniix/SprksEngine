@@ -1,3 +1,4 @@
+using Embyr.Rendering;
 using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -29,6 +30,11 @@ public class SpriteComponent2D : ActorComponent2D {
     public Texture2D? Texture { get; set; }
 
     /// <summary>
+    /// Gets/sets the normal map for this sprite component
+    /// </summary>
+    public Texture2D? Normal { get; set; }
+
+    /// <summary>
     /// Creates a new SpriteComponent2D
     /// </summary>
     /// <param name="actor">Actor to attach component to</param>
@@ -57,6 +63,12 @@ public class SpriteComponent2D : ActorComponent2D {
             Vector2.Floor(drawPos).ToPoint(),
             Vector2.Floor(spriteSize).ToPoint()
         );
+
+        Effect? effect = ShaderManager.I.CurrentActorEffect;
+        if (effect != null) {
+            effect.Parameters["ZIndex"]?.SetValue(Math.Clamp(Actor.Transform.GlobalZIndex, 0, 1000));
+            effect.Parameters["NormalTexture"]?.SetValue(Normal);
+        }
 
         sb.Draw(
             Texture,

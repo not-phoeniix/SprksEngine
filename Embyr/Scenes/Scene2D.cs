@@ -49,7 +49,7 @@ public abstract class Scene2D : Scene {
         }
     }
 
-    protected override sealed IEnumerable<IActor> GetDrawableActors() {
+    public override sealed IEnumerable<IActor> GetDrawableActors() {
         foreach (IActor actor in GetActorsInViewport(Camera.ViewBounds)) {
             yield return actor;
         }

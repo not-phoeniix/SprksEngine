@@ -16,18 +16,21 @@ public abstract class Scene3D : Scene {
         Camera = new Camera3D(new Vector3(-10, 10, -10), 0.01f, 1000.0f);
     }
 
+    /// <inheritdoc/>
     public override void LoadContent() {
         Camera.Transform.GlobalPosition = new Vector3(-10, 10, -10);
         Camera.LookAt(Vector3.Zero);
         base.LoadContent();
     }
 
+    /// <inheritdoc/>
     public override void Unload() {
         base.Unload();
     }
 
     #region // Game loop
 
+    /// <inheritdoc/>
     public override void Update(float dt) {
         Point res = EngineSettings.GameCanvasResolution;
         float aspect = (float)res.X / res.Y;
@@ -36,18 +39,19 @@ public abstract class Scene3D : Scene {
         base.Update(dt);
     }
 
+    /// <inheritdoc/>
     protected override sealed IEnumerable<IActor> GetUpdatableActors(bool reorganize) {
         foreach (IActor actor in actors.GetData(Camera.Transform.GlobalPosition, EngineSettings.SimulationDistance, reorganize)) {
             yield return actor;
         }
     }
 
-    protected override sealed IEnumerable<IActor> GetDrawableActors() {
-        foreach (IActor actor in GetActorsInViewport(Camera.ViewBounds)) {
-            yield return actor;
-        }
+    /// <inheritdoc/>
+    public override sealed IEnumerable<IActor> GetDrawableActors() {
+        return GetActorsInViewport(Camera.ViewBounds);
     }
 
+    /// <inheritdoc/>
     internal override sealed IEnumerable<Light3D> GetAllLightsToRender() {
         foreach (Light3D light in globalLights) {
             yield return light;

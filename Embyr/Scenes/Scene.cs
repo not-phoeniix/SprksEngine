@@ -114,7 +114,7 @@ public abstract class Scene : IResolution, IDebugDrawable2D {
     /// Gets an enumerable to iterate across of all actors to draw in this scene
     /// </summary>
     /// <returns>Enumerable of drawable actors</returns>
-    protected abstract IEnumerable<IActor> GetDrawableActors();
+    public abstract IEnumerable<IActor> GetDrawableActors();
 
     /// <summary>
     /// Gets an enumerable to iterate across of all lights to render in a scene
@@ -142,18 +142,6 @@ public abstract class Scene : IResolution, IDebugDrawable2D {
             foreach (IActor actor in GetUpdatableActors(false)) {
                 actor.PhysicsUpdate(dt);
                 CustomActorPhysicsUpdate(actor, dt);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Draws this scene to the canvas
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void Draw(SpriteBatch sb) {
-        foreach (IActor actor in GetDrawableActors()) {
-            if (actor is IDrawable2D drawable) {
-                drawable.Draw(sb);
             }
         }
     }

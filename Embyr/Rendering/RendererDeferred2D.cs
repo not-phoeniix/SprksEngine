@@ -7,6 +7,7 @@ namespace Embyr.Rendering;
 
 internal class RendererDeferred2D : Renderer2D {
     // shaders
+    private readonly Effect fxRenderGBuffer;
     private readonly Effect fxLightCombine;
     private readonly Effect fxJumpFloodSeed;
     private readonly Effect fxJumpFloodStep;
@@ -14,7 +15,10 @@ internal class RendererDeferred2D : Renderer2D {
     private readonly Effect fxLightRender;
 
     // render targets/layers
-    private RenderTarget2D depthBuffer;
+    private readonly RenderTargetBinding[] sceneMRTTargets;
+    private RenderTarget2D albedoBuffer;
+    private RenderTarget2D normalDepthBuffer;
+    // private RenderTarget2D depthBuffer;
     private RenderTarget2D lightBuffer;
     private RenderTarget2D distanceBackBuffer;
     private RenderTarget2D distanceFrontBuffer;
@@ -36,6 +40,9 @@ internal class RendererDeferred2D : Renderer2D {
         fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed");
         fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step");
         fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render");
+        fxRenderGBuffer = ShaderManager.I.LoadShader("2d_deferred_gbuffer");
+
+        sceneMRTTargets = new RenderTargetBinding[2];
 
         RecreateRenderTargets(
             EngineSettings.GameCanvasResolution.X,
@@ -52,30 +59,62 @@ internal class RendererDeferred2D : Renderer2D {
         Matrix worldMatrix = scene.Camera.FlooredMatrix;
 
         // draw to buffers, render lighting
-        SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
-        SpriteBatch.GraphicsDevice.Clear(Color.White);
-        scene.DrawDepthmap(SpriteBatch);
-        RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
-        RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
+        // SpriteBatch.GraphicsDevice.SetRenderTarget(depthBuffer);
+        // SpriteBatch.GraphicsDevice.Clear(Color.White);
+        // scene.DrawDepthmap(SpriteBatch);
+        // RenderDistanceField(worldLayerDistanceField, depthBuffer, 0.25f);
+        // RenderDistanceField(skyLayerDistanceField, depthBuffer, 1.0f);
 
-        if (Settings.EnableLighting) {
-            DrawLightsDeferred(scene, SpriteBatch);
-        }
+        // if (Settings.EnableLighting) {
+        //     DrawLightsDeferred(scene, SpriteBatch);
+        // }
 
         // ~~~ draw all game layers to their respective RenderLayers ~~~
 
-        fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-        fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
-        fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
-        fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
-        Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
-        Layers[GameLayer.World].IndividualEffect = null;
-        if (Settings.EnableLighting) {
-            Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
-        } else {
-            Layers[GameLayer.World].ScreenSpaceEffect = null;
+        // fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
+        // fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
+        // fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
+        // fxLightCombine.Parameters["DistanceField"]?.SetValue(worldLayerDistanceField);
+        // Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
+        // Layers[GameLayer.World].IndividualEffect = null;
+        // if (Settings.EnableLighting) {
+        //     Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
+        // } else {
+        //     Layers[GameLayer.World].ScreenSpaceEffect = null;
+        // }
+        // Layers[GameLayer.World].DrawTo(scene.Draw, SpriteBatch, worldMatrix);
+
+        SpriteBatch.GraphicsDevice.SetRenderTargets(sceneMRTTargets);
+        SpriteBatch.GraphicsDevice.Clear(Color.Transparent);
+        ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
+
+        //! NOTE: we are using immediate mode for all actors in the scene!
+        //!   this may be a performance issue later! keep in mind!
+        //!
+        //! it's just that this is the only thing that works for
+        //!   deferred rendering using the gbuffer shader...
+        //!
+        //! maybe sort based on whether or not the previous value ever
+        //!   changes and SB.End() and SB.Begin() whenever you want to
+        //!   change a shader parameter...
+        SpriteBatch.Begin(
+            SpriteSortMode.Immediate,
+            null,
+            SamplerState.PointClamp,
+            null,
+            null,
+            fxRenderGBuffer,
+            worldMatrix
+        );
+
+        foreach (Actor2D actor in scene.GetDrawableActors()) {
+            actor.Draw(SpriteBatch);
         }
-        Layers[GameLayer.World].DrawTo(scene.Draw, SpriteBatch, worldMatrix);
+
+        SpriteBatch.End();
+        ShaderManager.I.CurrentActorEffect = null;
+
+        Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
 
         RenderPostProcessing(Layers[GameLayer.World]);
 
@@ -121,12 +160,16 @@ internal class RendererDeferred2D : Renderer2D {
             );
         }
 
+        ResizeBuffer(ref albedoBuffer);
+        ResizeBuffer(ref normalDepthBuffer);
         ResizeBuffer(ref lightBuffer);
-        ResizeBuffer(ref depthBuffer);
         ResizeBuffer(ref distanceBackBuffer);
         ResizeBuffer(ref distanceFrontBuffer);
         ResizeBuffer(ref worldLayerDistanceField);
         ResizeBuffer(ref skyLayerDistanceField);
+
+        sceneMRTTargets[0] = new RenderTargetBinding(albedoBuffer);
+        sceneMRTTargets[1] = new RenderTargetBinding(normalDepthBuffer);
     }
 
     /// <summary>
@@ -165,7 +208,6 @@ internal class RendererDeferred2D : Renderer2D {
             fxJumpFloodStep.Parameters["Offset"].SetValue((float)offset);
             fxJumpFloodStep.Parameters["ScreenRes"].SetValue(new Vector2(toDraw.Width, toDraw.Height));
             SpriteBatch.Begin(effect: fxJumpFloodStep);
-            // spriteBatch.Draw(toDraw, Vector2.Zero, Color.White);
             SpriteBatch.Draw(toDraw, new Rectangle(0, 0, target.Width, target.Height), Color.White);
             SpriteBatch.End();
 

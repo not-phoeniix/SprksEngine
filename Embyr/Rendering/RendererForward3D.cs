@@ -64,7 +64,7 @@ internal class RendererForward3D : Renderer3D {
         // render scene itself to main layer
         GraphicsDevice.SetRenderTarget(MainLayer.RenderTarget);
         GraphicsDevice.Clear(Color.Transparent);
-        foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {
+        foreach (IActor3D actor in scene.GetDrawableActors()) {
             actor.Draw(scene.Camera);
         }
 

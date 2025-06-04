@@ -16,6 +16,11 @@ internal class ShaderManager : Singleton<ShaderManager> {
     private ShaderProfile profile;
 
     /// <summary>
+    /// Gets/sets the current base effect applied to actors when drawn
+    /// </summary>
+    public Effect? CurrentActorEffect { get; set; }
+
+    /// <summary>
     /// Initializes the shader manager
     /// </summary>
     /// <param name="gd">Graphics device to create shaders with</param>

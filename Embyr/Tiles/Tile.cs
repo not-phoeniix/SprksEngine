@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.Scenes;
 using Embyr.Physics;
+using Embyr.Rendering;
 
 namespace Embyr.Tiles;
 
@@ -414,6 +415,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     private Rectangle? sourceRect;
     private readonly bool usesTileset;
     private readonly Texture2D texture;
+    private readonly Texture2D? normal;
 
     // 8 Bit integer that holds 8-directional exposed information.
     //   1 means tile exists, 0 means air.
@@ -445,7 +447,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// <summary>
     /// Creates a new Tile object, with given information
     /// </summary>
-    public Tile(T type, string name, Texture2D texture, bool usesTileset, Scene2D scene)
+    public Tile(T type, string name, Texture2D texture, Texture2D? normal, bool usesTileset, Scene2D scene)
         : base(name, Vector2.Zero, scene) {
         this.Transform = new Transform2D();
 
@@ -453,6 +455,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         Collider.Size = new Vector2(PixelSize);
         this.usesTileset = usesTileset;
         this.texture = texture;
+        this.normal = normal;
         this.Type = type;
     }
 
@@ -466,6 +469,13 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     protected void DrawTinted(Color color, SpriteBatch sb) {
         // skip drawing if tileset is null
         if (texture == null) return;
+
+        Effect? effect = ShaderManager.I.CurrentActorEffect;
+        if (effect != null) {
+            effect.Parameters["ZIndex"]?.SetValue(Math.Clamp(Transform.GlobalZIndex, 0, 1000));
+            effect.Parameters["NormalTexture"]?.SetValue(normal);
+        }
+
         sb.Draw(
             texture,
             Transform.GlobalPosition - new Vector2(PixelSize / 2),

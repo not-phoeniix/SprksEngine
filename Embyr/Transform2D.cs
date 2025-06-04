@@ -15,6 +15,8 @@ public sealed class Transform2D {
     private Vector2 parentGlobalScale;
     private float localRotation;
     private float parentGlobalRot;
+    private int zIndex;
+    private int parentGlobalZIndex;
 
     /// <summary>
     /// Gets/sets the parent for this transform
@@ -124,6 +126,33 @@ public sealed class Transform2D {
     }
 
     /// <summary>
+    /// Gets/sets the z-index of this transform relative to the parent
+    /// </summary>
+    public int ZIndex {
+        get => zIndex;
+        set {
+            zIndex = value;
+            MarkDirty();
+        }
+    }
+
+    /// <summary>
+    /// Gets/sets the global z-index of this transform
+    /// </summary>
+    public int GlobalZIndex {
+        get {
+            if (dirty) Recalculate();
+            return zIndex + parentGlobalZIndex;
+        }
+
+        set {
+            if (dirty) Recalculate();
+            zIndex = value - parentGlobalZIndex;
+            MarkDirty();
+        }
+    }
+
+    /// <summary>
     /// Creates a new Transform object
     /// </summary>
     /// <param name="position">Position of transform</param>
@@ -200,10 +229,12 @@ public sealed class Transform2D {
             parentGlobalPos = parent.GlobalPosition;
             parentGlobalScale = parent.GlobalScale;
             parentGlobalRot = parent.GlobalRotation;
+            parentGlobalZIndex = parent.GlobalZIndex;
         } else {
             parentGlobalPos = Vector2.Zero;
             parentGlobalScale = Vector2.One;
             parentGlobalRot = 0;
+            parentGlobalZIndex = 0;
         }
 
         // after recalculating we're no longer dirty!

@@ -1,6 +1,8 @@
+using System;
 using Embyr;
 using Embyr.Scenes;
 using Embyr.Tiles;
+using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -39,11 +41,13 @@ public class MainScene(string name) : Scene2D(name) {
         for (int x = 0; x < types.GetLength(1); x++) {
             for (int y = 0; y < types.GetLength(0); y++) {
                 if (types[y, x] == 1) {
-                    map.AddTile(
-                        new Tile(TileType.Tile, tileset, this),
+                    Tile t = new(TileType.Tile, tileset, tileNormals, this);
+                    Point pos = new(
                         x - types.GetLength(1) / 2,
                         y - types.GetLength(0) / 2
                     );
+
+                    map.AddTile(t, pos);
                 }
             }
         }
