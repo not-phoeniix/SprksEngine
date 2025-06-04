@@ -5,6 +5,7 @@ using Embyr.Tiles;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace LightingTest2D;
 
@@ -31,6 +32,7 @@ public class MainScene(string name) : Scene2D(name) {
     private Light2D redLight;
     private Light2D greenLight;
     private Light2D globalLight;
+    private Light2D miniLight;
 
     public override void LoadContent() {
         AmbientColor = Color.Black;
@@ -61,8 +63,9 @@ public class MainScene(string name) : Scene2D(name) {
             Color = new Color(1.0f, 0.5f, 0.5f),
             Intensity = 0.7f,
             Radius = 40,
-            LinearFalloff = 30
+            LinearFalloff = 30,
         };
+        redLight.Transform.GlobalZIndex = 20;
         AddLight(redLight);
 
         greenLight = new Light2D() {
@@ -71,18 +74,34 @@ public class MainScene(string name) : Scene2D(name) {
             Radius = 100,
             LinearFalloff = 120,
             AngularWidth = MathHelper.ToRadians(80),
-            AngularFalloff = MathHelper.ToRadians(45)
+            AngularFalloff = MathHelper.ToRadians(45),
         };
         greenLight.Transform.GlobalPosition = new Vector2(70, -70);
         greenLight.Transform.LookAt(Vector2.Zero);
+        greenLight.Transform.GlobalZIndex = 4;
         AddLight(greenLight);
 
         globalLight = new Light2D() {
             IsGlobal = true,
             Color = new Color(1.0f, 0.7f, 1.0f),
-            Intensity = 0.8f
+            Intensity = 0.8f,
+            // Enabled = false
         };
+        globalLight.Transform.ZIndex = 20;
         AddLight(globalLight);
+
+        miniLight = new Light2D() {
+            Color = new Color(0.5f, 0.9f, 1.0f),
+            Intensity = 1.2f,
+            Radius = 40,
+            LinearFalloff = 40,
+            AngularWidth = MathHelper.ToRadians(120),
+            AngularFalloff = MathHelper.ToRadians(70),
+        };
+        miniLight.Transform.GlobalPosition = new Vector2(53, 35);
+        miniLight.Transform.LookAt(Vector2.Zero);
+        miniLight.Transform.GlobalZIndex = 8;
+        AddLight(miniLight);
 
         base.LoadContent();
     }

@@ -27,12 +27,11 @@ sampler2D DepthBufferSampler = sampler_state {
 
 int NumLights;
 float2 ScreenRes;
-float3 Positions[MAX_LIGHTS];
+float4 Positions[MAX_LIGHTS];
 float3 Colors[MAX_LIGHTS];
 float Intensities[MAX_LIGHTS];
 float Rotations[MAX_LIGHTS];
 float4 SizeParams[MAX_LIGHTS];
-float LightZValue;
 float Depth3DScalar;
 
 //* ~~~ functions ~~~
@@ -158,7 +157,7 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
     return penumbraVal;
 }
 
-float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
+float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
     float2 fragCoordPixel = uv * ScreenRes;
     float2 centerPixelPos = position * ScreenRes;
     float aspect = ScreenRes.x / ScreenRes.y;
@@ -175,10 +174,10 @@ float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
     float angleScalar = clamp(1.0 - angleDist(angleToFrag, rotation, angularWidth, angularFalloff), 0.0, 1.0);
 
     // ~~~ normal calculations ~~~
-    float3 lightPos = float3(position, LightZValue * Depth3DScalar);
+    float3 lightPos = float3(position, zIndex * Depth3DScalar);
     float3 surfacePos = float3(uv, depth.x * Depth3DScalar);
     float3 dir = normalize(lightPos - surfacePos);
-    float normalTerm = dot(normal, dir);
+    float normalTerm = saturate(dot(normal, dir));
 
     // calculate color before shadow scaling
     float finalIntensity = linearScalar * angleScalar * normalTerm * intensity;
@@ -190,9 +189,9 @@ float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
     return lightColor;
 }
 
-float3 GlobalLight(float2 uv, float3 normal, float4 depth, float rotation, float3 color, float intensity) {
-    float3 dir = normalize(float3(cos(rotation), sin(rotation), -LightZValue * Depth3DScalar));
-    float normalTerm = dot(normal, -dir);
+float3 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float rotation, float3 color, float intensity) {
+    float3 dir = normalize(float3(cos(rotation), sin(rotation), -zIndex * Depth3DScalar));
+    float normalTerm = saturate(dot(normal, -dir));
 
     // position to light is relative to direction per frag
     // float2 globalPos = uv + dir * 3.0;
@@ -225,8 +224,9 @@ float4 MainPS(VSOutput input) : COLOR {
         float angularWidth = SizeParams[i].y;
         float linearFalloff = SizeParams[i].z;
         float angularFalloff = SizeParams[i].w;
-        bool isGlobal = Positions[i].z > 0.0;
+        bool isGlobal = Positions[i].w > 0.0;
         float2 position = Positions[i].xy;
+        float zIndex = Positions[i].z;
 
         float3 lightColor = float3(0.0, 0.0, 0.0);
 
@@ -235,6 +235,7 @@ float4 MainPS(VSOutput input) : COLOR {
                 input.UV,
                 normal,
                 depth,
+                zIndex,
                 Rotations[i],
                 Colors[i],
                 Intensities[i]);
@@ -244,6 +245,7 @@ float4 MainPS(VSOutput input) : COLOR {
                 normal,
                 depth,
                 position,
+                zIndex,
                 Rotations[i],
                 Colors[i],
                 radius,

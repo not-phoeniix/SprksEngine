@@ -27,7 +27,7 @@ internal class RendererDeferred2D : Renderer2D {
 
     private const int MaxLightsPerPass = 8;
     private Color globalLightTint;
-    private readonly Vector3[] lightPositions = new Vector3[MaxLightsPerPass];
+    private readonly Vector4[] lightPositions = new Vector4[MaxLightsPerPass];
     private readonly Vector3[] lightColors = new Vector3[MaxLightsPerPass];
     private readonly float[] lightIntensities = new float[MaxLightsPerPass];
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
@@ -275,8 +275,10 @@ internal class RendererDeferred2D : Renderer2D {
             // set array values
             Vector2 lightScreenPos = Vector2.Transform(light.Transform.GlobalPosition, scene.Camera.FlooredMatrix);
             lightScreenPos /= new Vector2(lightBuffer.Width, lightBuffer.Height);
-            lightPositions[i] = new Vector3(
-                lightScreenPos,
+            lightPositions[i] = new Vector4(
+                lightScreenPos.X,
+                lightScreenPos.Y,
+                light.Transform.GlobalZIndex,
                 light.IsGlobal ? 1 : 0
             );
             lightColors[i] = light.Color.ToVector3();
@@ -307,9 +309,6 @@ internal class RendererDeferred2D : Renderer2D {
             fxLightRender.Parameters["NormalMap"].SetValue(normalBuffer);
             fxLightRender.Parameters["DepthBuffer"].SetValue(depthBuffer);
             fxLightRender.Parameters["Depth3DScalar"].SetValue(Settings.Depth3DScalar);
-
-            // TODO: make this a parameter of individual lights themselves
-            fxLightRender.Parameters["LightZValue"].SetValue(20f);
 
             // ~~~ DRAW TO BUFFER ~~~
             sb.Begin(samplerState: SamplerState.PointClamp, effect: fxLightRender);
