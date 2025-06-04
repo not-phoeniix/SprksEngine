@@ -157,7 +157,10 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
     return penumbraVal;
 }
 
-float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
+//! NOTE: function returns a float4 so we can use alpha
+//!   channel to blend with previous pass
+
+float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
     float2 fragCoordPixel = uv * ScreenRes;
     float2 centerPixelPos = position * ScreenRes;
     float aspect = ScreenRes.x / ScreenRes.y;
@@ -181,7 +184,7 @@ float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
 
     // calculate color before shadow scaling
     float finalIntensity = linearScalar * angleScalar * normalTerm * intensity;
-    float3 lightColor = color * finalIntensity;
+    float4 lightColor = float4(color, 1.0) * finalIntensity;
 
     // do raymarch, multiply output scalar to mask lights when in shadow
     lightColor *= softShadow(position, uv, 8.0);
@@ -189,7 +192,10 @@ float3 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
     return lightColor;
 }
 
-float3 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float rotation, float3 color, float intensity) {
+//! NOTE: function returns a float4 so we can use alpha
+//!   channel to blend with previous pass
+
+float4 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float rotation, float3 color, float intensity) {
     float3 dir = normalize(float3(cos(rotation), sin(rotation), -zIndex * Depth3DScalar));
     float normalTerm = saturate(dot(normal, -dir));
 
@@ -198,7 +204,7 @@ float3 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float r
 
     // globalColor *= softShadow(globalPos, uv, 512.0);
 
-    return color * intensity * normalTerm;
+    return float4(color, 1.0) * intensity * normalTerm;
 }
 
 //* ~~~ main stuff ~~~
@@ -206,8 +212,7 @@ float3 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float r
 //! input drawn texture should be distance field!
 
 float4 MainPS(VSOutput input) : COLOR {
-    float2 fragCoordPixel = input.UV * ScreenRes;
-    float3 additiveTotalColor = float3(0.0, 0.0, 0.0);
+    float4 additiveTotalColor = float4(0.0, 0.0, 0.0, 0.0);
 
     // unpack normals, get in range of -1 to 1
     float3 normal = tex2D(NormalMapSampler, input.UV).xyz;
@@ -228,7 +233,7 @@ float4 MainPS(VSOutput input) : COLOR {
         float2 position = Positions[i].xy;
         float zIndex = Positions[i].z;
 
-        float3 lightColor = float3(0.0, 0.0, 0.0);
+        float4 lightColor = float4(0.0, 0.0, 0.0, 0.0);
 
         if (isGlobal) {
             lightColor = GlobalLight(
@@ -258,7 +263,7 @@ float4 MainPS(VSOutput input) : COLOR {
         additiveTotalColor += lightColor;
     }
 
-    return float4(additiveTotalColor, 1.0f);
+    return additiveTotalColor;
 }
 
 technique SpriteDrawing {

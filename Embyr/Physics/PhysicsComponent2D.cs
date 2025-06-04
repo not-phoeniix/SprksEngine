@@ -152,9 +152,6 @@ public class PhysicsComponent2D : ActorComponent2D {
         this.GroundFrictionScale = 20;
         this.GravityScale = 1;
         this.collider = actor.GetComponent<ColliderComponent2D>();
-        if (collider == null) {
-            Debug.WriteLine("Warning: PhysicsComponent2D created without finding a Collider2D! Collisions will be permanently disabled for this actor! If this is intended then please set PhysicsComponent2D.EnableCollisions to FALSE :]");
-        }
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
@@ -170,6 +167,11 @@ public class PhysicsComponent2D : ActorComponent2D {
 
         // exit after updating prev pos to prevent jittering
         if (!Enabled) return;
+
+        if (EnableCollisions && collider == null) {
+            Debug.WriteLine("Warning: PhysicsComponent2D created without finding a Collider2D! Collisions will be permanently disabled for this actor! If this is intended then please set PhysicsComponent2D.EnableCollisions to FALSE :]");
+            EnableCollisions = false;
+        }
 
         // apply gravity if enabled
         if (EnableGravity && !OnGround) {

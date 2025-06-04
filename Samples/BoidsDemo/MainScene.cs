@@ -27,7 +27,10 @@ public class MainScene(string name) : Scene2D(name) {
 
         AddLight(new Light2D() {
             IsGlobal = true,
-            Intensity = 0.1f
+            Intensity = 0.2f,
+            Transform = new Transform2D() {
+                ZIndex = 100
+            }
         });
 
         for (int i = 0; i < 100; i++) {
@@ -37,7 +40,10 @@ public class MainScene(string name) : Scene2D(name) {
             );
 
             AddLight(new Light2D() {
-                Transform = new Transform2D(randPos),
+                Transform = new Transform2D() {
+                    Position = randPos,
+                    ZIndex = 10
+                },
                 Color = new Color(
                     Random.Shared.NextSingle() * 0.5f + 0.5f,
                     Random.Shared.NextSingle() * 0.5f + 0.5f,

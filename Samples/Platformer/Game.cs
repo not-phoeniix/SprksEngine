@@ -21,7 +21,7 @@ public class Game : Embyr.Game {
             CanvasRes = new Point(300, 200),
             WindowRes = new Point(900, 600),
             EnableVSync = true,
-            RenderClearColor = Color.Gray,
+            RenderClearColor = Color.Black,
             RenderPipeline = RenderPipeline.Deferred2D,
             DefaultBindingPreset = binds
         };
@@ -29,7 +29,7 @@ public class Game : Embyr.Game {
 
     protected override RendererSetupParams SetupRenderer() {
         RendererSettings settings = new() {
-            VolumetricScalar = 0.2f,
+            VolumetricScalar = 0.1f,
             EnableLighting = true,
             EnablePostProcessing = true
         };

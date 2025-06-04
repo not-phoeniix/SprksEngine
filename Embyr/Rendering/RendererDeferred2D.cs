@@ -85,7 +85,7 @@ internal class RendererDeferred2D : Renderer2D {
         //   set up screen space effect for combining lighting and albedo
         if (Settings.EnableLighting) {
             RenderDistanceField(obstructorDistanceField, 0.0f);
-            DrawLightsDeferred(scene, SpriteBatch);
+            RenderLightsDeferred(scene, SpriteBatch);
 
             fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
             fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
@@ -264,7 +264,7 @@ internal class RendererDeferred2D : Renderer2D {
     /// </summary>
     /// <param name="scene">Scene to grab and draw lights from<param>
     /// <param name="sb">SpriteBatch to draw with</param>
-    private void DrawLightsDeferred(Scene2D scene, SpriteBatch sb) {
+    private void RenderLightsDeferred(Scene2D scene, SpriteBatch sb) {
         sb.GraphicsDevice.SetRenderTarget(lightBuffer);
         sb.GraphicsDevice.Clear(Color.Black);
 

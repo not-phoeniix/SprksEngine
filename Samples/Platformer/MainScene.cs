@@ -36,12 +36,16 @@ public class MainScene(string name) : Scene2D(name) {
 
         Texture2D tileTexture = ContentHelper.I.Load<Texture2D>("tileset");
         tilemap = new TileMap<TileType>("tile map", Vector2.Zero, 1000, this);
-        for (int y = 0; y < layout.GetLength(0); y++) {
-            for (int x = 0; x < layout.GetLength(1); x++) {
+
+        int width = layout.GetLength(1);
+        int height = layout.GetLength(0);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 if (layout[y, x] == 1) {
                     Point pos = new(
-                        x - layout.GetLength(1) / 2,
-                        y - layout.GetLength(0) / 2
+                        x - width / 2,
+                        y - height / 2
                     );
 
                     Tile tile = new(TileType.Platform, tileTexture, this);
@@ -50,10 +54,16 @@ public class MainScene(string name) : Scene2D(name) {
                     AddLight(new Light2D() {
                         Transform = new Transform2D() {
                             Parent = tilemap.Transform,
-                            Position = new Vector2(x * Tile.PixelSize, y * Tile.PixelSize)
+                            Position = new Vector2(
+                                (x - width / 2) * Tile.PixelSize,
+                                (y - height / 2) * Tile.PixelSize
+                            ),
+                            GlobalZIndex = 3
                         },
-                        Color = Color.Red,
-                        Radius = 40
+                        Color = new Color(1.0f, 0.7f, 0.7f),
+                        Radius = 20,
+                        Intensity = 0.7f,
+                        LinearFalloff = 20
                     });
                 }
             }
@@ -63,8 +73,11 @@ public class MainScene(string name) : Scene2D(name) {
 
         AddLight(new Light2D() {
             IsGlobal = true,
-            Color = new Color(0.8f, 0.6f, 0.8f),
-            Intensity = 0.5f
+            Color = new Color(1.0f, 0.8f, 1.0f),
+            Intensity = 1.0f,
+            Transform = new Transform2D() {
+                GlobalZIndex = 50
+            }
         });
 
         player = new Player(new Vector2(0, 0), this);
