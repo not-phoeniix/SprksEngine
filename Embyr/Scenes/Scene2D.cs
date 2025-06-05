@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr.Scenes;
 
 public abstract class Scene2D : Scene {
-    private Effect fxSolidColor;
     private readonly Quadtree<Actor2D> actors;
     private readonly List<Actor2D>[] actorsToDraw;
     private readonly Quadtree<Light2D> localLights;
@@ -30,7 +29,6 @@ public abstract class Scene2D : Scene {
     }
 
     public override void LoadContent() {
-        fxSolidColor = ShaderManager.I.LoadShader("solid_color");
         base.LoadContent();
     }
 
@@ -38,7 +36,6 @@ public abstract class Scene2D : Scene {
         actors.Clear();
         localLights.Clear();
         globalLights.Clear();
-        fxSolidColor = null;
         base.Unload();
     }
 
@@ -152,47 +149,11 @@ public abstract class Scene2D : Scene {
 
     #endregion
 
-    #region // Drawing
-
     /// <summary>
     /// Gets the current parallax background set to draw this frame
     /// </summary>
     /// <returns></returns>
     public virtual ParallaxBackground? GetCurrentParallax() { return null; }
-
-    /// <summary>
-    /// Draws scene as a greyscale depth map
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DrawDepthmap(SpriteBatch sb) { }
-
-    /// <summary>
-    /// Draws a layer to the depth map
-    /// </summary>
-    /// <param name="depth">Depth to draw to, from 0 to 1</param>
-    /// <param name="drawInstructions">Action of draw instructions to draw for layer</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    protected void DrawDepthLayer(float depth, Action drawInstructions, SpriteBatch sb) {
-        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
-        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
-        drawInstructions?.Invoke();
-        sb.End();
-    }
-
-    /// <summary>
-    /// Draws a layer to the depth map
-    /// </summary>
-    /// <param name="depth">Depth to draw to, from 0 to 1</param>
-    /// <param name="drawInstruction">Action of draw instruction to draw for layer</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    protected void DrawDepthLayer(float depth, Action<SpriteBatch> drawInstruction, SpriteBatch sb) {
-        fxSolidColor.Parameters["Color"].SetValue(new Vector4(depth, depth, depth, 1.0f));
-        sb.Begin(samplerState: SamplerState.PointClamp, effect: fxSolidColor, transformMatrix: Camera.FlooredMatrix);
-        drawInstruction?.Invoke(sb);
-        sb.End();
-    }
-
-    #endregion
 
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         Camera = new Camera2D(width + canvasExpandSize, height + canvasExpandSize) {
