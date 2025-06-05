@@ -98,9 +98,16 @@ internal class RendererDeferred2D : Renderer2D {
 
         // draw albedo itself to the actual render layer
         Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
-        Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
-
-        RenderPostProcessing(Layers[GameLayer.World]);
+        if (EngineSettings.ShowDebugNormalBuffer) {
+            Layers[GameLayer.World].ScreenSpaceEffect = null;
+            Layers[GameLayer.World].DrawTo(sb => sb.Draw(normalBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+        } else if (EngineSettings.ShowDebugDepthBuffer) {
+            Layers[GameLayer.World].ScreenSpaceEffect = null;
+            Layers[GameLayer.World].DrawTo(sb => sb.Draw(depthBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+        } else {
+            Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            RenderPostProcessing(Layers[GameLayer.World]);
+        }
 
         if (EngineSettings.ShowDebugDrawing) {
             Layers[GameLayer.WorldDebug].SmoothingOffset = scene.Camera.Position;

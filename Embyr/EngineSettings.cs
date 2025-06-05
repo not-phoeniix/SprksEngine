@@ -55,6 +55,10 @@ public static class EngineSettings {
 
     public static bool ShowDebugDrawing { get; set; } = false;
 
+    public static bool ShowDebugNormalBuffer { get; set; } = false;
+
+    public static bool ShowDebugDepthBuffer { get; set; } = false;
+
     public static Color RenderClearColor { get; set; } = Palette.Col2;
 
     public static float Gamma { get; set; } = 2.2f;
