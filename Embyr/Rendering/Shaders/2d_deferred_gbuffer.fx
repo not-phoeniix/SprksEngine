@@ -30,7 +30,7 @@ PSOutput MainPS(VSOutput input) {
     float3 normal = tex2D(NormalTextureSampler, input.UV).xyz;
     output.Normal = any(normal) ? float4(normal, 1.0) : float4(0.5, 0.5, 1.0, 1.0);
 
-    float depth = float(ZIndex) / float(MAX_Z_INDEX);
+    float depth = float(ZIndex) / float(MAX_Z_INDEX + 1);
     // black means obstructs light, white means doesn't
     float obstruct = 1.0f - (float)ObstructsLight;
     output.Depth = float4(depth, obstruct, 1.0, 1.0f);

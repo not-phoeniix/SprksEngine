@@ -52,7 +52,8 @@ public abstract class Scene : IResolution {
     }
 
     /// <summary>
-    /// Marks scene as "loaded", should be called last in child override methods
+    /// Loads the content of this scene including assets and actor creation,
+    /// should be called last in overriden methods
     /// </summary>
     public virtual void LoadContent() {
         Paused = false;

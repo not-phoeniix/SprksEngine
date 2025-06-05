@@ -28,10 +28,12 @@ public abstract class Scene2D : Scene {
         }
     }
 
+    /// <inheritdoc/>
     public override void LoadContent() {
         base.LoadContent();
     }
 
+    /// <inheritdoc/>
     public override void Unload() {
         actors.Clear();
         localLights.Clear();
@@ -155,6 +157,7 @@ public abstract class Scene2D : Scene {
     /// <returns></returns>
     public virtual ParallaxBackground? GetCurrentParallax() { return null; }
 
+    /// <inheritdoc/>
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         Camera = new Camera2D(width + canvasExpandSize, height + canvasExpandSize) {
             Position = Camera.Position,
