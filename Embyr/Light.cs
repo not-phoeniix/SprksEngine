@@ -17,6 +17,11 @@ public abstract class Light {
     public bool IsGlobal { get; init; }
 
     /// <summary>
+    /// Gets/sets whether or not this light casts shadow on obstructing objects
+    /// </summary>
+    public bool CastsShadow { get; set; }
+
+    /// <summary>
     /// Gets/sets the color of this light
     /// </summary>
     public Color Color { get; set; }
@@ -34,5 +39,6 @@ public abstract class Light {
         Intensity = 1;
         Enabled = true;
         IsGlobal = false;
+        CastsShadow = false;
     }
 }

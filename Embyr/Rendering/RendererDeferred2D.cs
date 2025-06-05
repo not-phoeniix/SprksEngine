@@ -32,6 +32,7 @@ internal class RendererDeferred2D : Renderer2D {
     private readonly float[] lightIntensities = new float[MaxLightsPerPass];
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
     private readonly float[] lightRotations = new float[MaxLightsPerPass];
+    private readonly float[] lightCastsShadow = new float[MaxLightsPerPass];
 
     public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
@@ -290,6 +291,7 @@ internal class RendererDeferred2D : Renderer2D {
                 light.LinearFalloff,
                 light.AngularFalloff
             );
+            lightCastsShadow[i] = light.CastsShadow ? 1 : 0;
 
             i++;
         }
@@ -306,6 +308,7 @@ internal class RendererDeferred2D : Renderer2D {
             fxLightRender.Parameters["Intensities"].SetValue(lightIntensities);
             fxLightRender.Parameters["Rotations"].SetValue(lightRotations);
             fxLightRender.Parameters["SizeParams"].SetValue(lightSizeParams);
+            fxLightRender.Parameters["CastsShadow"].SetValue(lightCastsShadow);
             fxLightRender.Parameters["NormalMap"].SetValue(normalBuffer);
             fxLightRender.Parameters["DepthBuffer"].SetValue(depthBuffer);
             fxLightRender.Parameters["Depth3DScalar"].SetValue(Settings.Depth3DScalar);

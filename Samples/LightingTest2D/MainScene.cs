@@ -64,6 +64,7 @@ public class MainScene(string name) : Scene2D(name) {
             Intensity = 0.7f,
             Radius = 40,
             LinearFalloff = 30,
+            CastsShadow = true
         };
         redLight.Transform.GlobalZIndex = 20;
         AddLight(redLight);
@@ -85,20 +86,20 @@ public class MainScene(string name) : Scene2D(name) {
             IsGlobal = true,
             Color = new Color(1.0f, 0.7f, 1.0f),
             Intensity = 0.8f,
-            // Enabled = false
         };
         globalLight.Transform.ZIndex = 20;
         AddLight(globalLight);
 
         miniLight = new Light2D() {
             Color = new Color(0.5f, 0.9f, 1.0f),
-            Intensity = 1.2f,
-            Radius = 40,
+            Intensity = 1.4f,
+            Radius = 100,
             LinearFalloff = 40,
-            AngularWidth = MathHelper.ToRadians(120),
-            AngularFalloff = MathHelper.ToRadians(70),
+            AngularWidth = MathHelper.ToRadians(150),
+            AngularFalloff = MathHelper.ToRadians(100),
+            CastsShadow = true
         };
-        miniLight.Transform.GlobalPosition = new Vector2(53, 35);
+        miniLight.Transform.GlobalPosition = new Vector2(50, 34);
         miniLight.Transform.LookAt(Vector2.Zero);
         miniLight.Transform.GlobalZIndex = 8;
         AddLight(miniLight);
@@ -109,7 +110,7 @@ public class MainScene(string name) : Scene2D(name) {
     public override void Update(float dt) {
         redLight.Transform.GlobalPosition = new Vector2(
             -50,
-            MathF.Sin(Performance.TotalTime * 2) * 40
+            MathF.Sin(Performance.TotalTime * 2) * 35
         );
 
         globalLight.Transform.GlobalRotation += dt * 0.5f;

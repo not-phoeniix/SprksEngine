@@ -32,6 +32,7 @@ float3 Colors[MAX_LIGHTS];
 float Intensities[MAX_LIGHTS];
 float Rotations[MAX_LIGHTS];
 float4 SizeParams[MAX_LIGHTS];
+float CastsShadow[MAX_LIGHTS];
 float Depth3DScalar;
 
 //* ~~~ functions ~~~
@@ -128,8 +129,8 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
     float penumbraVal = 1.0;
 
     // if depth indicates this pixel is an obstructor, just exit early and don't raymarch
-    float depth = tex2D(SpriteTextureSampler, texCoord + dir * distSum).z;
-    if (depth > MAIN_TILE_DEPTH - 0.01 && depth < MAIN_TILE_DEPTH + 0.01) {
+    float obstructorDepth = tex2D(DepthBufferSampler, texCoord).y;
+    if (obstructorDepth <= 0.001) {
         return 0.0;
     }
 
@@ -160,7 +161,7 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
 //! NOTE: function returns a float4 so we can use alpha
 //!   channel to blend with previous pass
 
-float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity) {
+float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity, bool castsShadow) {
     float2 fragCoordPixel = uv * ScreenRes;
     float2 centerPixelPos = position * ScreenRes;
     float aspect = ScreenRes.x / ScreenRes.y;
@@ -186,8 +187,9 @@ float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
     float finalIntensity = linearScalar * angleScalar * normalTerm * intensity;
     float4 lightColor = float4(color, 1.0) * finalIntensity;
 
-    // do raymarch, multiply output scalar to mask lights when in shadow
-    lightColor *= softShadow(position, uv, 8.0);
+    // do raymarch if shadowcasting is enabled, multiply output scalar
+    //   to mask lights when in shadow
+    lightColor *= castsShadow ? softShadow(position, uv, 8.0) : 1.0;
 
     return lightColor;
 }
@@ -195,16 +197,18 @@ float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float
 //! NOTE: function returns a float4 so we can use alpha
 //!   channel to blend with previous pass
 
-float4 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float rotation, float3 color, float intensity) {
-    float3 dir = normalize(float3(cos(rotation), sin(rotation), -zIndex * Depth3DScalar));
+float4 GlobalLight(float2 uv, float3 normal, float4 depth, float zIndex, float rotation, float3 color, float intensity, bool castsShadow) {
+    float2 flatDir = float2(cos(rotation), sin(rotation));
+    float3 dir = normalize(float3(flatDir, -zIndex * Depth3DScalar));
     float normalTerm = saturate(dot(normal, -dir));
 
+    float4 globalLightColor = float4(color, 1.0) * intensity * normalTerm;
+
     // position to light is relative to direction per frag
-    // float2 globalPos = uv + dir * 3.0;
+    float2 globalPos = uv + flatDir * 3.0;
+    globalLightColor *= castsShadow ? softShadow(globalPos, uv, 512.0) : 1.0;
 
-    // globalColor *= softShadow(globalPos, uv, 512.0);
-
-    return float4(color, 1.0) * intensity * normalTerm;
+    return globalLightColor;
 }
 
 //* ~~~ main stuff ~~~
@@ -232,6 +236,7 @@ float4 MainPS(VSOutput input) : COLOR {
         bool isGlobal = Positions[i].w > 0.0;
         float2 position = Positions[i].xy;
         float zIndex = Positions[i].z;
+        bool castsShadow = CastsShadow[i] > 0.0;
 
         float4 lightColor = float4(0.0, 0.0, 0.0, 0.0);
 
@@ -243,7 +248,8 @@ float4 MainPS(VSOutput input) : COLOR {
                 zIndex,
                 Rotations[i],
                 Colors[i],
-                Intensities[i]);
+                Intensities[i],
+                castsShadow);
         } else {
             lightColor = LocalLight(
                 input.UV,
@@ -257,7 +263,8 @@ float4 MainPS(VSOutput input) : COLOR {
                 angularWidth,
                 linearFalloff,
                 angularFalloff,
-                Intensities[i]);
+                Intensities[i],
+                castsShadow);
         }
 
         additiveTotalColor += lightColor;
