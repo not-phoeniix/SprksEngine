@@ -21,7 +21,7 @@ public sealed class Transform2D {
     /// <summary>
     /// Maximum z-index for rendering
     /// </summary>
-    public static readonly int MaxZInex = 1000;
+    public static readonly int MaxZIndex = 1000;
 
     /// <summary>
     /// Gets/sets the parent for this transform
@@ -147,7 +147,7 @@ public sealed class Transform2D {
     public int GlobalZIndex {
         get {
             if (dirty) Recalculate();
-            return Math.Clamp(zIndex + parentGlobalZIndex, 0, MaxZInex);
+            return Math.Clamp(zIndex + parentGlobalZIndex, 0, MaxZIndex);
         }
 
         set {

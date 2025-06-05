@@ -23,7 +23,7 @@ public abstract class Scene2D : Scene {
         globalLights = new List<Light2D>();
         Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
 
-        actorsToDraw = new List<Actor2D>[Transform2D.MaxZInex];
+        actorsToDraw = new List<Actor2D>[Transform2D.MaxZIndex + 1];
         for (int i = 0; i < actorsToDraw.Length; i++) {
             actorsToDraw[i] = new List<Actor2D>();
         }
