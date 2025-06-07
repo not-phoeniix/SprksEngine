@@ -13,11 +13,16 @@ public class BoxColliderComponent2D : ColliderComponent2D {
     /// </summary>
     public Vector2 Size { get; set; }
 
-    /// <inheritdoc/>
-    public override Vector2 Min => Actor.Transform.GlobalPosition - (Size / 2);
+    /// <summary>
+    /// Gets/sets the center offset of this box collider
+    /// </summary>
+    public Vector2 Offset { get; set; }
 
     /// <inheritdoc/>
-    public override Vector2 Max => Actor.Transform.GlobalPosition + (Size / 2);
+    public override Vector2 Min => Actor.Transform.GlobalPosition - (Size / 2) + Offset;
+
+    /// <inheritdoc/>
+    public override Vector2 Max => Actor.Transform.GlobalPosition + (Size / 2) + Offset;
 
     /// <summary>
     /// Creates a new BoxColliderComponent2D instance
@@ -25,6 +30,7 @@ public class BoxColliderComponent2D : ColliderComponent2D {
     /// <param name="actor">Actor to attach to collider</param>
     internal BoxColliderComponent2D(Actor2D actor) : base(actor) {
         this.Size = Vector2.One;
+        this.Offset = Vector2.Zero;
     }
 
     /// <inheritdoc/>
@@ -41,10 +47,10 @@ public class BoxColliderComponent2D : ColliderComponent2D {
     }
 
     private bool Intersects(BoxColliderComponent2D other) {
-        Vector2 thisMin = Actor.Transform.GlobalPosition - Size / 2;
-        Vector2 thisMax = Actor.Transform.GlobalPosition + Size / 2;
-        Vector2 otherMin = other.Actor.Transform.GlobalPosition - other.Size / 2;
-        Vector2 otherMax = other.Actor.Transform.GlobalPosition + other.Size / 2;
+        Vector2 thisMin = Min;
+        Vector2 thisMax = Max;
+        Vector2 otherMin = other.Min;
+        Vector2 otherMax = other.Max;
 
         return thisMin.X + CollisionTolerance <= otherMax.X &&
                thisMin.Y + CollisionTolerance <= otherMax.Y &&
@@ -59,10 +65,18 @@ public class BoxColliderComponent2D : ColliderComponent2D {
         Vector2 otherMin = new(other.Left, other.Top);
         Vector2 otherMax = new(other.Right, other.Bottom);
 
-        return thisMin.X <= otherMax.X &&
-               thisMin.Y <= otherMax.Y &&
-               thisMax.X >= otherMin.X &&
-               thisMax.Y >= otherMin.Y;
+        return thisMin.X + CollisionTolerance <= otherMax.X &&
+               thisMin.Y + CollisionTolerance <= otherMax.Y &&
+               thisMax.X - CollisionTolerance >= otherMin.X &&
+               thisMax.Y - CollisionTolerance >= otherMin.Y;
+    }
+
+    /// <inheritdoc/>
+    public override bool Contains(Vector2 point) {
+        return point.X + CollisionTolerance >= Min.X &&
+               point.Y + CollisionTolerance >= Min.Y &&
+               point.X - CollisionTolerance <= Max.X &&
+               point.Y - CollisionTolerance <= Max.Y;
     }
 
     /// <inheritdoc/>

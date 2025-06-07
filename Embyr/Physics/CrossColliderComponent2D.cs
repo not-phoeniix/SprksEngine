@@ -18,7 +18,7 @@ public class CrossColliderComponent2D : ColliderComponent2D {
     public override Vector2 Max => Vector2.Max(verticalCollider.Max, horizontalCollider.Max);
 
     /// <summary>
-    /// Gets the size of the vertical collider
+    /// Gets/sets the size of the vertical collider
     /// </summary>
     public Vector2 VerticalSize {
         get => verticalCollider.Size;
@@ -26,11 +26,27 @@ public class CrossColliderComponent2D : ColliderComponent2D {
     }
 
     /// <summary>
-    /// Gets the size of the horizontal collider
+    /// Gets/sets the size of the horizontal collider
     /// </summary>
     public Vector2 HorizontalSize {
         get => horizontalCollider.Size;
         set => horizontalCollider.Size = value;
+    }
+
+    /// <summary>
+    /// Gets/sets offset of the vertical collider
+    /// </summary>
+    public Vector2 VerticalOffset {
+        get => verticalCollider.Offset;
+        set => verticalCollider.Offset = value;
+    }
+
+    /// <summary>
+    /// Gets/sets offset of the horizontal collider
+    /// </summary>
+    public Vector2 HorizontalOffset {
+        get => horizontalCollider.Offset;
+        set => horizontalCollider.Offset = value;
     }
 
     /// <summary>
@@ -69,6 +85,11 @@ public class CrossColliderComponent2D : ColliderComponent2D {
     /// <inheritdoc/>
     public override bool Intersects(Rectangle other) {
         return verticalCollider.Intersects(other) || horizontalCollider.Intersects(other);
+    }
+
+    /// <inheritdoc/>
+    public override bool Contains(Vector2 point) {
+        return verticalCollider.Contains(point) || horizontalCollider.Contains(point);
     }
 
     /// <inheritdoc/>

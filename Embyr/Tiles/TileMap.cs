@@ -152,7 +152,14 @@ public class TileMap<T> : Actor2D where T : Enum {
             }
         }
 
-        collider.Size = (tiles.Size.ToVector2() + new Vector2(2)) * Tile<T>.PixelSize;
+        bool shouldRecalculate =
+            tile == null ||
+            !collider.Contains(tile.Collider.Min) ||
+            !collider.Contains(tile.Collider.Max);
+
+        if (shouldRecalculate) {
+            RecalculateBounds();
+        }
     }
 
     /// <summary>
@@ -176,6 +183,25 @@ public class TileMap<T> : Actor2D where T : Enum {
         );
 
         return PixelToTileSpace(simView);
+    }
+
+    private void RecalculateBounds() {
+        Vector2 min = new(float.PositiveInfinity);
+        Vector2 max = new(float.NegativeInfinity);
+
+        for (int x = tiles.Min.X; x < tiles.Max.X; x++) {
+            for (int y = tiles.Min.Y; y < tiles.Max.Y; y++) {
+                Tile<T>? tile = tiles[x, y];
+                if (tile != null) {
+                    min = Vector2.Min(min, tile.Collider.Min);
+                    max = Vector2.Max(max, tile.Collider.Max);
+                }
+            }
+        }
+
+        Vector2 center = (min + max) / 2.0f;
+        collider.Offset = center - Transform.GlobalPosition;
+        collider.Size = max - min;
     }
 
     /// <summary>

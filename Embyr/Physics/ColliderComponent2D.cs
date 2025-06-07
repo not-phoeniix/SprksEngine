@@ -113,6 +113,13 @@ public abstract class ColliderComponent2D : ActorComponent2D {
     public abstract bool Intersects(Rectangle other);
 
     /// <summary>
+    /// Gets whether or not this collider contains a point
+    /// </summary>
+    /// <param name="point">Point to check if lies within</param>
+    /// <returns>Whether or not this collider contains the point</returns>
+    public abstract bool Contains(Vector2 point);
+
+    /// <summary>
     /// Gets the displacement vector of two overlapping colliders, used for collision resolution
     /// </summary>
     /// <param name="other">Other collider to displace away from</param>
