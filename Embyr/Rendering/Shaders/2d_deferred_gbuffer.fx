@@ -9,17 +9,30 @@ struct PSOutput {
 Texture2D SpriteTexture;
 sampler2D SpriteTextureSampler = sampler_state {
     Texture = <SpriteTexture>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
 };
 
 Texture2D NormalTexture;
 sampler2D NormalTextureSampler = sampler_state {
     Texture = <NormalTexture>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
 };
 
 #define MAX_Z_INDEX 1000
 
 int ZIndex;
 bool ObstructsLight;
+bool UseNormals;
 
 PSOutput MainPS(VSOutput input) {
     PSOutput output;
@@ -28,7 +41,7 @@ PSOutput MainPS(VSOutput input) {
 
     // if sampled color is black set default normal values
     float3 normal = tex2D(NormalTextureSampler, input.UV).xyz;
-    output.Normal = any(normal) ? float4(normal, 1.0) : float4(0.5, 0.5, 1.0, 1.0);
+    output.Normal = UseNormals ? float4(normal, 1.0) : float4(0.5, 0.5, 1.0, 1.0);
 
     float depth = float(ZIndex) / float(MAX_Z_INDEX + 1);
     // black means obstructs light, white means doesn't

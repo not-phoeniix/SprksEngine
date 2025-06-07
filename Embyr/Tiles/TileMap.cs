@@ -146,8 +146,9 @@ public class TileMap<T> : Actor2D where T : Enum {
 
         for (int x2 = x - 1; x2 <= x + 1; x2++) {
             for (int y2 = y - 1; y2 <= y + 1; y2++) {
-                if (!tiles.InBounds(x2, y2)) continue;
-                tiles[x2, y2]?.UpdateEdges(this, null);
+                if (tiles.InBounds(x2, y2)) {
+                    tiles[x2, y2]?.UpdateEdges(this, null);
+                }
             }
         }
 

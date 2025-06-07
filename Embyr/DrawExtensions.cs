@@ -24,6 +24,21 @@ public static class DrawExtensions {
     //   drawing using manual buffers in the graphics device
     // private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
 
+    private static void CheckShadersAndReset() {
+        Effect? effect = ShaderManager.I.CurrentActorEffect;
+        if (effect != null) {
+            EffectParameter useNormals = effect.Parameters["UseNormals"];
+            if (useNormals.GetValueBoolean() == true) {
+                //! NOTE: this isn't super modular for future 2D renderers...
+                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(
+                    SceneManager.I.CurrentScene as Scene2D
+                );
+
+                useNormals.SetValue(false);
+            }
+        }
+    }
+
     #region // Line
 
     /// <summary>
@@ -98,6 +113,8 @@ public static class DrawExtensions {
             CreatePixel(sb);
         }
 
+        CheckShadersAndReset();
+
         // stretch pixel across by length and thickness
         sb.Draw(
             _pixel,
@@ -167,6 +184,8 @@ public static class DrawExtensions {
         if (_pixel == null) {
             CreatePixel(sb);
         }
+
+        CheckShadersAndReset();
 
         sb.Draw(_pixel, rect, color);
     }

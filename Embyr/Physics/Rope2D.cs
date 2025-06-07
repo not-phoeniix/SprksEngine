@@ -21,6 +21,7 @@ public class Rope2D : Actor2D {
             Physics = AddComponent<PhysicsComponent2D>();
             Physics.MaxSpeed = 1000;
             Physics.Solver = PhysicsComponent2D.PhysicsSolver.Verlet;
+            Physics.EnableCollisions = false;
             Transform.Parent = rope.Transform;
         }
     }

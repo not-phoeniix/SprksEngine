@@ -414,10 +414,8 @@ public abstract class Tile<T> : Actor2D where T : Enum {
 
     // TODO: make tiles have sprite components rather than manual drawing?
 
-    private Rectangle? sourceRect;
     private readonly bool usesTileset;
-    private readonly Texture2D texture;
-    private readonly Texture2D? normal;
+    private readonly SpriteComponent2D sprite;
 
     // 8 Bit integer that holds 8-directional exposed information.
     //   1 means tile exists, 0 means air.
@@ -425,7 +423,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     private byte neighborBitmask;
 
     /// <summary>
-    /// Gets the enumeration type of this tile
+    /// Gets the enumeration type value of this tile
     /// </summary>
     public T Type { get; }
 
@@ -447,7 +445,10 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// <summary>
     /// Gets/sets whether or not this tile obstructs light
     /// </summary>
-    public bool ObstructsLight { get; set; }
+    public bool ObstructsLight {
+        get => sprite.ObstructsLight;
+        set => sprite.ObstructsLight = value;
+    }
 
     #endregion
 
@@ -457,67 +458,22 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     public Tile(T type, string name, Texture2D texture, Texture2D? normal, bool usesTileset, Scene2D scene)
         : base(name, Vector2.Zero, scene) {
         this.Transform = new Transform2D();
+        this.usesTileset = usesTileset;
+        this.Type = type;
 
         Collider = AddComponent<BoxColliderComponent2D>();
         Collider.Size = new Vector2(PixelSize);
-        this.usesTileset = usesTileset;
-        this.texture = texture;
-        this.normal = normal;
-        this.Type = type;
-        ObstructsLight = false;
+
+        sprite = AddComponent<SpriteComponent2D>();
+        sprite.Texture = texture;
+        sprite.Normal = normal;
 
         if (usesTileset) {
-            sourceRect = GetBlobSource(0);
+            sprite.SourceRect = GetBlobSource(0);
         }
     }
 
     #region Methods
-
-    /// <summary>
-    /// Draws this tile to the screen with a tinted color
-    /// </summary>
-    /// <param name="color">Color to tint with</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    protected void DrawTinted(Color color, SpriteBatch sb) {
-        // skip drawing if tileset is null
-        if (texture == null) return;
-
-        Effect? effect = ShaderManager.I.CurrentActorEffect;
-        if (effect != null) {
-            EffectParameter zIndex = effect.Parameters["ZIndex"];
-            EffectParameter normalTexture = effect.Parameters["NormalTexture"];
-            EffectParameter obstructsLight = effect.Parameters["ObstructsLight"];
-
-            bool paramsChanged =
-                zIndex.GetValueInt32() != Transform.GlobalZIndex ||
-                normalTexture.GetValueTexture2D() != normal ||
-                obstructsLight.GetValueBoolean() != ObstructsLight;
-
-            // if the parameters have changed, update the
-            //   parameters and restart spritebatch
-            if (paramsChanged) {
-                zIndex.SetValue(Transform.GlobalZIndex);
-                normalTexture.SetValue(normal);
-                obstructsLight.SetValue(ObstructsLight);
-
-                //! NOTE: this isn't super modular for future 2D renderers...
-                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Scene as Scene2D);
-            }
-        }
-
-        sb.Draw(
-            texture,
-            Transform.GlobalPosition - new Vector2(PixelSize / 2),
-            sourceRect,
-            color
-        );
-    }
-
-    /// <inheritdoc/>
-    public override void Draw(SpriteBatch sb) {
-        base.Draw(sb);
-        DrawTinted(Color.White, sb);
-    }
 
     /// <summary>
     /// Checks 8 surrounding tiles and updates which edges are exposed to disconnected types
@@ -563,9 +519,9 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         }
 
         if (usesTileset) {
-            sourceRect = GetBlobSource(neighborBitmask);
+            sprite.SourceRect = GetBlobSource(neighborBitmask);
         } else {
-            sourceRect = null;
+            sprite.SourceRect = null;
         }
     }
 

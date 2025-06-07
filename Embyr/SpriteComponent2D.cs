@@ -35,6 +35,16 @@ public class SpriteComponent2D : ActorComponent2D {
     public Texture2D? Normal { get; set; }
 
     /// <summary>
+    /// Gets/sets whether or not this sprite component obstructs light
+    /// </summary>
+    public bool ObstructsLight { get; set; }
+
+    /// <summary>
+    /// Gets/sets local source rectangle to use when drawing sprite
+    /// </summary>
+    public Rectangle? SourceRect { get; set; }
+
+    /// <summary>
     /// Creates a new SpriteComponent2D
     /// </summary>
     /// <param name="actor">Actor to attach component to</param>
@@ -42,6 +52,7 @@ public class SpriteComponent2D : ActorComponent2D {
         Color = Color.White;
         Anchor = new Vector2(0.5f, 0.5f);
         SpriteEffects = SpriteEffects.None;
+        SourceRect = null;
     }
 
     /// <inheritdoc/>
@@ -54,7 +65,11 @@ public class SpriteComponent2D : ActorComponent2D {
     public override void Draw(SpriteBatch sb) {
         if (Texture == null) return;
 
-        Vector2 spriteSize = new(Texture.Width, Texture.Height);
+        // use either source rect size for drawing or whole
+        //   texture size if source rect is null, then scale
+        Vector2 spriteSize =
+            SourceRect?.Size.ToVector2() ??
+            new(Texture.Width, Texture.Height);
         spriteSize *= Actor.Transform.GlobalScale;
 
         Vector2 drawPos = Actor.Transform.GlobalPosition;
@@ -68,26 +83,32 @@ public class SpriteComponent2D : ActorComponent2D {
         if (effect != null) {
             EffectParameter zIndex = effect.Parameters["ZIndex"];
             EffectParameter normalTexture = effect.Parameters["NormalTexture"];
+            EffectParameter obstructsLight = effect.Parameters["ObstructsLight"];
+            EffectParameter useNormals = effect.Parameters["UseNormals"];
 
             bool paramsChanged =
                 zIndex.GetValueInt32() != Actor.Transform.GlobalZIndex ||
-                normalTexture.GetValueTexture2D() != Normal;
+                normalTexture.GetValueTexture2D() != Normal ||
+                obstructsLight.GetValueBoolean() != ObstructsLight ||
+                useNormals.GetValueBoolean() != (Normal != null);
 
             // if the parameters have changed, update the
             //   parameters and restart spritebatch
             if (paramsChanged) {
-                zIndex.SetValue(Actor.Transform.GlobalZIndex);
-                normalTexture.SetValue(Normal);
-
                 //! NOTE: this isn't super modular for future 2D renderers...
                 ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Actor.Scene as Scene2D);
+
+                zIndex.SetValue(Actor.Transform.GlobalZIndex);
+                normalTexture.SetValue(Normal);
+                obstructsLight.SetValue(ObstructsLight);
+                useNormals.SetValue(Normal != null);
             }
         }
 
         sb.Draw(
             Texture,
             dest,
-            null,
+            SourceRect,
             Color,
             Actor.Transform.GlobalRotation,
             Anchor * spriteSize,
