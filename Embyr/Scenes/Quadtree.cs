@@ -143,7 +143,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
                 float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
 
                 if (obj is Actor2D actor) {
-                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    Collider2D? collider = actor.GetComponent<Collider2D>();
                     if (collider != null) {
                         Rectangle bounds = new(
                             Vector2.Floor(collider.Min).ToPoint(),
@@ -190,7 +190,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
                 float dSqr = Vector2.DistanceSquared(position, obj.Transform.GlobalPosition);
 
                 if (obj is Actor2D actor) {
-                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    Collider2D? collider = actor.GetComponent<Collider2D>();
                     if (collider != null) {
                         Rectangle bounds = new(
                             Vector2.Floor(collider.Min).ToPoint(),
@@ -226,7 +226,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
                 bool contains = viewport.Contains(obj.Transform.GlobalPosition);
 
                 if (obj is Actor2D actor) {
-                    ColliderComponent2D? collider = actor.GetComponent<ColliderComponent2D>();
+                    Collider2D? collider = actor.GetComponent<Collider2D>();
                     if (collider != null) {
                         contains = collider.Intersects(viewport);
                     }

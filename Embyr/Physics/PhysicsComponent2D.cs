@@ -19,7 +19,7 @@ public class PhysicsComponent2D : ActorComponent2D {
         Verlet
     }
 
-    private readonly ColliderComponent2D? collider;
+    private readonly Collider2D? collider;
     private Vector2 prevTransformPos;
     private Vector2 prevPos;
     private Vector2 prevVerletPos;
@@ -151,7 +151,7 @@ public class PhysicsComponent2D : ActorComponent2D {
         this.MinSpeed = 0.01f;
         this.GroundFrictionScale = 20;
         this.GravityScale = 1;
-        this.collider = actor.GetComponent<ColliderComponent2D>();
+        this.collider = actor.GetComponent<Collider2D>();
 
         WanderAngle = Random.Shared.NextSingle(0, 2.0f * MathF.PI);
     }
@@ -232,9 +232,8 @@ public class PhysicsComponent2D : ActorComponent2D {
     private void EulerPosUpdate(float deltaTime) {
         velocity += acceleration * deltaTime;
         velocity += impulseAccel;
-        velocity = Utils.ClampMagnitude(velocity, MaxSpeed);
-        // apply gravity AFTER speed limiting
         velocity += gravityAccel * deltaTime;
+        velocity = Utils.ClampMagnitude(velocity, MaxSpeed);
 
         // snap velocity to zero if below min threshold
         if (velocity.LengthSquared() < MinSpeed * MinSpeed) {
@@ -317,10 +316,9 @@ public class PhysicsComponent2D : ActorComponent2D {
     private void CollisionCorrection(Scene2D scene) {
         bool somethingCollided = false;
 
-        // we're not on the ground anymore if vertical velocity exists
-        if (Velocity.Y != 0 && OnGround) {
-            OnGround = false;
-        }
+        OnGround = false;
+
+        // TODO: fix this mess lol
 
         const int NumCollisionIterations = 5;
         for (int i = 0; i < NumCollisionIterations; i++) {
@@ -328,53 +326,69 @@ public class PhysicsComponent2D : ActorComponent2D {
 
             Vector2 max = collider.Max;
             Vector2 min = collider.Min;
-            float collisionRadius = MathF.Max(max.X - min.X, max.Y - min.Y);
+            float collisionRadius = MathF.Max(max.X - min.X, max.Y - min.Y) + 1;
+            Rectangle expandedBounds = new(
+                Vector2.Floor(min).ToPoint(),
+                Vector2.Ceiling(max - min).ToPoint()
+            );
+            expandedBounds.Inflate(1, 1);
 
             foreach (Actor2D a in scene.GetActorsInRadius(Actor.Transform.GlobalPosition, collisionRadius)) {
-                ColliderComponent2D otherCollider = a.GetComponent<ColliderComponent2D>();
-                if (otherCollider == null) continue;
+                Collider2D? otherCollider = a.GetComponent<Collider2D>();
 
                 // don't collide with yourself!
                 if (otherCollider == this.collider) continue;
 
+                // get most specific collider at first, will
+                //   be null if it does not collide so we skip
+                otherCollider = otherCollider?.GetMostSpecificCollidingChild(expandedBounds);
+                if (otherCollider == null) continue;
+
                 // resolve collisions, if any collisions still
                 //   occur during resolution, mark that things
                 //   are colliding this frame !!
-                if (this.collider.Intersects(otherCollider)) {
-                    Vector2 displacement = this.collider.GetDisplacementVector(otherCollider);
+                otherCollider = otherCollider.GetMostSpecificCollidingChild(this.collider) ?? otherCollider;
 
-                    position += displacement;
+                Vector2 displacement = this.collider.GetDisplacementVector(otherCollider);
 
-                    if (displacement != Vector2.Zero) {
-                        somethingCollided = true;
-                        anyCollisionsOccured = true;
-                    }
+                if (displacement != Vector2.Zero) {
+                    somethingCollided = true;
+                    anyCollisionsOccured = true;
 
-                    // stop velocity in each axis if
-                    //   that axis has any displacement
-                    velocity.X *= displacement.X != 0 ? 0 : 1;
-                    velocity.Y *= displacement.Y != 0 ? 0 : 1;
-
-                    // apply new position to the transform so that
-                    //   the collider doesn't calculate and apply
-                    //   displacements multiple times
-                    this.Actor.Transform.GlobalPosition = position;
-
-                    // we are on the ground if we are displacing up
-                    if (displacement.Y < 0) {
-                        OnGround = true;
-                    }
+                    //! this is for debug! remove later!
+                    Vector2 displacement2 = this.collider.GetDisplacementVector(otherCollider);
                 }
+
+                position += displacement;
+
+                // stop velocity in each axis if
+                //   that axis has any displacement
+                velocity.X *= displacement.X != 0 ? 0 : 1;
+                velocity.Y *= displacement.Y != 0 ? 0 : 1;
+                if (velocity.X == 0 || velocity.Y == 0) {
+                    toChangeVelocity = true;
+                }
+
+                // apply new position to the transform so that
+                //   the collider doesn't calculate and apply
+                //   displacements multiple times
+                this.Actor.Transform.GlobalPosition = position;
+
+                // we are on the ground if we are displacing up
+                if (displacement.Y < 0) {
+                    OnGround = true;
+                }
+            }
+
+            // invoke collision callback when a collision occurs for the first frame
+            if (somethingCollided && !somethingCollidedPrev) {
+                OnCollide?.Invoke();
+                somethingCollidedPrev = true;
             }
 
             // no need to do collision checks anymore if
             //   there aren't any collisions left
             if (!anyCollisionsOccured) break;
-        }
-
-        // invoke collision callback when a collision occurs for the first frame
-        if (somethingCollided && !somethingCollidedPrev) {
-            OnCollide?.Invoke();
         }
 
         // update previous collision state

@@ -440,7 +440,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// <summary>
     /// Gets the collider for for this tile
     /// </summary>
-    public BoxColliderComponent2D Collider { get; }
+    public BoxCollider2D Collider { get; }
 
     /// <summary>
     /// Gets/sets whether or not this tile obstructs light
@@ -461,8 +461,8 @@ public abstract class Tile<T> : Actor2D where T : Enum {
         this.usesTileset = usesTileset;
         this.Type = type;
 
-        Collider = AddComponent<BoxColliderComponent2D>();
-        Collider.Size = new Vector2(PixelSize);
+        Collider = AddComponent<BoxCollider2D>();
+        Collider.Size = new Point(PixelSize);
 
         sprite = AddComponent<SpriteComponent2D>();
         sprite.Texture = texture;

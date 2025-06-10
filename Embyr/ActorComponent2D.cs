@@ -8,9 +8,9 @@ namespace Embyr;
 /// </summary>
 public abstract class ActorComponent2D : IDrawable2D, IDebugDrawable2D {
     /// <summary>
-    /// Gets a reference to the actor this component is attached to
+    /// Reference to actor this component is attached to
     /// </summary>
-    protected Actor2D Actor { get; private set; }
+    public readonly Actor2D Actor;
 
     /// <summary>
     /// Gets/sets whether or not this component is enabled

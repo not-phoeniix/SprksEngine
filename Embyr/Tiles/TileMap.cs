@@ -11,7 +11,7 @@ namespace Embyr.Tiles;
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
 public class TileMap<T> : Actor2D where T : Enum {
     private readonly NList2D<Tile<T>?> tiles;
-    private readonly BoxColliderComponent2D collider;
+    private readonly BoxCollider2D collider;
 
     /// <summary>
     /// Gets/sets the simulation distance for updating this tile map
@@ -46,7 +46,7 @@ public class TileMap<T> : Actor2D where T : Enum {
         this.SimulationDistance = simulationDistance;
         this.tiles = new NList2D<Tile<T>?>();
         this.Transform = new Transform2D(position);
-        this.collider = AddComponent<BoxColliderComponent2D>();
+        this.collider = AddComponent<BoxCollider2D>();
         collider.Collidable = false;
     }
 
@@ -200,8 +200,8 @@ public class TileMap<T> : Actor2D where T : Enum {
         }
 
         Vector2 center = (min + max) / 2.0f;
-        collider.Offset = center - Transform.GlobalPosition;
-        collider.Size = max - min;
+        collider.Offset = Vector2.Floor(center - Transform.GlobalPosition).ToPoint();
+        collider.Size = Vector2.Floor(max - min).ToPoint();
     }
 
     /// <summary>
