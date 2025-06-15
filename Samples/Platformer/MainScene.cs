@@ -33,6 +33,7 @@ public class MainScene(string name) : Scene2D(name) {
 
     public override void LoadContent() {
         Gravity = 400;
+        AmbientColor = Color.Black;
 
         Texture2D tileTexture = ContentHelper.I.Load<Texture2D>("tileset");
         tilemap = new TileMap<TileType>("tile map", Vector2.Zero, 1000, this);
@@ -95,13 +96,5 @@ public class MainScene(string name) : Scene2D(name) {
         }
 
         base.Update(dt);
-    }
-
-    public override void DrawDepthmap(SpriteBatch sb) {
-        // TODO: make depthmap drawing automatic!
-        //   implement a z index for every transform ?
-        //   that could be nice !
-
-        DrawDepthLayer(0.25f, tilemap.Draw, sb);
     }
 }

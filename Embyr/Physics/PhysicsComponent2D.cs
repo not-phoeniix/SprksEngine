@@ -115,11 +115,6 @@ public class PhysicsComponent2D : ActorComponent2D {
     }
 
     /// <summary>
-    /// Force of gravity (vector force) for this current component, applied every frame
-    /// </summary>
-    public Vector2 GravityForce { get; private set; }
-
-    /// <summary>
     /// Scale of gravity applied to this object
     /// </summary>
     public float GravityScale { get; set; }
@@ -175,8 +170,8 @@ public class PhysicsComponent2D : ActorComponent2D {
 
         // apply gravity if enabled
         if (EnableGravity) {
-            GravityForce = new Vector2(0, Actor.Scene.Gravity);
-            ApplyGravity(GravityForce * GravityScale);
+            Vector2 gravity = new(0, Actor.Scene.Gravity * GravityScale);
+            ApplyGravity(gravity);
         }
 
         // do physics solving algorithm
@@ -188,6 +183,9 @@ public class PhysicsComponent2D : ActorComponent2D {
                 VerletPosUpdate(deltaTime);
                 break;
         }
+
+        // apply new position so colliders use new collision position
+        this.Actor.Transform.GlobalPosition = position;
 
         // correct collisions
         if (EnableCollisions && Actor.Scene is Scene2D scene) {

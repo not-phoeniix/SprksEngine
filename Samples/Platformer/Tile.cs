@@ -10,5 +10,7 @@ public enum TileType {
 
 public class Tile : Embyr.Tiles.Tile<TileType> {
     public Tile(TileType type, Texture2D spritesheet, Scene2D scene)
-    : base(type, "tile", spritesheet, null, true, scene) { }
+    : base(type, "tile", spritesheet, null, true, scene) {
+        ObstructsLight = true;
+    }
 }

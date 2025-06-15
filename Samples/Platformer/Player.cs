@@ -19,14 +19,16 @@ public class Player : Actor2D {
             Color = Color.White,
             Radius = 70,
             LinearFalloff = 40,
+            CastsShadow = true,
             Transform = new Transform2D() {
                 Parent = Transform,
-                Position = Vector2.Zero
+                Position = Vector2.Zero,
+                ZIndex = 3
             }
         };
 
-        BoxColliderComponent2D box = AddComponent<BoxColliderComponent2D>();
-        box.Size = new Vector2(6);
+        BoxCollider2D box = AddComponent<BoxCollider2D>();
+        box.Size = new Point(6);
 
         Physics = AddComponent<PhysicsComponent2D>();
         Physics.MaxSpeed = 700;
@@ -50,8 +52,7 @@ public class Player : Actor2D {
             Physics.ApplyForce(new Vector2(inputDir * 100, 0));
         }
 
-        // jump logic
-        if (Input.IsActionOnce("jump") && Physics.OnGround) {
+        if (Physics.OnGround && Input.IsAction("jump")) {
             Physics.ApplyImpulse(new Vector2(0, -150));
         }
 

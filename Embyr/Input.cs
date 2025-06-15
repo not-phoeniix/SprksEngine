@@ -70,7 +70,7 @@ public static class Input {
     private static Matrix canvasWorldTransform;
     private static VibrationParams currentVibration;
     private static InputMode modePrev;
-    private static Queue<Delegate> delegatesToClear = new();
+    private static readonly Queue<Delegate> delegatesToClear = new();
 
     #region // Properties
 
@@ -83,7 +83,7 @@ public static class Input {
     /// Event executed when current input mode changes, passes in
     /// the new InputMode, cleared between scene changes
     /// </summary>
-    public static event Action<InputMode> OnInputModeChanged;
+    public static event Action<InputMode>? OnInputModeChanged;
 
     /// <summary>
     /// Current mouse state's full screen position
@@ -174,10 +174,10 @@ public static class Input {
         kbStatePrev = kbState;
         mStatePrev = mState;
         padStatePrev = padState;
+        actionStatePrev = actionState;
         kbState = Keyboard.GetState();
         mState = Mouse.GetState();
         padState = GamePad.GetState(0);
-        actionStatePrev = actionState;
         actionState = new ActionState(CurrentBindingPreset);
 
         // update class's internal state, only updates when a state is changed
