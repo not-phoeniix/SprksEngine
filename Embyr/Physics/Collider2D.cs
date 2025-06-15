@@ -76,45 +76,32 @@ public abstract class Collider2D : ActorComponent2D {
     /// Gets the reference to the most specific colliding child collider in the hierarchy of this collider, can return null if not colliding
     /// </summary>
     /// <param name="other">Other collider to check collisions with</param>
-    /// <returns>Reference to most specific colliding child, null if no collisions occur</returns>
+    /// <returns>Reference to most specific colliding child, null if no collisions occur or component is disabled</returns>
     public virtual Collider2D? GetMostSpecificCollidingChild(Collider2D other) {
-        if (Intersects(other)) {
-            if (children.Count != 0) {
-                foreach (Collider2D child in children) {
-                    Collider2D? collision = child.GetMostSpecificCollidingChild(other);
-                    if (collision != null) {
-                        return collision;
-                    }
+        // no collisions occur if component is disabled or
+        //   doesn't immediately intersect with other collider
+        if (!Enabled || !Intersects(other)) return null;
+
+        if (children.Count != 0) {
+            Collider2D? largestAreaCollider = null;
+            float largestArea = 0;
+
+            foreach (Collider2D child in children) {
+                float area = child.GetOverlappingArea(other);
+
+                if (area > largestArea) {
+                    largestArea = area;
+                    largestAreaCollider = child;
                 }
             }
 
-            if (Collidable) {
-                return this;
+            if (largestAreaCollider != null) {
+                return largestAreaCollider.GetMostSpecificCollidingChild(other) ?? largestAreaCollider;
             }
         }
 
-        return null;
-    }
-
-    /// <summary>
-    /// Gets the reference to the most specific colliding child collider in the hierarchy of this collider, can return null if not colliding
-    /// </summary>
-    /// <param name="other">Other rectangle to check collisions with</param>
-    /// <returns>Reference to most specific colliding child, null if no collisions occur</returns>
-    public virtual Collider2D? GetMostSpecificCollidingChild(Rectangle other) {
-        if (Intersects(other)) {
-            if (children.Count != 0) {
-                foreach (Collider2D child in children) {
-                    Collider2D? collision = child.GetMostSpecificCollidingChild(other);
-                    if (collision != null) {
-                        return collision;
-                    }
-                }
-            }
-
-            if (Collidable) {
-                return this;
-            }
+        if (Collidable) {
+            return this;
         }
 
         return null;
@@ -140,6 +127,13 @@ public abstract class Collider2D : ActorComponent2D {
     /// <param name="point">Point to check if lies within</param>
     /// <returns>Whether or not this collider contains the point</returns>
     public abstract bool Contains(Vector2 point);
+
+    /// <summary>
+    /// Gets the overlap area between this and another collider
+    /// </summary>
+    /// <param name="other">Other collider to get overlapping area from</param>
+    /// <returns>Overlapping area as a float</returns>
+    public abstract float GetOverlappingArea(Collider2D other);
 
     /// <summary>
     /// Gets the displacement vector of two overlapping colliders, used for collision resolution

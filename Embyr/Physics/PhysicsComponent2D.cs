@@ -174,7 +174,7 @@ public class PhysicsComponent2D : ActorComponent2D {
         }
 
         // apply gravity if enabled
-        if (EnableGravity && !OnGround) {
+        if (EnableGravity) {
             GravityForce = new Vector2(0, Actor.Scene.Gravity);
             ApplyGravity(GravityForce * GravityScale);
         }
@@ -190,7 +190,7 @@ public class PhysicsComponent2D : ActorComponent2D {
         }
 
         // correct collisions
-        if (EnableCollisions && collider != null && Actor.Scene is Scene2D scene) {
+        if (EnableCollisions && Actor.Scene is Scene2D scene) {
             CollisionCorrection(scene);
         } else {
             OnGround = false;
@@ -264,12 +264,12 @@ public class PhysicsComponent2D : ActorComponent2D {
         Vector2 tmpPos = position;
         position = 2 * position - prevVerletPos + ((acceleration + gravityAccel) * deltaTime + impulseAccel) * deltaTime;
         velocity = (position - prevVerletPos) / (2 * deltaTime);
+        prevVerletPos = tmpPos;
         if (velocity.LengthSquared() < MinSpeed * MinSpeed) {
             // stop movement if velocity is below minimum threshold
             velocity = Vector2.Zero;
-            position = tmpPos;
+            prevVerletPos = position;
         }
-        prevVerletPos = tmpPos;
 
         // reset fields
         acceleration = Vector2.Zero;
@@ -314,25 +314,27 @@ public class PhysicsComponent2D : ActorComponent2D {
     }
 
     private void CollisionCorrection(Scene2D scene) {
+        // this solution was used for simple AABB:
+        //   https://c.har.li/e/2024/03/28/implementing-robust-2D-collision-resolution.html#fn:1
+
         bool somethingCollided = false;
 
         OnGround = false;
 
-        // TODO: fix this mess lol
+        if (collider == null) return;
 
-        const int NumCollisionIterations = 5;
+        const int NumCollisionIterations = 3;
         for (int i = 0; i < NumCollisionIterations; i++) {
             bool anyCollisionsOccured = false;
 
             Vector2 max = collider.Max;
             Vector2 min = collider.Min;
             float collisionRadius = MathF.Max(max.X - min.X, max.Y - min.Y) + 1;
-            Rectangle expandedBounds = new(
-                Vector2.Floor(min).ToPoint(),
-                Vector2.Ceiling(max - min).ToPoint()
-            );
-            expandedBounds.Inflate(1, 1);
 
+            float largestArea = 0;
+            Vector2 displacement = Vector2.Zero;
+
+            // find largest collision area
             foreach (Actor2D a in scene.GetActorsInRadius(Actor.Transform.GlobalPosition, collisionRadius)) {
                 Collider2D? otherCollider = a.GetComponent<Collider2D>();
 
@@ -341,43 +343,37 @@ public class PhysicsComponent2D : ActorComponent2D {
 
                 // get most specific collider at first, will
                 //   be null if it does not collide so we skip
-                otherCollider = otherCollider?.GetMostSpecificCollidingChild(expandedBounds);
+                otherCollider = otherCollider?.GetMostSpecificCollidingChild(collider);
                 if (otherCollider == null) continue;
 
-                // resolve collisions, if any collisions still
-                //   occur during resolution, mark that things
-                //   are colliding this frame !!
-                otherCollider = otherCollider.GetMostSpecificCollidingChild(this.collider) ?? otherCollider;
+                float area = otherCollider.GetOverlappingArea(collider);
 
-                Vector2 displacement = this.collider.GetDisplacementVector(otherCollider);
-
-                if (displacement != Vector2.Zero) {
-                    somethingCollided = true;
+                if (area > largestArea) {
+                    largestArea = area;
+                    displacement = collider.GetDisplacementVector(otherCollider);
                     anyCollisionsOccured = true;
-
-                    //! this is for debug! remove later!
-                    Vector2 displacement2 = this.collider.GetDisplacementVector(otherCollider);
+                    somethingCollided = true;
                 }
+            }
 
-                position += displacement;
+            position += displacement;
+            this.Actor.Transform.GlobalPosition = position;
 
-                // stop velocity in each axis if
-                //   that axis has any displacement
-                velocity.X *= displacement.X != 0 ? 0 : 1;
-                velocity.Y *= displacement.Y != 0 ? 0 : 1;
-                if (velocity.X == 0 || velocity.Y == 0) {
-                    toChangeVelocity = true;
-                }
+            // we are on the ground if we are displacing up
+            if (displacement.Y < 0) {
+                OnGround = true;
+            }
 
-                // apply new position to the transform so that
-                //   the collider doesn't calculate and apply
-                //   displacements multiple times
-                this.Actor.Transform.GlobalPosition = position;
-
-                // we are on the ground if we are displacing up
-                if (displacement.Y < 0) {
-                    OnGround = true;
-                }
+            // stop velocity in each axis if
+            //   that axis has any displacement
+            velocity.X *= displacement.X != 0 ? 0 : 1;
+            if (displacement.X != 0) {
+                velocity.X = 0;
+                toChangeVelocity = true;
+            }
+            if (displacement.Y != 0) {
+                velocity.Y = 0;
+                toChangeVelocity = true;
             }
 
             // invoke collision callback when a collision occurs for the first frame

@@ -93,6 +93,25 @@ public class CrossCollider2D : Collider2D {
     }
 
     /// <inheritdoc/>
+    public override float GetOverlappingArea(Collider2D other) {
+        if (!Intersects(other)) return 0;
+
+        if (other is BoxCollider2D box) {
+            return GetOverlappingArea(box);
+        }
+
+        // cross x cross collision has yet to be implemented <//3
+        // TODO: cross collider x cross collider overlapping area
+
+        return 0;
+    }
+
+    private float GetOverlappingArea(BoxCollider2D other) {
+        return verticalCollider.GetOverlappingArea(other) +
+               horizontalCollider.GetOverlappingArea(other);
+    }
+
+    /// <inheritdoc/>
     public override Vector2 GetDisplacementVector(Collider2D other) {
         if (other == null || !other.Collidable) {
             return Vector2.Zero;
@@ -101,6 +120,9 @@ public class CrossCollider2D : Collider2D {
         if (other is BoxCollider2D rect) {
             return GetDisplacementVector(rect);
         }
+
+        // cross x cross collision has yet to be implemented <//3
+        // TODO: cross collider x cross collider displacement
 
         return Vector2.Zero;
     }

@@ -55,17 +55,71 @@ public class BoxCollider2D : Collider2D {
     }
 
     private bool Intersects(BoxCollider2D other) {
-        return GetAsRect().Intersects(other.GetAsRect());
+        Vector2 min = Min;
+        Vector2 max = Max;
+        Vector2 otherMin = other.Min;
+        Vector2 otherMax = other.Max;
+
+        return min.X <= otherMax.X &&
+               min.Y <= otherMax.Y &&
+               max.X >= otherMin.X &&
+               max.Y >= otherMin.Y;
     }
 
     /// <inheritdoc/>
     public override bool Intersects(Rectangle other) {
-        return GetAsRect().Intersects(other);
+        Vector2 min = Min;
+        Vector2 max = Max;
+
+        return min.X <= other.Right &&
+               min.Y <= other.Bottom &&
+               max.X >= other.Left &&
+               max.Y >= other.Top;
     }
 
     /// <inheritdoc/>
     public override bool Contains(Vector2 point) {
-        return GetAsRect().Contains(point);
+        Vector2 min = Min;
+        Vector2 max = Max;
+
+        return point.X >= min.X &&
+               point.Y >= min.Y &&
+               point.X <= max.X &&
+               point.Y <= max.Y;
+    }
+
+    /// <inheritdoc/>
+    public override float GetOverlappingArea(Collider2D other) {
+        if (!Intersects(other)) return 0;
+
+        if (other is BoxCollider2D box) {
+            return GetOverlappingArea(box);
+        }
+
+        if (other is CrossCollider2D cross) {
+            return cross.GetOverlappingArea(this);
+        }
+
+        return 0;
+    }
+
+    private float GetOverlappingArea(BoxCollider2D other) {
+        Vector2 overlap = GetOverlappingSize(other);
+        return overlap.X * overlap.Y;
+    }
+
+    private Vector2 GetOverlappingSize(BoxCollider2D other) {
+        if (!Intersects(other)) return Vector2.Zero;
+
+        Vector2 min = Min;
+        Vector2 max = Max;
+        Vector2 otherMin = other.Min;
+        Vector2 otherMax = other.Max;
+
+        Vector2 overlapMax = Vector2.Min(max, otherMax);
+        Vector2 overlapMin = Vector2.Max(min, otherMin);
+
+        return overlapMax - overlapMin;
     }
 
     /// <inheritdoc/>
@@ -78,14 +132,15 @@ public class BoxCollider2D : Collider2D {
             return GetDisplacementVector(rect);
         }
 
+        if (other is CrossCollider2D cross) {
+            return cross.GetDisplacementVector(this);
+        }
+
         return Vector2.Zero;
     }
 
     private Vector2 GetDisplacementVector(BoxCollider2D other) {
-        Vector2 overlap = Rectangle.Intersect(
-            GetAsRect(),
-            other.GetAsRect()
-        ).Size.ToVector2();
+        Vector2 overlap = GetOverlappingSize(other);
 
         if (overlap.X >= overlap.Y) {
             // ~~~ vertical displacement ~~~
@@ -115,17 +170,13 @@ public class BoxCollider2D : Collider2D {
 
     /// <inheritdoc/>
     public override void DebugDraw(SpriteBatch sb) {
-        sb.DrawRectOutline(GetAsRect(), 1, Color.Red);
-    }
-
-    /// <summary>
-    /// Gets a rectangle representation of this box collider
-    /// </summary>
-    /// <returns>Rectangle box collider</returns>
-    internal Rectangle GetAsRect() {
-        return new Rectangle(
-            Vector2.Floor(Min).ToPoint(),
-            Vector2.Ceiling(Max - Min).ToPoint()
+        sb.DrawRectOutline(
+            new Rectangle(
+                Vector2.Floor(Min).ToPoint(),
+                Vector2.Floor(Max - Min).ToPoint()
+            ),
+            1,
+            Color.Red
         );
     }
 }
