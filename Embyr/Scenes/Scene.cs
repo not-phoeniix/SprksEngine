@@ -285,7 +285,7 @@ public abstract class Scene : IResolution {
     /// <param name="name">Name of actor to search, finds exact matches</param>
     /// <param name="caseSensitive">Whether or not to search using case sensitive matches</param>
     /// <returns>Reference to actor, null if not found</returns>
-    public T FindActor<T>(string name, bool caseSensitive = true) where T : class, IActor {
+    public T? FindActor<T>(string name, bool caseSensitive = true) where T : class, IActor {
         foreach (IActor actor in GetActors()) {
             bool nameMatch = actor.Name.Equals(
                 name,

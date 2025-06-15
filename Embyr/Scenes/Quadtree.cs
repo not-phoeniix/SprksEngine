@@ -15,11 +15,11 @@ internal class Quadtree<T> where T : class, ITransform2D {
         private readonly List<T> data;
         private readonly List<(T, Node)> toMove;
         private Node[]? childNodes;
-        private readonly Node parent;
+        private readonly Node? parent;
 
         public Rectangle Bounds { get; private set; }
 
-        public Node(Node parent, Rectangle bounds) {
+        public Node(Node? parent, Rectangle bounds) {
             data = new List<T>();
             toMove = new List<(T, Node)>();
             this.parent = parent;
@@ -167,7 +167,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
                     if (dSqr >= closestDSqr) continue;
 
                     // recursive call here!!!
-                    T subClosest = node.FindClosest(position);
+                    T? subClosest = node.FindClosest(position);
 
                     if (subClosest != null) {
                         dSqr = Vector2.DistanceSquared(subClosest.Transform.GlobalPosition, position);
@@ -303,7 +303,7 @@ internal class Quadtree<T> where T : class, ITransform2D {
         root.Insert(obj);
     }
 
-    public T FindClosest(Vector2 position) {
+    public T? FindClosest(Vector2 position) {
         return root.FindClosest(position);
     }
 

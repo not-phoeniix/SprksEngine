@@ -13,12 +13,12 @@ internal class Octree<T> where T : class, ITransform3D {
     private class Node {
         private readonly List<T> data;
         private readonly List<(T, Node)> toMove;
-        private Node[] childNodes;
-        private readonly Node parent;
+        private Node[]? childNodes;
+        private readonly Node? parent;
 
         public BoundingBox Bounds { get; private set; }
 
-        public Node(Node parent, BoundingBox bounds) {
+        public Node(Node? parent, BoundingBox bounds) {
             data = new List<T>();
             toMove = new List<(T, Node)>();
             this.parent = parent;
@@ -155,8 +155,8 @@ internal class Octree<T> where T : class, ITransform3D {
             return data.Remove(obj);
         }
 
-        public T FindClosest(Vector3 position) {
-            T closest = null;
+        public T? FindClosest(Vector3 position) {
+            T? closest = null;
             float closestDSqr = float.PositiveInfinity;
 
             foreach (T obj in data) {
@@ -181,7 +181,7 @@ internal class Octree<T> where T : class, ITransform3D {
                     if (dSqr >= closestDSqr) continue;
 
                     // recursive call here!!!
-                    T subClosest = node.FindClosest(position);
+                    T? subClosest = node.FindClosest(position);
 
                     if (subClosest != null) {
                         dSqr = Vector3.DistanceSquared(subClosest.Transform.GlobalPosition, position);
@@ -289,7 +289,7 @@ internal class Octree<T> where T : class, ITransform3D {
         root.Insert(obj);
     }
 
-    public T FindClosest(Vector3 position) {
+    public T? FindClosest(Vector3 position) {
         return root.FindClosest(position);
     }
 
