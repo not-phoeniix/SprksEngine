@@ -78,7 +78,7 @@ public static class Performance {
     /// <summary>
     /// Gets number of times physics update function should be run
     /// </summary>
-    public static int NumPhysicsUpdateToRun { get; private set; }
+    internal static int NumPhysicsUpdateToRun { get; private set; }
 
     /// <summary>
     /// Gets time passed since last fixed update call
