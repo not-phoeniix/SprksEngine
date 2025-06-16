@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using MonoGame.Aseprite;
 
-namespace Embyr.Scenes;
+namespace Embyr;
 
 /// <summary>
 /// A collection of ParallaxLayer's, combined to make one full background

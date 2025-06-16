@@ -1,10 +1,11 @@
+using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Aseprite;
 using MonoGame.Aseprite.Content.Processors;
 using MonoGame.Aseprite.Sprites;
 
-namespace Embyr.Scenes;
+namespace Embyr;
 
 /// <summary>
 /// A layer that does parallax scrolling, grabs current camera and
