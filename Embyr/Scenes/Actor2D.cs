@@ -1,5 +1,4 @@
 using System.Reflection;
-using Embyr.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

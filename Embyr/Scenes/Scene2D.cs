@@ -151,12 +151,6 @@ public abstract class Scene2D : Scene {
 
     #endregion
 
-    /// <summary>
-    /// Gets the current parallax background set to draw this frame
-    /// </summary>
-    /// <returns></returns>
-    public virtual ParallaxBackground? GetCurrentParallax() { return null; }
-
     /// <inheritdoc/>
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         Camera = new Camera2D(width + canvasExpandSize, height + canvasExpandSize) {

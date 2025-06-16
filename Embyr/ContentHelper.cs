@@ -26,7 +26,6 @@ public class ContentHelper : Singleton<ContentHelper> {
     private readonly Dictionary<string, SpriteSheet> spriteSheetCache = new();
     private readonly Dictionary<string, AFont> aFontCache = new();
     private readonly Dictionary<string, Texture2D> tilesetCache = new();
-    private readonly Dictionary<string, ParallaxBackground> parallaxCache = new();
     private readonly Dictionary<string, GameMesh> gameMeshCache = new();
 
     /// <summary>
@@ -52,7 +51,6 @@ public class ContentHelper : Singleton<ContentHelper> {
         spriteSheetCache.Clear();
         aFontCache.Clear();
         tilesetCache.Clear();
-        parallaxCache.Clear();
         gameMeshCache.Clear();
 
         localContent?.Unload();
@@ -84,8 +82,6 @@ public class ContentHelper : Singleton<ContentHelper> {
             return (T)GetContentAFont(contentName);
         } else if (type == typeof(Texture2D)) {
             return (T)GetContentTileset(contentName);
-        } else if (type == typeof(ParallaxBackground)) {
-            return (T)GetContentParallaxBg(contentName);
         } else if (type == typeof(GameMesh)) {
             return (T)GetContentGameMesh(contentName);
         }
@@ -105,7 +101,6 @@ public class ContentHelper : Singleton<ContentHelper> {
         spriteSheetCache.Remove(contentName);
         aFontCache.Remove(contentName);
         tilesetCache.Remove(contentName);
-        parallaxCache.Remove(contentName);
 
         localContent.UnloadAsset(contentName);
     }
@@ -199,21 +194,6 @@ public class ContentHelper : Singleton<ContentHelper> {
         }
 
         return tileset;
-    }
-
-    /// <summary>
-    /// Gets a parallax background from internal scene cache
-    /// </summary>
-    /// <param name="contentName">Content string path to the parallax background aseprite file</param>
-    /// <returns>Reference to cached ParallaxBackground</returns>
-    private object GetContentParallaxBg(string contentName) {
-        if (!parallaxCache.TryGetValue(contentName, out ParallaxBackground parallax)) {
-            AsepriteFile file = localContent.Load<AsepriteFile>(contentName);
-            parallax = new ParallaxBackground(file);
-            parallaxCache[contentName] = parallax;
-        }
-
-        return parallax;
     }
 
     /// <summary>

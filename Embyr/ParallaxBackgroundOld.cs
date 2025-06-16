@@ -6,8 +6,8 @@ namespace Embyr;
 /// <summary>
 /// A collection of ParallaxLayer's, combined to make one full background
 /// </summary>
-public class ParallaxBackground {
-    private readonly Dictionary<GameLayer, ParallaxLayer> layers;
+public class ParallaxBackgroundOld {
+    private readonly Dictionary<GameLayer, ParallaxLayerOld> layers;
 
     /// <summary>
     /// Gets/sets the offset of all layers in this background
@@ -18,9 +18,9 @@ public class ParallaxBackground {
     /// Creates a new ParallaxBackground
     /// </summary>
     /// <param name="file">File to grab frames from for layers</param>
-    public ParallaxBackground(AsepriteFile file) {
+    public ParallaxBackgroundOld(AsepriteFile file) {
         // initialize layers
-        layers = new Dictionary<GameLayer, ParallaxLayer>();
+        layers = new Dictionary<GameLayer, ParallaxLayerOld>();
         AddLayer(file, 1, GameLayer.ParallaxBg, true, true);
         AddLayer(file, 2, GameLayer.ParallaxFar, true, false);
         AddLayer(file, 3, GameLayer.ParallaxMid, true, false);
@@ -33,8 +33,8 @@ public class ParallaxBackground {
     /// <summary>
     /// Creates a new empty ParallaxBackground
     /// </summary>
-    public ParallaxBackground() {
-        layers = new Dictionary<GameLayer, ParallaxLayer>();
+    public ParallaxBackgroundOld() {
+        layers = new Dictionary<GameLayer, ParallaxLayerOld>();
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class ParallaxBackground {
         //!   100ms -> 0.1f, 900ms -> 0.9f, etc
 
         float speed = file.Frames[frameIndex].DurationInMilliseconds / 1000f;
-        layers[gameLayer] = new ParallaxLayer(
+        layers[gameLayer] = new ParallaxLayerOld(
             file,
             frameIndex,
             speed,
@@ -67,7 +67,7 @@ public class ParallaxBackground {
     /// </summary>
     /// <param name="layer">Pre-created layer to add to background</param>
     /// <param name="gameLayer">Game layer on which to render the layer</param>
-    public void AddLayer(ParallaxLayer layer, GameLayer gameLayer) {
+    public void AddLayer(ParallaxLayerOld layer, GameLayer gameLayer) {
         layers[gameLayer] = layer;
     }
 
@@ -76,8 +76,8 @@ public class ParallaxBackground {
     /// </summary>
     /// <param name="gameLayer">GameLayer to retrieve from, only works for parallax varieties</param>
     /// <returns>Reference to stored ParallaxLayer from background</returns>
-    public ParallaxLayer GetLayer(GameLayer gameLayer) {
-        if (layers.TryGetValue(gameLayer, out ParallaxLayer layer)) {
+    public ParallaxLayerOld GetLayer(GameLayer gameLayer) {
+        if (layers.TryGetValue(gameLayer, out ParallaxLayerOld layer)) {
             return layer;
         }
 

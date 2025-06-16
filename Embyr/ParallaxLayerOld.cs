@@ -11,7 +11,7 @@ namespace Embyr;
 /// A layer that does parallax scrolling, grabs current camera and
 /// uses inputted speed to create depth effect
 /// </summary>
-public class ParallaxLayer : IDrawable2D {
+public class ParallaxLayerOld : IDrawable2D {
     private readonly Sprite sprite;
     private readonly float speed;
     private readonly bool hRepeat;
@@ -39,7 +39,7 @@ public class ParallaxLayer : IDrawable2D {
     /// <param name="offset">Offset to original position</param>
     /// <param name="hRepeat">Whether or not to repeat sprite horizontally</param>
     /// <param name="vRepeat">Whether or not to repeat sprite vertically</param>
-    public ParallaxLayer(
+    public ParallaxLayerOld(
         AsepriteFile file,
         int frameIndex,
         float speed,
@@ -63,7 +63,7 @@ public class ParallaxLayer : IDrawable2D {
     /// Speed percentage to apply parallax with relative to camera
     /// (usually between 0 and 1 but can be anything lol)
     /// </param>
-    public ParallaxLayer(
+    public ParallaxLayerOld(
         AsepriteFile file,
         int frameIndex,
         float speed
@@ -80,7 +80,7 @@ public class ParallaxLayer : IDrawable2D {
     /// <param name="offset">Offset to original position</param>
     /// <param name="hRepeat">Whether or not to repeat sprite horizontally</param>
     /// <param name="vRepeat">Whether or not to repeat sprite vertically</param>
-    public ParallaxLayer(
+    public ParallaxLayerOld(
         Sprite sprite,
         float speed,
         Vector2 offset,
