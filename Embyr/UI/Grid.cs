@@ -33,7 +33,7 @@ public class Grid : MenuElement, IMenuInteractable {
     /// <summary>
     /// Gets the currently selected element in the grid, can be null
     /// </summary>
-    public IMenuInteractable SelectedInteractable { get; private set; }
+    public IMenuInteractable? SelectedInteractable { get; private set; }
 
     /// <summary>
     /// Gets/sets whether or not this grid is hovered/focused by the mouse
@@ -182,7 +182,7 @@ public class Grid : MenuElement, IMenuInteractable {
     /// </summary>
     public void Activate() {
         if (Enabled) {
-            SelectedInteractable.Activate();
+            SelectedInteractable?.Activate();
         }
     }
 

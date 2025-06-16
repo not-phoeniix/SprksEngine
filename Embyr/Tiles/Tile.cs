@@ -498,7 +498,7 @@ public abstract class Tile<T> : Actor2D where T : Enum {
                 NeighborDirection.TopLeft => new Point(-1, -1),
             };
 
-            Tile<T> tile = mapContainer[adjPos.X, adjPos.Y];
+            Tile<T>? tile = mapContainer[adjPos.X, adjPos.Y];
 
             // no tile existing means nothing's there, therefore no tile exists (uhhuh)
             if (tile == null) return false;

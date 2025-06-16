@@ -14,18 +14,18 @@ public class Button : Label, IMenuInteractable {
     /// Event to be called when button is clicked instantly
     /// (left click / select button / enter key)
     /// </summary>
-    public event Action OnClickInstant;
+    public event Action? OnClickInstant;
 
     /// <summary>
     /// Event to be called when the button is clicked
     /// </summary>
-    public event Action OnClick;
+    public event Action? OnClick;
 
     /// <summary>
     /// Event to be called when button is clicked w/
     /// right mouse button or secondary buttons
     /// </summary>
-    public event Action OnSecondaryClick;
+    public event Action? OnSecondaryClick;
 
     /// <summary>
     /// Whether or not this button is hovered/selected
