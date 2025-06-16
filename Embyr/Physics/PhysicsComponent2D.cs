@@ -194,6 +194,9 @@ public class PhysicsComponent2D : ActorComponent2D {
             OnGround = false;
         }
 
+        // update prev transform pos so verlet components work properly
+        prevTransformPos = this.Actor.Transform.GlobalPosition;
+
         // update direction at the end of update cycle
         Direction = Vector2.Zero;
         if (Velocity.LengthSquared() >= float.Epsilon) {
