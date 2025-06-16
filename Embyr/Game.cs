@@ -265,20 +265,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             Performance.DeltaTime
         );
 
-        if (Input.IsKeyDown(Keys.RightAlt) && Input.IsKeyDownOnce(Keys.N)) {
-            Task.Run(GC.Collect);
-            Debug.WriteLine("Running garbage collector Collect...");
-        }
-
-        if (Input.IsKeyDown(Keys.RightAlt) && Input.IsKeyDownOnce(Keys.M)) {
-            Debug.WriteLine($"{GC.GetTotalMemory(false) / 1_000_000} mb used");
-        }
-
-        bool altPressed = Input.IsKeyDown(Keys.LeftAlt) || Input.IsKeyDown(Keys.RightAlt);
-        if (altPressed && Input.IsKeyDownOnce(Keys.Enter)) {
-            EngineSettings.IsFullscreen = !EngineSettings.IsFullscreen;
-        }
-
         if (!SceneManager.I.IsLoading) {
             for (int i = 0; i < Performance.NumPhysicsUpdateToRun; i++) {
                 SceneManager.I.PhysicsUpdate(Performance.FixedDeltaTime);
@@ -334,16 +320,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         Performance.DrawMeasureEnd();
         Performance.FrametimeMeasureEnd();
-
-#if DEBUG
-        if (Input.IsKeyDown(Keys.K)) {
-            Debug.WriteLine(
-                $"Avg Frametime: {Performance.FrametimeAvg}\n" +
-                $"Avg Update time: {Performance.UpdateTimeAvg}\n" +
-                $"Avg Draw time: {Performance.DrawTimeAvg}\n"
-            );
-        }
-#endif
     }
 
     #endregion
