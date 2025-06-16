@@ -94,7 +94,7 @@ public static class Performance {
     /// Updates general performance logic
     /// </summary>
     /// <param name="gt">GameTime to grab timing information from</param>
-    public static void Update(GameTime gt) {
+    internal static void Update(GameTime gt) {
         fps.Update(gt);
 
         // if timer exceeds threshold, calculate all averages and reset
@@ -129,14 +129,14 @@ public static class Performance {
     /// <summary>
     /// Starts frametime measuring
     /// </summary>
-    public static void FrametimeMeasureStart() {
+    internal static void FrametimeMeasureStart() {
         frametimeStopwatch.Restart();
     }
 
     /// <summary>
     /// Ends frametime measuring and saves result
     /// </summary>
-    public static void FrametimeMeasureEnd() {
+    internal static void FrametimeMeasureEnd() {
         frametimeStopwatch.Stop();
         Frametime = frametimeStopwatch.ElapsedMilliseconds;
 
@@ -147,14 +147,14 @@ public static class Performance {
     /// <summary>
     /// Starts draw time measuring
     /// </summary>
-    public static void DrawMeasureStart() {
+    internal static void DrawMeasureStart() {
         drawStopwatch.Restart();
     }
 
     /// <summary>
     /// Ends draw time measuring and saves result
     /// </summary>
-    public static void DrawMeasureEnd() {
+    internal static void DrawMeasureEnd() {
         drawStopwatch.Stop();
         DrawTime = drawStopwatch.ElapsedMilliseconds;
 
@@ -165,14 +165,14 @@ public static class Performance {
     /// <summary>
     /// Starts update time measuring
     /// </summary>
-    public static void UpdateMeasureStart() {
+    internal static void UpdateMeasureStart() {
         updateStopwatch.Restart();
     }
 
     /// <summary>
     /// Ends update time measuring and saves result
     /// </summary>
-    public static void UpdateMeasureEnd() {
+    internal static void UpdateMeasureEnd() {
         updateStopwatch.Stop();
         UpdateTime = updateStopwatch.ElapsedMilliseconds;
 
