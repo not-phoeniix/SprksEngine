@@ -14,16 +14,17 @@ public class Player : Actor2D {
     public readonly PhysicsComponent2D Physics;
 
     public Player(Vector2 position, Scene2D scene)
-    : base("Player", position, scene) {
+    : base(position, scene) {
         light = new Light2D() {
             Color = Color.White,
             Radius = 70,
             LinearFalloff = 40,
-            CastsShadow = true,
+            Intensity = 0.7f,
+            CastsShadow = false,
             Transform = new Transform2D() {
                 Parent = Transform,
                 Position = Vector2.Zero,
-                ZIndex = 3
+                ZIndex = 5
             }
         };
 

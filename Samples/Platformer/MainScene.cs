@@ -14,16 +14,16 @@ public class MainScene(string name) : Scene2D(name) {
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1 },
+        { 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 2, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
@@ -36,7 +36,8 @@ public class MainScene(string name) : Scene2D(name) {
         AmbientColor = Color.Black;
 
         Texture2D tileTexture = ContentHelper.I.Load<Texture2D>("tileset");
-        tilemap = new TileMap<TileType>("tile map", Vector2.Zero, 1000, this);
+        Texture2D tileNormalMap = ContentHelper.I.Load<Texture2D>("normals");
+        tilemap = new TileMap<TileType>(Vector2.Zero, 1000, this);
 
         int width = layout.GetLength(1);
         int height = layout.GetLength(0);
@@ -49,7 +50,12 @@ public class MainScene(string name) : Scene2D(name) {
                         y - height / 2
                     );
 
-                    Tile tile = new(TileType.Platform, tileTexture, this);
+                    Tile tile = new(
+                        TileType.Platform,
+                        tileTexture,
+                        tileNormalMap,
+                        this
+                    );
                     tilemap.AddTile(tile, pos);
                 } else if (layout[y, x] == 2) {
                     AddLight(new Light2D() {
@@ -59,12 +65,12 @@ public class MainScene(string name) : Scene2D(name) {
                                 (x - width / 2) * Tile.PixelSize,
                                 (y - height / 2) * Tile.PixelSize
                             ),
-                            GlobalZIndex = 3
+                            GlobalZIndex = 10
                         },
-                        Color = new Color(1.0f, 0.7f, 0.7f),
-                        Radius = 20,
-                        Intensity = 0.7f,
-                        LinearFalloff = 20
+                        Color = new Color(1.0f, 0.4f, 0.4f),
+                        Radius = 40,
+                        Intensity = 0.8f,
+                        LinearFalloff = 30
                     });
                 }
             }
@@ -75,9 +81,9 @@ public class MainScene(string name) : Scene2D(name) {
         AddLight(new Light2D() {
             IsGlobal = true,
             Color = new Color(1.0f, 0.8f, 1.0f),
-            Intensity = 1.0f,
+            Intensity = 0.4f,
             Transform = new Transform2D() {
-                GlobalZIndex = 50
+                GlobalZIndex = 1000
             }
         });
 
