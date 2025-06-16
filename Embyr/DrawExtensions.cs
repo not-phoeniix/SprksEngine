@@ -16,8 +16,8 @@ public static class DrawExtensions {
         _pixel.SetData(new Color[] { Color.White });
     }
 
-    private static readonly Transform3D debugRenderTransform = new();
-    private static readonly Material3D debugMaterial = new(Material3D.DefaultSingleColorShader);
+    // private static readonly Transform3D debugRenderTransform = new();
+    // private static readonly Material3D debugMaterial = new(ShaderManager.I.LoadShader("3d_single_color"));
 
     // TODO: figure out a way to pack the cube model inside the baked DLL
     //   either through embedded resources or just manual
@@ -403,18 +403,18 @@ public static class DrawExtensions {
 
     #region // 3D
 
-    /// <summary>
-    /// Draws a wireframe bounding box
-    /// </summary>
-    /// <param name="box">Bounding box to draw</param>
-    /// <param name="camera">Camera to base transforms off of</param>
-    /// <param name="color">Color to draw bounding box with</param>
-    public static void RenderBoundingBox(this BoundingBox box, Camera3D camera, Color color) {
-        debugRenderTransform.GlobalPosition = (box.Min + box.Max) / 2.0f;
-        debugRenderTransform.GlobalScale = (box.Max - box.Min) / 2.0f;
-        debugMaterial.Shader.Parameters["Color"].SetValue(color.ToVector3());
-        // boxMesh.Draw(debugRenderTransform, camera, debugMaterial, PrimitiveType.LineList);
-    }
+    // /// <summary>
+    // /// Draws a wireframe bounding box
+    // /// </summary>
+    // /// <param name="box">Bounding box to draw</param>
+    // /// <param name="camera">Camera to base transforms off of</param>
+    // /// <param name="color">Color to draw bounding box with</param>
+    // public static void RenderBoundingBox(this BoundingBox box, Camera3D camera, Color color) {
+    //     debugRenderTransform.GlobalPosition = (box.Min + box.Max) / 2.0f;
+    //     debugRenderTransform.GlobalScale = (box.Max - box.Min) / 2.0f;
+    //     debugMaterial.Shader.Parameters["Color"].SetValue(color.ToVector3());
+    //     boxMesh.Draw(debugRenderTransform, camera, debugMaterial, PrimitiveType.LineList);
+    // }
 
     #endregion
 }

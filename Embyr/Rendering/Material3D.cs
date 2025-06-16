@@ -8,16 +8,6 @@ namespace Embyr.Rendering;
 /// A 3D Material to apply to a GameMesh when rendering
 /// </summary>
 public class Material3D {
-    /// <summary>
-    /// Static default diffuse shader for all materials
-    /// </summary>
-    public static readonly Effect DefaultDiffuseShader = ShaderManager.I.LoadShader("3d_forward");
-
-    /// <summary>
-    /// Static default shader used for unlit debug drawing
-    /// </summary>
-    public static readonly Effect DefaultSingleColorShader = ShaderManager.I.LoadShader("3d_single_color");
-
     private float roughness = 0.0f;
 
     /// <summary>
@@ -43,7 +33,7 @@ public class Material3D {
     /// </summary>
     /// <param name="shader">Optional shader to use for rendering this material, defaults to DefaultDiffuseShader</param>
     public Material3D(Effect? shader = null) {
-        this.Shader = shader ?? DefaultDiffuseShader;
+        this.Shader = ShaderManager.I.LoadShader("3d_forward");
         SurfaceColor = Color.White;
     }
 
