@@ -82,73 +82,73 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.End();
         ShaderManager.I.CurrentActorEffect = null;
 
-        // draw lighting itself with needed obstructor distance fields,
-        //   set up screen space effect for combining lighting and albedo
         if (Settings.EnableLighting) {
             RenderDistanceField(obstructorDistanceField, 0.0f);
             RenderLightsDeferred(scene, SpriteBatch);
-
-            fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
-            fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
-            fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
-            Layers[GameLayer.World].ScreenSpaceEffect = fxLightCombine;
-        } else {
-            Layers[GameLayer.World].ScreenSpaceEffect = null;
         }
 
-        // draw albedo itself to the actual render layer
-        Layers[GameLayer.World].SmoothingOffset = scene.Camera.Position;
+        // draw buffers into the actual render layer
+        SceneRenderLayer.SmoothingOffset = scene.Camera.Position;
         if (EngineSettings.ShowDebugNormalBuffer) {
-            Layers[GameLayer.World].ScreenSpaceEffect = null;
-            Layers[GameLayer.World].DrawTo(sb => sb.Draw(normalBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            SceneRenderLayer.ScreenSpaceEffect = null;
+            SceneRenderLayer.DrawTo(sb => sb.Draw(normalBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
         } else if (EngineSettings.ShowDebugDepthBuffer) {
-            Layers[GameLayer.World].ScreenSpaceEffect = null;
-            Layers[GameLayer.World].DrawTo(sb => sb.Draw(depthBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            SceneRenderLayer.ScreenSpaceEffect = null;
+            SceneRenderLayer.DrawTo(sb => sb.Draw(depthBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
         } else {
-            Layers[GameLayer.World].DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
-            RenderPostProcessing(Layers[GameLayer.World]);
+            if (Settings.EnableLighting) {
+                fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
+                fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
+                fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
+                SceneRenderLayer.ScreenSpaceEffect = fxLightCombine;
+            } else {
+                SceneRenderLayer.ScreenSpaceEffect = null;
+            }
+
+            SceneRenderLayer.DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            RenderPostProcessing(SceneRenderLayer);
         }
 
         if (EngineSettings.ShowDebugDrawing) {
-            Layers[GameLayer.WorldDebug].SmoothingOffset = scene.Camera.Position;
-            Layers[GameLayer.WorldDebug].DrawTo(
+            SceneRenderLayer.ScreenSpaceEffect = null;
+            SceneRenderLayer.IndividualEffect = null;
+            SceneRenderLayer.DrawTo(
                 sb => {
                     foreach (Actor2D actor in scene.GetDrawableActors()) {
                         actor.DebugDraw(sb);
                     }
                 },
                 SpriteBatch,
-                worldMatrix
+                worldMatrix,
+                resetTarget: false
             );
         }
 
-        Layers[GameLayer.UI].DrawTo(scene.DrawOverlays, SpriteBatch);
-        Layers[GameLayer.UIDebug].DrawTo(scene.DebugDrawOverlays, SpriteBatch);
-
-        void DrawParallax(GameLayer gameLayer, ParallaxBackground? bg) {
-            ParallaxLayer? layer = bg?.GetLayer(gameLayer);
-            if (layer == null) return;  // don't draw if layer doesn't exist
-            Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
-            Layers[gameLayer].ColorTint = globalLightTint;
-            Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
+        // draw UI to its respective render layer
+        UIRenderLayer.DrawTo(scene.DrawOverlays, SpriteBatch);
+        if (EngineSettings.ShowDebugDrawing) {
+            UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
         }
 
-        ParallaxBackground? parallax = scene.GetCurrentParallax();
-        DrawParallax(GameLayer.ParallaxBg, parallax);
-        DrawParallax(GameLayer.ParallaxFar, parallax);
-        DrawParallax(GameLayer.ParallaxMid, parallax);
-        DrawParallax(GameLayer.ParallaxNear, parallax);
+        // void DrawParallax(GameLayer gameLayer, ParallaxBackground? bg) {
+        //     ParallaxLayer? layer = bg?.GetLayer(gameLayer);
+        //     if (layer == null) return;  // don't draw if layer doesn't exist
+        //     Layers[gameLayer].SmoothingOffset = layer.WorldLocation;
+        //     Layers[gameLayer].ColorTint = globalLightTint;
+        //     Layers[gameLayer].DrawTo(layer.Draw, SpriteBatch, worldMatrix);
+        // }
+
+        // ParallaxBackground? parallax = scene.GetCurrentParallax();
+        // DrawParallax(GameLayer.ParallaxBg, parallax);
+        // DrawParallax(GameLayer.ParallaxFar, parallax);
+        // DrawParallax(GameLayer.ParallaxMid, parallax);
+        // DrawParallax(GameLayer.ParallaxNear, parallax);
     }
 
     /// <inheritdoc/>
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         base.ChangeResolution(width, height, canvasExpandSize);
-
         RecreateRenderTargets(width, height, canvasExpandSize);
-
-        foreach (RenderLayer layer in Layers.Values) {
-            layer.ChangeResolution(width, height, canvasExpandSize);
-        }
     }
 
     /// <summary>

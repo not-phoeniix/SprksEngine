@@ -4,25 +4,34 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
+/// <summary>
+/// An abstract 2D renderer, inherits from <c>Renderer</c>
+/// </summary>
 internal abstract class Renderer2D : Renderer {
     private readonly Menu? loadingMenu;
 
-    protected readonly Dictionary<GameLayer, RenderLayer> Layers;
+    /// <summary>
+    /// Render layer that scene is rendered to
+    /// </summary>
+    protected readonly RenderLayer SceneRenderLayer;
 
+    /// <summary>
+    /// Render layer that all overlaying UI is rendered to
+    /// </summary>
+    protected readonly RenderLayer UIRenderLayer;
+
+    /// <summary>
+    /// Creates a new Renderer2D
+    /// </summary>
+    /// <param name="settings">RendererSettings for renderer to use</param>
+    /// <param name="gd">GraphicsDevice to create layers with</param>
+    /// <param name="loadingMenu">Optional reference to the loading menu to show when loading between scenes</param>
     public Renderer2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu) : base(settings, gd) {
         this.loadingMenu = loadingMenu;
 
         Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);
-        Layers = new() {
-            { GameLayer.World, new(res, GraphicsDevice) },
-            { GameLayer.WorldDebug, new(res, GraphicsDevice) },
-            { GameLayer.UI, new(res, GraphicsDevice) },
-            { GameLayer.UIDebug, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxNear, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxMid, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxFar, new(res, GraphicsDevice) },
-            { GameLayer.ParallaxBg, new(res, GraphicsDevice) }
-        };
+        SceneRenderLayer = new RenderLayer(res, gd);
+        UIRenderLayer = new RenderLayer(res, gd);
     }
 
     /// <inheritdoc/>
@@ -32,15 +41,8 @@ internal abstract class Renderer2D : Renderer {
         GraphicsDevice.Clear(EngineSettings.RenderClearColor);
         SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-        foreach (GameLayer layer in Enum.GetValues<GameLayer>()) {
-            // do not draw debug layers if debugging is not enabled
-            bool isDebugLayer = layer == GameLayer.WorldDebug || layer == GameLayer.UIDebug;
-            if (isDebugLayer && !EngineSettings.ShowDebugDrawing) {
-                continue;
-            }
-
-            Layers[layer].Draw(SpriteBatch, canvasDestination, canvasScale);
-        }
+        SceneRenderLayer.Draw(SpriteBatch, canvasDestination, canvasScale);
+        UIRenderLayer.Draw(SpriteBatch, canvasDestination, canvasScale);
 
         SpriteBatch.End();
     }
@@ -48,10 +50,10 @@ internal abstract class Renderer2D : Renderer {
     /// <inheritdoc/>
     public override void RenderLoading() {
         if (loadingMenu != null) {
-            Layers[GameLayer.UI].DrawTo(loadingMenu.Draw, SpriteBatch);
+            UIRenderLayer.DrawTo(loadingMenu.Draw, SpriteBatch);
 
             if (EngineSettings.ShowDebugDrawing) {
-                Layers[GameLayer.UIDebug].DrawTo(loadingMenu.DebugDraw, SpriteBatch);
+                UIRenderLayer.DrawTo(loadingMenu.DebugDraw, SpriteBatch, resetTarget: false);
             }
         }
     }
@@ -60,5 +62,7 @@ internal abstract class Renderer2D : Renderer {
     public override void ChangeResolution(int width, int height, int canvasExpandSize) {
         base.ChangeResolution(width, height, canvasExpandSize);
         loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
+        SceneRenderLayer.ChangeResolution(width, height, canvasExpandSize);
+        UIRenderLayer.ChangeResolution(width, height, canvasExpandSize);
     }
 }

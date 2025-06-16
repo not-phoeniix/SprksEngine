@@ -36,8 +36,7 @@ public class MainScene(string name) : Scene2D(name) {
 
     public override void LoadContent() {
         AmbientColor = Color.Black;
-        base.Gravity = 0;
-        // EngineSettings.ShowDebugDrawing = true;
+        Gravity = 0;
 
         Texture2D tileset = ContentHelper.I.Load<Texture2D>("tileset");
         Texture2D tileNormals = ContentHelper.I.Load<Texture2D>("normals");
