@@ -9,6 +9,12 @@ namespace Embyr;
 /// 2D actor component used for rendering sprites for actors
 /// </summary>
 public class SpriteComponent2D : ActorComponent2D {
+    private Effect? shader;
+    private EffectParameter zIndexParam;
+    private EffectParameter normalTextureParam;
+    private EffectParameter obstructsLightParam;
+    private EffectParameter useNormalsParam;
+
     /// <summary>
     /// Gets/sets the drawing color tint
     /// </summary>
@@ -45,6 +51,23 @@ public class SpriteComponent2D : ActorComponent2D {
     public Rectangle? SourceRect { get; set; }
 
     /// <summary>
+    /// Gets/sets the shader used when rendering this sprite
+    /// </summary>
+    public Effect? Shader {
+        get => shader;
+        set {
+            if (shader != value && value != null) {
+                zIndexParam = value.Parameters["ZIndex"];
+                normalTextureParam = value.Parameters["NormalTexture"];
+                obstructsLightParam = value.Parameters["ObstructsLight"];
+                useNormalsParam = value.Parameters["UseNormals"];
+            }
+
+            shader = value;
+        }
+    }
+
+    /// <summary>
     /// Creates a new SpriteComponent2D
     /// </summary>
     /// <param name="actor">Actor to attach component to</param>
@@ -79,18 +102,13 @@ public class SpriteComponent2D : ActorComponent2D {
             Vector2.Floor(spriteSize).ToPoint()
         );
 
-        Effect? effect = ShaderManager.I.CurrentActorEffect;
-        if (effect != null) {
-            EffectParameter zIndex = effect.Parameters["ZIndex"];
-            EffectParameter normalTexture = effect.Parameters["NormalTexture"];
-            EffectParameter obstructsLight = effect.Parameters["ObstructsLight"];
-            EffectParameter useNormals = effect.Parameters["UseNormals"];
-
+        Shader ??= ShaderManager.I.CurrentActorEffect;
+        if (Shader != null) {
             bool paramsChanged =
-                zIndex.GetValueInt32() != Actor.Transform.GlobalZIndex ||
-                normalTexture.GetValueTexture2D() != Normal ||
-                obstructsLight.GetValueBoolean() != ObstructsLight ||
-                useNormals.GetValueBoolean() != (Normal != null);
+                zIndexParam.GetValueInt32() != Actor.Transform.GlobalZIndex ||
+                normalTextureParam.GetValueTexture2D() != Normal ||
+                obstructsLightParam.GetValueBoolean() != ObstructsLight ||
+                useNormalsParam.GetValueBoolean() != (Normal != null);
 
             // if the parameters have changed, update the
             //   parameters and restart spritebatch
@@ -98,10 +116,10 @@ public class SpriteComponent2D : ActorComponent2D {
                 //! NOTE: this isn't super modular for future 2D renderers...
                 ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Actor.Scene as Scene2D);
 
-                zIndex.SetValue(Actor.Transform.GlobalZIndex);
-                normalTexture.SetValue(Normal);
-                obstructsLight.SetValue(ObstructsLight);
-                useNormals.SetValue(Normal != null);
+                zIndexParam.SetValue(Actor.Transform.GlobalZIndex);
+                normalTextureParam.SetValue(Normal);
+                obstructsLightParam.SetValue(ObstructsLight);
+                useNormalsParam.SetValue(Normal != null);
             }
         }
 

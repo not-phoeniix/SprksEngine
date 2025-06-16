@@ -10,10 +10,10 @@ namespace Embyr;
 /// Primative shape drawing
 /// </summary>
 public static class DrawExtensions {
-    private static Texture2D _pixel;
+    private static Texture2D pixel;
     private static void CreatePixel(SpriteBatch sb) {
-        _pixel = new Texture2D(sb.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-        _pixel.SetData(new Color[] { Color.White });
+        pixel = new Texture2D(sb.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+        pixel.SetData(new Color[] { Color.White });
     }
 
     // private static readonly Transform3D debugRenderTransform = new();
@@ -109,7 +109,7 @@ public static class DrawExtensions {
         float thickness,
         Color color
     ) {
-        if (_pixel == null) {
+        if (pixel == null) {
             CreatePixel(sb);
         }
 
@@ -117,7 +117,7 @@ public static class DrawExtensions {
 
         // stretch pixel across by length and thickness
         sb.Draw(
-            _pixel,
+            pixel,
             point,
             null,
             color,
@@ -181,13 +181,13 @@ public static class DrawExtensions {
     /// <param name="rect">Rectangle itself that is drawn</param>
     /// <param name="color">Color of rectangle</param>
     public static void DrawRectFill(this SpriteBatch sb, Rectangle rect, Color color) {
-        if (_pixel == null) {
+        if (pixel == null) {
             CreatePixel(sb);
         }
 
         CheckShadersAndReset();
 
-        sb.Draw(_pixel, rect, color);
+        sb.Draw(pixel, rect, color);
     }
 
     #endregion

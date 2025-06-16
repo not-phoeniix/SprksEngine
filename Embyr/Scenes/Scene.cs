@@ -124,13 +124,6 @@ public abstract class Scene : IResolution {
     internal abstract IEnumerable<Light> GetAllLightsToRender();
 
     /// <summary>
-    /// Custom actor update logic for physics updating, runs on every actor in the scene
-    /// </summary>
-    /// <param name="actor">Actor to update</param>
-    /// <param name="fdt">Time passed since last physics update</param>
-    protected virtual void CustomActorPhysicsUpdate(IActor actor, float fdt) { }
-
-    /// <summary>
     /// Updates the physics of this scene
     /// </summary>
     /// <param name="dt">Time passed since last fixed update</param>
@@ -142,7 +135,6 @@ public abstract class Scene : IResolution {
         if (!Paused) {
             foreach (IActor actor in GetUpdatableActors(false)) {
                 actor.PhysicsUpdate(dt);
-                CustomActorPhysicsUpdate(actor, dt);
             }
         }
     }

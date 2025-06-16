@@ -126,7 +126,7 @@ internal abstract class Renderer : IResolution {
         if (prevTarget != targetLayer.RenderTarget) {
             targetLayer.ScreenSpaceEffect = null;
             targetLayer.DrawTo(
-                () => SpriteBatch.Draw(prevTarget, Vector2.Zero, Color.White),
+                sb => sb.Draw(prevTarget, Vector2.Zero, Color.White),
                 SpriteBatch
             );
         }

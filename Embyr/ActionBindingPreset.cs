@@ -81,12 +81,36 @@ public class ActionBindingPreset {
 
     #endregion
 
-    private class Binding(string name) {
-        public string Name { get; set; } = name;
+    /// <summary>
+    /// Action binding that associates a string name to a set of keys, buttons, and mouse clicks
+    /// </summary>
+    /// <param name="name"></param>
+    internal class Binding(string name) {
+        /// <summary>
+        /// Gets the name of this binding
+        /// </summary>
+        public string Name { get; } = name;
+
+        /// <summary>
+        /// Gets the list of keys this binding has
+        /// </summary>
         public List<Keys> KeyBinds { get; } = new();
+
+        /// <summary>
+        /// Gets the list of buttons this binding has
+        /// </summary>
         public List<Buttons> ButtonBinds { get; } = new();
+
+        /// <summary>
+        /// Gets the list of mouse clicks this binding has
+        /// </summary>
         public List<MouseClick> MouseBinds { get; } = new();
 
+        /// <summary>
+        /// Creates a new Binding object using existing JSON bind data
+        /// </summary>
+        /// <param name="name">Name of binding</param>
+        /// <param name="binds">JSON bind data to create from</param>
         public Binding(string name, JsonArray? binds) : this(name) {
             if (binds == null) return;
 
@@ -135,6 +159,10 @@ public class ActionBindingPreset {
             }
         }
 
+        /// <summary>
+        /// Converts this binding to a JSON array representation
+        /// </summary>
+        /// <returns></returns>
         public JsonArray ToJsonArr() {
             JsonArray arr = new();
 
@@ -146,8 +174,10 @@ public class ActionBindingPreset {
         }
     }
 
-    // actual map data itself lol
-    private readonly Dictionary<string, (int, Binding)> bindings;
+    /// <summary>
+    /// Dictionary of bindings associated with this preset
+    /// </summary>
+    internal readonly Dictionary<string, (int, Binding)> Bindings;
 
     /// <summary>
     /// Name of this binding preset
@@ -160,7 +190,7 @@ public class ActionBindingPreset {
     /// <param name="name">Name of preset to create</param>
     public ActionBindingPreset(string name) {
         this.Name = name;
-        this.bindings = new Dictionary<string, (int, Binding)>();
+        this.Bindings = new Dictionary<string, (int, Binding)>();
     }
 
     /// <summary>
@@ -179,12 +209,12 @@ public class ActionBindingPreset {
             throw new Exception("Binds not found in ActionBindingPreset json data - cannot create preset!");
         }
 
-        bindings = new Dictionary<string, (int, Binding)>();
+        Bindings = new Dictionary<string, (int, Binding)>();
         int bitShiftOffset = 0;
         foreach (KeyValuePair<string, JsonNode?> pair in json["binds"] as JsonObject) {
             // key/value should be binding NAME and binding DATA
             Binding bind = new(pair.Key, pair.Value as JsonArray);
-            bindings.Add(pair.Key, (bitShiftOffset, bind));
+            Bindings.Add(pair.Key, (bitShiftOffset, bind));
 
             bitShiftOffset++;
         }
@@ -197,10 +227,10 @@ public class ActionBindingPreset {
     /// <param name="key">Key to bind action to</param>
     public void AddActionBind(string name, Keys key) {
         Binding binding;
-        if (!bindings.TryGetValue(name, out (int, Binding) value)) {
+        if (!Bindings.TryGetValue(name, out (int, Binding) value)) {
             binding = new Binding(name);
-            int offset = bindings.Count;
-            bindings[name] = (offset, binding);
+            int offset = Bindings.Count;
+            Bindings[name] = (offset, binding);
         } else {
             binding = value.Item2;
         }
@@ -217,10 +247,10 @@ public class ActionBindingPreset {
     /// <param name="mouse">Mouse click to bind action too</param>
     public void AddActionBind(string name, MouseClick mouse) {
         Binding binding;
-        if (!bindings.TryGetValue(name, out (int, Binding) value)) {
+        if (!Bindings.TryGetValue(name, out (int, Binding) value)) {
             binding = new Binding(name);
-            int offset = bindings.Count;
-            bindings[name] = (offset, binding);
+            int offset = Bindings.Count;
+            Bindings[name] = (offset, binding);
         } else {
             binding = value.Item2;
         }
@@ -237,10 +267,10 @@ public class ActionBindingPreset {
     /// <param name="button">Button to bind action to</param>
     public void AddActionBind(string name, Buttons button) {
         Binding binding;
-        if (!bindings.TryGetValue(name, out (int, Binding) value)) {
+        if (!Bindings.TryGetValue(name, out (int, Binding) value)) {
             binding = new Binding(name);
-            int offset = bindings.Count;
-            bindings[name] = (offset, binding);
+            int offset = Bindings.Count;
+            Bindings[name] = (offset, binding);
         } else {
             binding = value.Item2;
         }
@@ -272,7 +302,7 @@ public class ActionBindingPreset {
     /// Fully clears all action bindings from this preset
     /// </summary>
     public void ClearActionBinds() {
-        bindings.Clear();
+        Bindings.Clear();
     }
 
     /// <summary>
@@ -286,7 +316,7 @@ public class ActionBindingPreset {
             ["binds"] = binds
         };
 
-        foreach ((int, Binding) value in bindings.Values) {
+        foreach ((int, Binding) value in Bindings.Values) {
             binds[value.Item2.Name] = value.Item2.ToJsonArr();
         }
 
@@ -296,27 +326,12 @@ public class ActionBindingPreset {
     }
 
     /// <summary>
-    /// Iterates across all bindings and invokes an action for every binding value
-    /// </summary>
-    /// <param name="action">Action to invoke for each binding value, parameters are: [bit shift offset, binding name, controller button (nullable), key (nullable), mouse click (nullable)]</param>
-    internal void ForEachBindingValue(Action<int, string, Buttons?, Keys?, MouseClick?> action) {
-        foreach ((int, Binding) value in bindings.Values) {
-            int offset = value.Item1;
-            Binding bind = value.Item2;
-
-            bind.KeyBinds.ForEach(k => action.Invoke(offset, bind.Name, null, k, null));
-            bind.ButtonBinds.ForEach(b => action.Invoke(offset, bind.Name, b, null, null));
-            bind.MouseBinds.ForEach(m => action.Invoke(offset, bind.Name, null, null, m));
-        }
-    }
-
-    /// <summary>
     /// Gets the bit shift offset of a binding saved in this preset
     /// </summary>
     /// <param name="name">Name of binding to get offset for</param>
     /// <returns>Offset of stored bind, -1 if bind wasn't found</returns>
     internal int GetBindingBitShiftOffset(string name) {
-        if (bindings.TryGetValue(name, out (int, Binding) value)) {
+        if (Bindings.TryGetValue(name, out (int, Binding) value)) {
             return value.Item1;
         }
 

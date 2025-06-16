@@ -25,53 +25,60 @@ internal readonly struct ActionState {
         MouseState ms = Mouse.GetState();
         GamePadState gs = GamePad.GetState(0);
 
-        UInt128 bitState = 0;
+        this.bitState = 0;
 
-        preset.ForEachBindingValue((shiftOffset, name, b, k, m) => {
+        foreach ((int, ActionBindingPreset.Binding) value in preset.Bindings.Values) {
+            int shiftOffset = value.Item1;
+            ActionBindingPreset.Binding bind = value.Item2;
+
             bool isActivated = false;
 
-            if (b is Buttons button && gs.IsButtonDown(button)) {
-                isActivated = true;
+            foreach (Keys k in bind.KeyBinds) {
+                if (kb.IsKeyDown(k)) {
+                    isActivated = true;
+                }
             }
 
-            if (k is Keys key && kb.IsKeyDown(key)) {
-                isActivated = true;
+            foreach (Buttons b in bind.ButtonBinds) {
+                if (gs.IsButtonDown(b)) {
+                    isActivated = true;
+                }
             }
 
-            switch (m) {
-                case MouseClick.Left:
-                    if (ms.LeftButton == ButtonState.Pressed) {
-                        isActivated = true;
-                    }
-                    break;
-                case MouseClick.Middle:
-                    if (ms.MiddleButton == ButtonState.Pressed) {
-                        isActivated = true;
-                    }
-                    break;
-                case MouseClick.Right:
-                    if (ms.RightButton == ButtonState.Pressed) {
-                        isActivated = true;
-                    }
-                    break;
-                case MouseClick.Extended1:
-                    if (ms.XButton1 == ButtonState.Pressed) {
-                        isActivated = true;
-                    }
-                    break;
-                case MouseClick.Extended2:
-                    if (ms.XButton2 == ButtonState.Pressed) {
-                        isActivated = true;
-                    }
-                    break;
+            foreach (MouseClick m in bind.MouseBinds) {
+                switch (m) {
+                    case MouseClick.Left:
+                        if (ms.LeftButton == ButtonState.Pressed) {
+                            isActivated = true;
+                        }
+                        break;
+                    case MouseClick.Middle:
+                        if (ms.MiddleButton == ButtonState.Pressed) {
+                            isActivated = true;
+                        }
+                        break;
+                    case MouseClick.Right:
+                        if (ms.RightButton == ButtonState.Pressed) {
+                            isActivated = true;
+                        }
+                        break;
+                    case MouseClick.Extended1:
+                        if (ms.XButton1 == ButtonState.Pressed) {
+                            isActivated = true;
+                        }
+                        break;
+                    case MouseClick.Extended2:
+                        if (ms.XButton2 == ButtonState.Pressed) {
+                            isActivated = true;
+                        }
+                        break;
+                }
             }
 
             if (isActivated) {
                 bitState |= (UInt128)1 << shiftOffset;
             }
-        });
-
-        this.bitState = bitState;
+        }
     }
 
     /// <summary>
