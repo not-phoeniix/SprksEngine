@@ -17,7 +17,7 @@ public class Rope2D : Actor2D {
     private class RopeNode : Actor2D {
         public PhysicsComponent2D Physics { get; }
 
-        public RopeNode(Actor2D rope, Vector2 pos, Scene2D scene) : base("node", pos, scene) {
+        public RopeNode(Actor2D rope, Vector2 pos, Scene2D scene) : base(pos, scene) {
             Physics = AddComponent<PhysicsComponent2D>();
             Physics.MaxSpeed = 1000;
             Physics.Solver = PhysicsComponent2D.PhysicsSolver.Verlet;
@@ -111,8 +111,9 @@ public class Rope2D : Actor2D {
     /// <param name="startPoint">Starting position of the rope</param>
     /// <param name="endPoint">Ending position of the rope</param>
     /// <param name="segments">Number of rope segments</param>
-    public Rope2D(Vector2 startPoint, Vector2 endPoint, int segments, string name, Scene2D scene)
-    : base(name, startPoint, scene) {
+    /// <param name="scene">Scene to spawn rope into</param>
+    public Rope2D(Vector2 startPoint, Vector2 endPoint, int segments, Scene2D scene)
+    : base(startPoint, scene) {
         if (segments <= 0) {
             throw new Exception("Error creating rope: segments cannot be less than one!");
         }

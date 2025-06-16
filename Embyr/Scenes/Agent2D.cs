@@ -27,11 +27,10 @@ public abstract class Agent2D : Actor2D {
     /// <summary>
     /// Creates a new Agent2D
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="position"></param>
-    /// <param name="scene"></param>
-    public Agent2D(string name, Vector2 position, Scene2D scene)
-    : base(name, position, scene) { }
+    /// <param name="position">Position to place agent at</param>
+    /// <param name="scene">Scene to spawn agent into</param>
+    public Agent2D(Vector2 position, Scene2D scene)
+    : base(position, scene) { }
 
     public override void PhysicsUpdate(float deltaTime) {
         Physics.ApplyForce(UpdateBehavior(deltaTime));

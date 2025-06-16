@@ -39,16 +39,14 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
     /// <summary>
     /// Creates a new Actor2D object
     /// </summary>
-    /// <param name="name">Name of this actor</param>
     /// <param name="position">Initial position</param>
     /// <param name="scene">Scene to place this actor in</param>
     public Actor2D(
-        string name,
         Vector2 position,
         Scene2D scene
     ) {
         this.Transform = new Transform2D(position);
-        this.Name = name;
+        this.Name = GetType().Name;
         this.Scene = scene;
         components = new List<ActorComponent2D>();
     }

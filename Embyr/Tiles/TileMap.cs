@@ -36,13 +36,11 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <summary>
     /// Creates a new TileMap
     /// </summary>
-    /// <param name="name">Name of actor in scene</param>
     /// <param name="position">Position of TileMap in the world</param>
     /// <param name="simulationDistance">Simulation distance for TileMap updating</param>
     /// <param name="scene">Scene to place tilemap into</param>
-    public TileMap(string name, Vector2 position, float simulationDistance, Scene2D scene)
-    : base(name, position, scene) {
-        this.Name = name;
+    public TileMap(Vector2 position, float simulationDistance, Scene2D scene)
+    : base(position, scene) {
         this.SimulationDistance = simulationDistance;
         this.tiles = new NList2D<Tile<T>?>();
         this.Transform = new Transform2D(position);

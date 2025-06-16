@@ -455,8 +455,13 @@ public abstract class Tile<T> : Actor2D where T : Enum {
     /// <summary>
     /// Creates a new Tile object, with given information
     /// </summary>
-    public Tile(T type, string name, Texture2D texture, Texture2D? normal, bool usesTileset, Scene2D scene)
-        : base(name, Vector2.Zero, scene) {
+    /// <param name="type">Enum type of tile</param>
+    /// <param name="texture">Texture of tile</param>
+    /// <param name="normal">Optional normal map for texture</param>
+    /// <param name="usesTileset">Whether or not texture is a tileset or a singular texture</param>
+    /// <param name="scene">Scene to place tile into</param>
+    public Tile(T type, Texture2D texture, Texture2D? normal, bool usesTileset, Scene2D scene)
+        : base(Vector2.Zero, scene) {
         this.Transform = new Transform2D();
         this.usesTileset = usesTileset;
         this.Type = type;
