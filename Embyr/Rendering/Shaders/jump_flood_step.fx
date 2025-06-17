@@ -6,6 +6,12 @@
 Texture2D SpriteTexture;
 sampler2D SpriteTextureSampler = sampler_state {
     Texture = <SpriteTexture>;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
 };
 
 float Offset;
@@ -14,10 +20,10 @@ float2 ScreenRes;
 float4 MainPS(VSOutput input) : COLOR {
     float2 uv = input.UV;
     float2 uvOffset = Offset.xx / ScreenRes;
-    float depth = tex2D(SpriteTextureSampler, uv).z;
 
-    float2 closestSeed = float2(0, 0);
+    float2 closestSeed = float2(0.0, 0.0);
     float closestDistSquared = 100.0;
+    bool foundSeed = false;
 
     for (float x = -1; x <= 1; x++) {
         for (float y = -1; y <= 1; y++) {
@@ -28,19 +34,21 @@ float4 MainPS(VSOutput input) : COLOR {
             }
 
             float4 sampleValue = tex2D(SpriteTextureSampler, samplePos);
+            float2 diff = uv - sampleValue.xy;
+            float dSqr = diff.x * diff.x + diff.y * diff.y;
 
-            if (sampleValue.x != 0.0 && sampleValue.y != 0.0) {
-                float2 diff = uv - sampleValue.xy;
-                float dSqr = diff.x * diff.x + diff.y * diff.y;
-                if (dSqr < closestDistSquared) {
-                    closestDistSquared = dSqr;
-                    closestSeed = sampleValue.xy;
-                }
+            // only update closest distance if distance is closer AND
+            //   blue channel exists! blue values of zero indicate
+            //   that no seed has been located there
+            if (dSqr < closestDistSquared && sampleValue.b > 0.01) {
+                closestDistSquared = dSqr;
+                closestSeed = sampleValue.xy;
+                foundSeed = true;
             }
         }
     }
 
-    return float4(closestSeed, depth, 0.0);
+    return float4(closestSeed, (float)foundSeed, (float)foundSeed);
 }
 
 technique SpriteDrawing {

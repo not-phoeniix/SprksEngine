@@ -71,7 +71,6 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.DrawRectFill(new Rectangle(0, 0, albedoBuffer.Width, albedoBuffer.Height), Color.Black);
         SpriteBatch.End();
 
-
         ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
         SpriteBatchBegin(scene);
 
@@ -174,22 +173,25 @@ internal class RendererDeferred2D : Renderer2D {
     }
 
     private void RecreateRenderTargets(int width, int height, int canvasExpandSize) {
-        void ResizeBuffer(ref RenderTarget2D buffer) {
+        void ResizeBuffer(ref RenderTarget2D buffer, SurfaceFormat format) {
             buffer?.Dispose();
             buffer = new RenderTarget2D(
                 GraphicsDevice,
                 width + canvasExpandSize,
-                height + canvasExpandSize
+                height + canvasExpandSize,
+                false,
+                format,
+                DepthFormat.None
             );
         }
 
-        ResizeBuffer(ref albedoBuffer);
-        ResizeBuffer(ref normalBuffer);
-        ResizeBuffer(ref depthBuffer);
-        ResizeBuffer(ref lightBuffer);
-        ResizeBuffer(ref distanceBackBuffer);
-        ResizeBuffer(ref distanceFrontBuffer);
-        ResizeBuffer(ref obstructorDistanceField);
+        ResizeBuffer(ref albedoBuffer, SurfaceFormat.Color);
+        ResizeBuffer(ref normalBuffer, SurfaceFormat.Color);
+        ResizeBuffer(ref depthBuffer, SurfaceFormat.Color);
+        ResizeBuffer(ref lightBuffer, SurfaceFormat.HalfVector4);
+        ResizeBuffer(ref distanceBackBuffer, SurfaceFormat.Color);
+        ResizeBuffer(ref distanceFrontBuffer, SurfaceFormat.Color);
+        ResizeBuffer(ref obstructorDistanceField, SurfaceFormat.Color);
 
         sceneMRTTargets[0] = new RenderTargetBinding(albedoBuffer);
         sceneMRTTargets[1] = new RenderTargetBinding(normalBuffer);
@@ -237,19 +239,21 @@ internal class RendererDeferred2D : Renderer2D {
             drawToFrontBuffer = !drawToFrontBuffer;
         }
 
+        // https://en.wikipedia.org/wiki/Jump_flooding_algorithm#Variants
+        //   1+JFA can increase accuracy!
+        Step(1);
+
         // offest should be: 2 ^ (ceil(log2(N)) – passIndex – 1),
         int N = Math.Max(destination.Width / 2, destination.Height / 2);
-        int offset = 100;
+        int offset;
         int i = 0;
-        while (offset > 0) {
+        do {
             offset = (int)MathF.Pow(2, MathF.Ceiling(MathF.Log2(N)) - i - 1);
-            Step(offset);
+            if (offset > 0) {
+                Step(offset);
+            }
             i++;
-        }
-
-        // https://en.wikipedia.org/wiki/Jump_flooding_algorithm
-        //   JFA+1 can possibly increase accuracy!
-        Step(1);
+        } while (offset > 0);
 
         // get the final buffer that was just drawn to
         RenderTarget2D finalTarget;
@@ -262,6 +266,8 @@ internal class RendererDeferred2D : Renderer2D {
         // draw buffer to actual distance buffer using distance render shader
         SpriteBatch.GraphicsDevice.SetRenderTarget(destination);
         SpriteBatch.GraphicsDevice.Clear(Color.Black);
+        fxJumpFloodDistRender.Parameters["DepthBuffer"].SetValue(depthBuffer);
+        fxJumpFloodDistRender.Parameters["TargetDepth"].SetValue(targetDepth);
         SpriteBatch.Begin(effect: fxJumpFloodDistRender);
         SpriteBatch.Draw(finalTarget, new Rectangle(0, 0, destination.Width, destination.Height), Color.White);
         SpriteBatch.End();

@@ -20,7 +20,7 @@ sampler2D DepthBufferSampler = sampler_state {
 //* ~~~ parameters ~~~
 
 #define MAX_LIGHTS 8
-#define MAX_RAYMARCHES 32
+#define MAX_RAYMARCHES 16
 #define M_PI 3.14159265f
 #define RAYMARCH_DIST_THRESHOLD 0.0001
 #define MAIN_TILE_DEPTH 0.25
@@ -129,10 +129,10 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
     float penumbraVal = 1.0;
 
     // if depth indicates this pixel is an obstructor, just exit early and don't raymarch
-    float obstructorDepth = tex2D(DepthBufferSampler, texCoord).y;
-    if (obstructorDepth <= 0.001) {
-        return 0.0;
-    }
+    // float obstructorDepth = tex2D(DepthBufferSampler, texCoord).y;
+    // if (obstructorDepth <= 0.001) {
+    //     return 0.0;
+    // }
 
     [unroll(MAX_RAYMARCHES)] for (float i = 0.0; i < MAX_RAYMARCHES; i++) {
         // dist represents the closest distance to any light-obstructing

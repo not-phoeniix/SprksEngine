@@ -15,10 +15,11 @@ float TargetDepth;
 float4 MainPS(VSOutput input) : COLOR {
     float depth = tex2D(SpriteTextureSampler, input.UV).g;
 
-    float4 seed = float4(0.0, 0.0, depth, 0.0);
+    float4 seed = float4(0.0, 0.0, 0.0, 0.0);
 
-    if (depth > TargetDepth - 0.01 && depth < TargetDepth + 0.01) {
-        seed.xy = input.UV;
+    if (depth > TargetDepth - 0.001 && depth < TargetDepth + 0.001) {
+        // blue channel represents whether or not a seed exists or not
+        seed = float4(input.UV, 1.0, 1.0);
     }
 
     return seed;
