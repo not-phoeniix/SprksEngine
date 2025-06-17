@@ -29,7 +29,15 @@ fi
 mkdir -p $OUTPUT_DIR
 
 compile_shader() {
-	OUTPUT=$OUTPUT_DIR/$(echo $(basename -- $1) | sed "s/\.fx$/\_$PROFILE_SUFFIX$OUTPUT_EXTENSION/")
+	# add an escape backslash before all slashes so it works with sed later
+	REGEX_COMPATIBLE_PATH=$(echo $OUTPUT_DIR | sed 's/[\/\\]/\\\//g')
+
+	# remove output dir from path while keeping sub directories
+	PATH_REMOVED_FILE=$(echo $1 | sed "s/^$REGEX_COMPATIBLE_PATH//")
+
+	# re-add output dir and replace extension
+	OUTPUT=$OUTPUT_DIR/$(echo $PATH_REMOVED_FILE | sed "s/\.fx$/\_$PROFILE_SUFFIX$OUTPUT_EXTENSION/")
+
 	rm -f $OUTPUT
 
 	echo "compiling '$1' into '$OUTPUT'..."

@@ -72,8 +72,6 @@ internal class RendererForward3D : Renderer3D {
         RenderPostProcessing(MainLayer);
 
         // render debug info for the scene
-        GraphicsDevice.SetRenderTarget(DebugLayer.RenderTarget);
-        GraphicsDevice.Clear(Color.Transparent);
         foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {
             if (!EngineSettings.ShowDebugDrawing) break;
 

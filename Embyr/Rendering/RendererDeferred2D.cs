@@ -185,10 +185,13 @@ internal class RendererDeferred2D : Renderer2D {
             );
         }
 
+        // light buffer needs to be 64-bit HDR for super bright lights lol
+        ResizeBuffer(ref lightBuffer, SurfaceFormat.HalfVector4);
+
+        // everything else can be regular 32-bit color
         ResizeBuffer(ref albedoBuffer, SurfaceFormat.Color);
         ResizeBuffer(ref normalBuffer, SurfaceFormat.Color);
         ResizeBuffer(ref depthBuffer, SurfaceFormat.Color);
-        ResizeBuffer(ref lightBuffer, SurfaceFormat.HalfVector4);
         ResizeBuffer(ref distanceBackBuffer, SurfaceFormat.Color);
         ResizeBuffer(ref distanceFrontBuffer, SurfaceFormat.Color);
         ResizeBuffer(ref obstructorDistanceField, SurfaceFormat.Color);

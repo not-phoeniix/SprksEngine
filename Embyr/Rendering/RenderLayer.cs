@@ -12,6 +12,7 @@ internal class RenderLayer : IResolution {
     private RenderTarget2D renderTarget;
     private RenderTarget2D effectTarget;
     private readonly GraphicsDevice gd;
+    private readonly SurfaceFormat surfaceFormat;
 
     /// <summary>
     /// Gets/sets the effect applied to every item within the DrawTo instructions for this render layer
@@ -48,10 +49,26 @@ internal class RenderLayer : IResolution {
     /// </summary>
     /// <param name="resolution">Resolution of layer</param>
     /// <param name="gd">GraphicsDevice to create render layer with</param>
-    public RenderLayer(Point resolution, GraphicsDevice gd) {
+    /// <param name="surfaceFormat">Surface format of internal render targets</param>
+    public RenderLayer(Point resolution, GraphicsDevice gd, SurfaceFormat surfaceFormat) {
         this.gd = gd;
-        renderTarget = new RenderTarget2D(gd, resolution.X, resolution.Y);
-        effectTarget = new RenderTarget2D(gd, resolution.X, resolution.Y);
+        this.surfaceFormat = surfaceFormat;
+        renderTarget = new RenderTarget2D(
+            gd,
+            resolution.X,
+            resolution.Y,
+            false,
+            surfaceFormat,
+            DepthFormat.None
+        );
+        effectTarget = new RenderTarget2D(
+            gd,
+            resolution.X,
+            resolution.Y,
+            false,
+            surfaceFormat,
+            DepthFormat.None
+        );
     }
 
     /// <summary>
@@ -120,9 +137,23 @@ internal class RenderLayer : IResolution {
     /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
     public void ChangeResolution(int width, int height, int canvasExpandSize) {
         renderTarget?.Dispose();
-        renderTarget = new RenderTarget2D(gd, width + canvasExpandSize, height + canvasExpandSize);
+        renderTarget = new RenderTarget2D(
+            gd,
+            width + canvasExpandSize,
+            height + canvasExpandSize,
+            false,
+            surfaceFormat,
+            DepthFormat.None
+        );
         effectTarget?.Dispose();
-        effectTarget = new RenderTarget2D(gd, width + canvasExpandSize, height + canvasExpandSize);
+        effectTarget = new RenderTarget2D(
+            gd,
+            width + canvasExpandSize,
+            height + canvasExpandSize,
+            false,
+            surfaceFormat,
+            DepthFormat.None
+        );
     }
 
     private static Rectangle GetSmoothParallaxOffset(Vector2 worldPos, Rectangle toModify, float canvasScaling) {

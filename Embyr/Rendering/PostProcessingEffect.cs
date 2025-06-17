@@ -13,6 +13,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     protected class Pass : IDisposable {
         private readonly Effect shader;
         private readonly Action<Effect>? passShaderDataHandler;
+        private readonly SurfaceFormat surfaceFormat;
 
         /// <summary>
         /// Gets the render target of this effect pass
@@ -32,11 +33,27 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="passShaderDataHandler">Callback to handle passing of shader data, called before drawing</param>
         /// <param name="width">Resolution width in pixels of effect pass</param>
         /// <param name="height">Resolution height in pixels of effect pass</param>
-        public Pass(Effect shader, GraphicsDevice graphicsDevice, Action<Effect>? passShaderDataHandler, int width, int height) {
+        /// <param name="surfaceFormat">Surface format of pass's internal render target</param>
+        public Pass(
+            Effect shader,
+            GraphicsDevice graphicsDevice,
+            Action<Effect>? passShaderDataHandler,
+            int width,
+            int height,
+            SurfaceFormat surfaceFormat = SurfaceFormat.HalfVector4
+        ) {
             this.shader = shader;
             this.passShaderDataHandler = passShaderDataHandler;
             this.ClearColor = Color.Black;
-            RenderTarget = new RenderTarget2D(graphicsDevice, width, height);
+            this.surfaceFormat = surfaceFormat;
+            RenderTarget = new RenderTarget2D(
+                graphicsDevice,
+                width,
+                height,
+                false,
+                surfaceFormat,
+                DepthFormat.None
+            );
         }
 
         /// <summary>
@@ -63,7 +80,14 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="height">New height in pixels of this pass</param>
         public void Resize(int width, int height) {
             RenderTarget?.Dispose();
-            RenderTarget = new RenderTarget2D(shader.GraphicsDevice, width, height);
+            RenderTarget = new RenderTarget2D(
+                shader.GraphicsDevice,
+                width,
+                height,
+                false,
+                surfaceFormat,
+                DepthFormat.None
+            );
         }
 
         /// <summary>
@@ -94,7 +118,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     /// <summary>
     /// Gets a reference to the inputted render target from before this effect is applied
     /// </summary>
-    public RenderTarget2D InputRenderTarget { get; set; }
+    public RenderTarget2D? InputRenderTarget { get; set; }
 
     /// <summary>
     /// Gets the render target of the final effect in this post processing effect
@@ -133,6 +157,10 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     /// </summary>
     /// <param name="sb">SpriteBatch to draw with</param>
     public void Draw(SpriteBatch sb) {
+        if (InputRenderTarget == null) {
+            throw new NullReferenceException("Cannot draw post processing effect with null input render target!");
+        }
+
         for (int i = 0; i < passes.Count; i++) {
             RenderTarget2D prevTarget = i == 0
                 ? InputRenderTarget

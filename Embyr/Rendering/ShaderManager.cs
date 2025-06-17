@@ -33,9 +33,8 @@ internal class ShaderManager : Singleton<ShaderManager> {
     /// <summary>
     /// Loads a shader effect from this manager
     /// </summary>
-    /// <param name="shaderName"></param>
-    /// <param name="profile"></param>
-    /// <returns></returns>
+    /// <param name="shaderName">Name of shader file to load, can include paths</param>
+    /// <returns>Reference to newly loaded shader</returns>
     public Effect LoadShader(string shaderName) {
         string profileSuffix = profile switch {
             ShaderProfile.OpenGL => "gl",
@@ -43,7 +42,11 @@ internal class ShaderManager : Singleton<ShaderManager> {
             _ => throw new Exception($"Shader profile {profile} not recognized when loading shader!")
         };
 
-        string namespaceName = typeof(ShaderManager).Namespace;
+        // allow paths to work by replacing slash separators with periods
+        shaderName = shaderName.Replace("/", ".");
+        shaderName = shaderName.Replace("\\", ".");
+
+        string namespaceName = typeof(ShaderManager).Namespace!;
         string resourceName = $"{namespaceName}.Shaders.{shaderName}_{profileSuffix}.xnb";
 
         if (!shaderCache.TryGetValue(resourceName, out Effect? shader)) {

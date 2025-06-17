@@ -30,8 +30,8 @@ internal abstract class Renderer2D : Renderer {
         this.loadingMenu = loadingMenu;
 
         Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);
-        SceneRenderLayer = new RenderLayer(res, gd);
-        UIRenderLayer = new RenderLayer(res, gd);
+        SceneRenderLayer = new RenderLayer(res, gd, SurfaceFormat.HalfVector4);
+        UIRenderLayer = new RenderLayer(res, gd, SurfaceFormat.Color);
     }
 
     /// <inheritdoc/>

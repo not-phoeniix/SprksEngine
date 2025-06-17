@@ -41,7 +41,7 @@ public class MainScene(string name) : Scene2D(name) {
         Texture2D tileset = ContentHelper.I.Load<Texture2D>("tileset");
         Texture2D tileNormals = ContentHelper.I.Load<Texture2D>("normals");
 
-        TileMap<TileType> map = new("map", Vector2.Zero, 1000, this);
+        TileMap<TileType> map = new(Vector2.Zero, 1000, this);
         for (int x = 0; x < types.GetLength(1); x++) {
             for (int y = 0; y < types.GetLength(0); y++) {
                 if (types[y, x] == 1) {
@@ -70,7 +70,7 @@ public class MainScene(string name) : Scene2D(name) {
 
         greenLight = new Light2D() {
             Color = new Color(0.6f, 1.0f, 0.7f),
-            Intensity = 1.5f,
+            Intensity = 10f,
             Radius = 100,
             LinearFalloff = 120,
             AngularWidth = MathHelper.ToRadians(80),

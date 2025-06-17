@@ -17,9 +17,6 @@
     <EmbeddedResource Include="Rendering/Shaders/3d_single_color_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_clear_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/bloom_blur_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/bloom_combine_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/bloom_threshold_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/color_quant_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/jump_flood_dist_render_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/jump_flood_step_gl.xnb" />
@@ -27,6 +24,12 @@
     <EmbeddedResource Include="Rendering/Shaders/light_combine_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/light_render_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/solid_color_gl.xnb" />
+
+    <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_combine_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_threshold_gl.xnb" />
+
+    <EmbeddedResource Include="Rendering/Shaders/Blurs/box_blur_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Blurs/gaussian_blur_separated_gl.xnb" />
   </ItemGroup>
 
 </Project>

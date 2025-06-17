@@ -1,11 +1,14 @@
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
+/// <summary>
+/// HDR bloom post processing effect with 5 pixel radius gaussian blur,
+/// inherits from <c>PostProcessingEffect</c>
+/// </summary>
 public class BloomPostProcessingEffect : PostProcessingEffect {
     private readonly Effect fxBloomThreshold;
-    private readonly Effect fxBloomBlur;
+    private readonly Effect fxBlur;
     private readonly Effect fxBloomCombine;
     private int numBlurPasses;
 
@@ -31,10 +34,16 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
         }
     }
 
-    public BloomPostProcessingEffect(GraphicsDevice gd, float luminanceThreshold = 0.95f, int numBlurPasses = 2) : base(gd) {
-        fxBloomThreshold = ShaderManager.I.LoadShader("bloom_threshold");
-        fxBloomBlur = ShaderManager.I.LoadShader("bloom_blur");
-        fxBloomCombine = ShaderManager.I.LoadShader("bloom_combine");
+    /// <summary>
+    /// Creates a new BloomPostProcessingEffect
+    /// </summary>
+    /// <param name="gd">GraphicsDevice to create bloom with</param>
+    /// <param name="luminanceThreshold">HDR luminance threshold to apply bloom to</param>
+    /// <param name="numBlurPasses">Number of blur passes to use when blurring bloom</param>
+    public BloomPostProcessingEffect(GraphicsDevice gd, float luminanceThreshold = 1.0f, int numBlurPasses = 2) : base(gd) {
+        fxBloomThreshold = ShaderManager.I.LoadShader("PostProcessing/bloom_threshold");
+        fxBlur = ShaderManager.I.LoadShader("Blurs/gaussian_blur_separated");
+        fxBloomCombine = ShaderManager.I.LoadShader("PostProcessing/bloom_combine");
 
         LuminanceThreshold = luminanceThreshold;
         this.numBlurPasses = numBlurPasses;
@@ -55,15 +64,24 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
         AddPass(thresholdPass);
 
         for (int i = 0; i < numBlurPasses; i++) {
-            Pass blurPass = new(
-                fxBloomBlur,
+            Pass blurVertical = new(
+                fxBlur,
                 GraphicsDevice,
-                null,
+                s => s.Parameters["IsVertical"].SetValue(true),
                 width,
                 height
             );
 
-            AddPass(blurPass);
+            Pass blurHorizontal = new(
+                fxBlur,
+                GraphicsDevice,
+                s => s.Parameters["IsVertical"].SetValue(false),
+                width,
+                height
+            );
+
+            AddPass(blurVertical);
+            AddPass(blurHorizontal);
         }
 
         Pass combinePass = new(
