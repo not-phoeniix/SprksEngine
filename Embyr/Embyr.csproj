@@ -15,15 +15,16 @@
   <ItemGroup>
     <EmbeddedResource Include="Rendering/Shaders/3d_forward_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/3d_single_color_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/2d_deferred_gbuffer_clear_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/color_quant_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/jump_flood_dist_render_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/jump_flood_step_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/jump_flood_seed_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/light_combine_gl.xnb" />
-    <EmbeddedResource Include="Rendering/Shaders/light_render_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/solid_color_gl.xnb" />
+
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/gbuffer_render_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/gbuffer_clear_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/light_render_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/light_combine_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/jump_flood_dist_render_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/jump_flood_step_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/Deferred2D/jump_flood_seed_gl.xnb" />
 
     <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_combine_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_threshold_gl.xnb" />

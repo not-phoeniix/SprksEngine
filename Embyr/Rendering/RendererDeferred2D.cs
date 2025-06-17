@@ -45,13 +45,13 @@ internal class RendererDeferred2D : Renderer {
     /// <param name="loadingMenu">Optional loading menu to draw when a scene is loading</param>
     public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
-        fxLightRender = ShaderManager.I.LoadShader("light_render");
-        fxLightCombine = ShaderManager.I.LoadShader("light_combine");
-        fxJumpFloodSeed = ShaderManager.I.LoadShader("jump_flood_seed");
-        fxJumpFloodStep = ShaderManager.I.LoadShader("jump_flood_step");
-        fxJumpFloodDistRender = ShaderManager.I.LoadShader("jump_flood_dist_render");
-        fxRenderGBuffer = ShaderManager.I.LoadShader("2d_deferred_gbuffer");
-        fxRenderGBufferClear = ShaderManager.I.LoadShader("2d_deferred_gbuffer_clear");
+        fxLightRender = ShaderManager.I.LoadShader("Deferred2D/light_render");
+        fxLightCombine = ShaderManager.I.LoadShader("Deferred2D/light_combine");
+        fxJumpFloodSeed = ShaderManager.I.LoadShader("Deferred2D/jump_flood_seed");
+        fxJumpFloodStep = ShaderManager.I.LoadShader("Deferred2D/jump_flood_step");
+        fxJumpFloodDistRender = ShaderManager.I.LoadShader("Deferred2D/jump_flood_dist_render");
+        fxRenderGBuffer = ShaderManager.I.LoadShader("Deferred2D/gbuffer_render");
+        fxRenderGBufferClear = ShaderManager.I.LoadShader("Deferred2D/gbuffer_clear");
 
         sceneMRTTargets = new RenderTargetBinding[3];
 

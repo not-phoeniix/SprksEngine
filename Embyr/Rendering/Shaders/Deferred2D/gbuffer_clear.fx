@@ -1,4 +1,4 @@
-#include "2d_defines.fxh"
+#include "../2d_defines.fxh"
 
 struct PSOutput {
     float4 Albedo : COLOR0;         // render target 0

@@ -1,4 +1,4 @@
-#include "2d_defines.fxh"
+#include "../2d_defines.fxh"
 
 // input should be distance field where each pixel represents the
 //   distance to the closest light-obstructing object
