@@ -70,7 +70,7 @@ public class MainScene(string name) : Scene2D(name) {
 
         greenLight = new Light2D() {
             Color = new Color(0.6f, 1.0f, 0.7f),
-            Intensity = 10f,
+            Intensity = 6f,
             Radius = 100,
             LinearFalloff = 120,
             AngularWidth = MathHelper.ToRadians(80),
@@ -84,7 +84,7 @@ public class MainScene(string name) : Scene2D(name) {
         globalLight = new Light2D() {
             IsGlobal = true,
             Color = new Color(1.0f, 0.7f, 1.0f),
-            Intensity = 0.8f,
+            Intensity = 0.2f,
         };
         globalLight.Transform.ZIndex = 20;
         AddLight(globalLight);

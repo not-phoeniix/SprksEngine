@@ -25,15 +25,16 @@ public class Game : Embyr.Game {
 
     protected override RendererSetupParams SetupRenderer() {
         RendererSettings settings = new() {
-            VolumetricScalar = 0.3f,
+            VolumetricScalar = 0.1f,
             EnablePostProcessing = true,
             EnableLighting = true,
-            Depth3DScalar = 0.01f
+            Depth3DScalar = 0.01f,
+            Gamma = 2.2f
         };
 
         PostProcessingEffect[] fx = [
             new BloomPostProcessingEffect(GraphicsDevice) {
-                LuminanceThreshold = 1.5f,
+                LuminanceThreshold = 2.0f,
                 NumBlurPasses = 4
             },
         ];

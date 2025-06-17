@@ -5,7 +5,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-internal class RendererDeferred2D : Renderer2D {
+/// <summary>
+/// Deferred shading 2D renderer, inherits from <c>Renderer</c>
+/// </summary>
+internal class RendererDeferred2D : Renderer {
     // shaders
     private readonly Effect fxRenderGBuffer;
     private readonly Effect fxRenderGBufferClear;
@@ -34,6 +37,12 @@ internal class RendererDeferred2D : Renderer2D {
     private readonly float[] lightRotations = new float[MaxLightsPerPass];
     private readonly float[] lightCastsShadow = new float[MaxLightsPerPass];
 
+    /// <summary>
+    /// Creates a new RendererDeferred2D instance
+    /// </summary>
+    /// <param name="settings">Renderer settings object to use when rendering</param>
+    /// <param name="gd">GraphicsDevice to create renderer with</param>
+    /// <param name="loadingMenu">Optional loading menu to draw when a scene is loading</param>
     public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
         fxLightRender = ShaderManager.I.LoadShader("light_render");
@@ -72,6 +81,7 @@ internal class RendererDeferred2D : Renderer2D {
         SpriteBatch.End();
 
         ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
+        fxRenderGBuffer.Parameters["Gamma"].SetValue(Settings.Gamma);
         SpriteBatchBegin(scene);
 
         foreach (Actor2D actor in scene.GetDrawableActors()) {
@@ -128,6 +138,8 @@ internal class RendererDeferred2D : Renderer2D {
         if (EngineSettings.ShowDebugDrawing) {
             UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
         }
+
+        // TODO: somehow get dynamic parallax drawing on different RenderLayer's
 
         // void DrawParallax(GameLayer gameLayer, ParallaxBackground? bg) {
         //     ParallaxLayer? layer = bg?.GetLayer(gameLayer);

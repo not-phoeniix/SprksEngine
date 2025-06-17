@@ -5,7 +5,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-internal class RendererForward3D : Renderer3D {
+/// <summary>
+/// Classic forward 3D renderer, inherits from <c>Renderer</c>
+/// </summary>
+internal class RendererForward3D : Renderer {
     private readonly Effect forward3D;
 
     private const int MaxLightsPerPass = 32;
@@ -15,11 +18,18 @@ internal class RendererForward3D : Renderer3D {
     private readonly float[] lightIntensities = new float[MaxLightsPerPass];
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
 
+    /// <summary>
+    /// Creates a new RendererForward3D instance
+    /// </summary>
+    /// <param name="settings">Renderer settings object to use when rendering</param>
+    /// <param name="gd">GraphicsDevice to create renderer with</param>
+    /// <param name="loadingMenu">Optional loading menu to draw when a scene is loading</param>
     public RendererForward3D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
     : base(settings, gd, loadingMenu) {
         forward3D = ShaderManager.I.LoadShader("3d_forward");
     }
 
+    /// <inheritdoc/>
     public override void RenderScene(Scene inputScene) {
         // don't render non-3D scenes!
         if (inputScene is not Scene3D scene) return;
@@ -62,14 +72,14 @@ internal class RendererForward3D : Renderer3D {
         forward3D.Parameters["NumLights"].SetValue(i);
 
         // render scene itself to main layer
-        GraphicsDevice.SetRenderTarget(MainLayer.RenderTarget);
+        GraphicsDevice.SetRenderTarget(SceneRenderLayer.RenderTarget);
         GraphicsDevice.Clear(Color.Transparent);
         foreach (IActor3D actor in scene.GetDrawableActors()) {
             actor.Draw(scene.Camera);
         }
 
         // render post processing back onto the main layer
-        RenderPostProcessing(MainLayer);
+        RenderPostProcessing(SceneRenderLayer);
 
         // render debug info for the scene
         foreach (IActor3D actor in scene.GetActorsInViewport(scene.Camera.ViewBounds)) {

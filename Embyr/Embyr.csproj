@@ -27,6 +27,7 @@
 
     <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_combine_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/PostProcessing/bloom_threshold_gl.xnb" />
+    <EmbeddedResource Include="Rendering/Shaders/PostProcessing/tone_map_gamma_gl.xnb" />
 
     <EmbeddedResource Include="Rendering/Shaders/Blurs/box_blur_gl.xnb" />
     <EmbeddedResource Include="Rendering/Shaders/Blurs/gaussian_blur_separated_gl.xnb" />

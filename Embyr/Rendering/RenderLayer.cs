@@ -50,14 +50,15 @@ internal class RenderLayer : IResolution {
     /// <param name="resolution">Resolution of layer</param>
     /// <param name="gd">GraphicsDevice to create render layer with</param>
     /// <param name="surfaceFormat">Surface format of internal render targets</param>
-    public RenderLayer(Point resolution, GraphicsDevice gd, SurfaceFormat surfaceFormat) {
+    /// <param name="useMipMaps">Whether or not to generate mip maps for this layer</param>
+    public RenderLayer(Point resolution, GraphicsDevice gd, SurfaceFormat surfaceFormat, bool useMipMaps) {
         this.gd = gd;
         this.surfaceFormat = surfaceFormat;
         renderTarget = new RenderTarget2D(
             gd,
             resolution.X,
             resolution.Y,
-            false,
+            useMipMaps,
             surfaceFormat,
             DepthFormat.None
         );
@@ -65,7 +66,7 @@ internal class RenderLayer : IResolution {
             gd,
             resolution.X,
             resolution.Y,
-            false,
+            useMipMaps,
             surfaceFormat,
             DepthFormat.None
         );

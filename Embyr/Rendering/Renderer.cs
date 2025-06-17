@@ -1,4 +1,5 @@
 using Embyr.Scenes;
+using Embyr.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,6 +9,10 @@ namespace Embyr.Rendering;
 /// An abstract class that represents a renderer
 /// </summary>
 internal abstract class Renderer : IResolution {
+    private readonly ToneMapGammaPostProcessingEffect toneMapPPE;
+    private readonly Menu? loadingMenu;
+    private RenderTarget2D[] mips;
+
     /// <summary>
     /// List of all post processing effects to use when drawing
     /// </summary>
@@ -29,15 +34,32 @@ internal abstract class Renderer : IResolution {
     public RendererSettings Settings { get; }
 
     /// <summary>
+    /// Render layer that scene is rendered to
+    /// </summary>
+    protected readonly RenderLayer SceneRenderLayer;
+
+    /// <summary>
+    /// Render layer that all overlaying UI is rendered to
+    /// </summary>
+    protected readonly RenderLayer UIRenderLayer;
+
+    /// <summary>
     /// Creates a new Renderer
     /// </summary>
     /// <param name="settings">Settings to use when rendering</param>
     /// <param name="gd">Graphics device used to create renderer</param>
-    public Renderer(RendererSettings settings, GraphicsDevice gd) {
+    /// <param name="loadingMenu">Optional reference to the loading menu to show when loading between scenes</param>
+    public Renderer(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu) {
         GraphicsDevice = gd ?? throw new NullReferenceException("Cannot initialize renderer with null graphics device!");
         SpriteBatch = new SpriteBatch(gd);
+        this.loadingMenu = loadingMenu;
         this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
+        this.toneMapPPE = new ToneMapGammaPostProcessingEffect(gd);
+
+        Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);
+        SceneRenderLayer = new RenderLayer(res, gd, SurfaceFormat.HalfVector4, true);
+        UIRenderLayer = new RenderLayer(res, gd, SurfaceFormat.Color, false);
     }
 
     /// <summary>
@@ -49,14 +71,32 @@ internal abstract class Renderer : IResolution {
     /// <summary>
     /// Renders the loading menu between scenes
     /// </summary>
-    public abstract void RenderLoading();
+    public virtual void RenderLoading() {
+        if (loadingMenu != null) {
+            UIRenderLayer.DrawTo(loadingMenu.Draw, SpriteBatch);
+
+            if (EngineSettings.ShowDebugDrawing) {
+                UIRenderLayer.DrawTo(loadingMenu.DebugDraw, SpriteBatch, resetTarget: false);
+            }
+        }
+    }
 
     /// <summary>
     /// Renders an already rendered scene output to the screen
     /// </summary>
     /// <param name="canvasDestination">Destination rectangle to render scene into</param>
     /// <param name="canvasScale">Scale of canvas on the screen</param>
-    public abstract void Render(Rectangle canvasDestination, float canvasScale);
+    public virtual void Render(Rectangle canvasDestination, float canvasScale) {
+        // draw different layers themselves to the screen
+        GraphicsDevice.SetRenderTarget(null);
+        GraphicsDevice.Clear(EngineSettings.RenderClearColor);
+        SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+        SceneRenderLayer.Draw(SpriteBatch, canvasDestination, canvasScale);
+        UIRenderLayer.Draw(SpriteBatch, canvasDestination, canvasScale);
+
+        SpriteBatch.End();
+    }
 
     /// <summary>
     /// Changes resolution of this renderer
@@ -68,6 +108,10 @@ internal abstract class Renderer : IResolution {
         foreach (PostProcessingEffect fx in PostProcessingEffects) {
             fx.ChangeResolution(width, height, canvasExpandSize);
         }
+
+        loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
+        SceneRenderLayer.ChangeResolution(width, height, canvasExpandSize);
+        UIRenderLayer.ChangeResolution(width, height, canvasExpandSize);
     }
 
     /// <summary>
@@ -121,14 +165,20 @@ internal abstract class Renderer : IResolution {
             prevTarget = fx.FinalRenderTarget;
         }
 
+        // apply tone mapping
+        toneMapPPE.Gamma = Settings.Gamma;
+        toneMapPPE.InputRenderTarget = prevTarget;
+        toneMapPPE.Draw(SpriteBatch);
+        prevTarget = toneMapPPE.FinalRenderTarget;
+
         // draw final post process layer BACK to world layer
-        //   (if any post processes were used in the first place)
-        if (prevTarget != targetLayer.RenderTarget) {
-            targetLayer.ScreenSpaceEffect = null;
-            targetLayer.DrawTo(
-                sb => sb.Draw(prevTarget, Vector2.Zero, Color.White),
-                SpriteBatch
-            );
-        }
+        targetLayer.ScreenSpaceEffect = null;
+        targetLayer.DrawTo(
+            sb => sb.Draw(prevTarget, Vector2.Zero, Color.White),
+            SpriteBatch
+        );
+    }
+
+    private void GenerateSceneMips() {
     }
 }

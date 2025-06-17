@@ -23,4 +23,9 @@ public sealed class RendererSettings {
     /// Gets/sets the value of pseudo-3D depth scaling for 2D lighting with normals
     /// </summary>
     public float Depth3DScalar { get; set; } = 0.01f;
+
+    /// <summary>
+    /// Gets/sets the gamma value of the scene
+    /// </summary>
+    public float Gamma { get; set; } = 2.2f;
 }

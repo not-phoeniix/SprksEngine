@@ -33,11 +33,13 @@ sampler2D NormalTextureSampler = sampler_state {
 int ZIndex;
 bool ObstructsLight;
 bool UseNormals;
+float Gamma;
 
 PSOutput MainPS(VSOutput input) {
     PSOutput output;
 
     output.Albedo = tex2D(SpriteTextureSampler, input.UV) * input.Color;
+    output.Albedo.rgb = pow(abs(output.Albedo.rgb), Gamma);
 
     // if sampled color is black set default normal values
     float3 normal = tex2D(NormalTextureSampler, input.UV).xyz;
