@@ -1,12 +1,15 @@
-using Embyr.Rendering;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Scenes;
 
+/// <summary>
+/// An abstract 2D game scene, must be inherited to create new scenes in an Embyr game. Inherits from <c>Scene</c>
+/// </summary>
 public abstract class Scene2D : Scene {
     private readonly Quadtree<Actor2D> actors;
+    private readonly List<Actor2D> actorsNoCulling;
     private readonly List<Actor2D>[] actorsToDraw;
     private readonly Quadtree<Light2D> localLights;
     private readonly List<Light2D> globalLights;
@@ -16,8 +19,13 @@ public abstract class Scene2D : Scene {
     /// </summary>
     public Camera2D Camera { get; private set; }
 
+    /// <summary>
+    /// Creates a new Scene2D instance
+    /// </summary>
+    /// <param name="name">Name of scene to create</param>
     public Scene2D(string name) : base(name) {
         actors = new Quadtree<Actor2D>(new Point(-10_000), new Point(10_000));
+        actorsNoCulling = new List<Actor2D>();
         localLights = new Quadtree<Light2D>(new Point(-10_000), new Point(10_000));
         globalLights = new List<Light2D>();
         Camera = new Camera2D(EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize));
@@ -36,6 +44,7 @@ public abstract class Scene2D : Scene {
     /// <inheritdoc/>
     public override void Unload() {
         actors.Clear();
+        actorsNoCulling.Clear();
         localLights.Clear();
         globalLights.Clear();
         base.Unload();
@@ -54,7 +63,23 @@ public abstract class Scene2D : Scene {
     public override sealed IEnumerable<IActor> GetDrawableActors() {
         // get all visible actors, toss them in the correct index
         foreach (Actor2D actor in GetActorsInViewport(Camera.ViewBounds)) {
-            actorsToDraw[actor.Transform.GlobalZIndex].Add(actor);
+            if (!actor.PreventCulling) {
+                actorsToDraw[actor.Transform.GlobalZIndex].Add(actor);
+            }
+        }
+
+        // get all actors without culling and queue em to draw
+        for (int i = actorsNoCulling.Count - 1; i >= 0; i--) {
+            Actor2D a = actorsNoCulling[i];
+
+            if (a.PreventCulling) {
+                actorsToDraw[a.Transform.GlobalZIndex].Add(a);
+            } else {
+                // remove actors that shouldn't be in this list lol,
+                //   iterate backwards so we don't have to worry about
+                //   shifting i due to the decreased index
+                actorsNoCulling.RemoveAt(i);
+            }
         }
 
         // return the sorted actors in the correct order
@@ -88,10 +113,14 @@ public abstract class Scene2D : Scene {
     protected override sealed void AddActor(IActor actor) {
         if (actor is Actor2D a) {
             if (actor.Scene != this) {
-                throw new Exception("Cannot add actor that has already been added to a prior scene!");
+                throw new Exception("Cannot add actor that has already been added to a different scene!");
             }
 
             actors.Insert(a);
+            if (a.PreventCulling) {
+                actorsNoCulling.Add(a);
+            }
+
             actor.InvokeOnAdded(this);
         }
     }

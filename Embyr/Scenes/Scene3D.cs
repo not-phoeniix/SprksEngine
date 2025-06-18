@@ -70,7 +70,7 @@ public abstract class Scene3D : Scene {
     protected override sealed void AddActor(IActor actor) {
         if (actor is IActor3D a) {
             if (actor.Scene != this) {
-                throw new Exception("Cannot add actor that has already been added to a prior scene!");
+                throw new Exception("Cannot add actor that has already been added to a different scene!");
             }
 
             actors.Insert(a);

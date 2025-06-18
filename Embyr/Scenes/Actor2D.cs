@@ -36,6 +36,11 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
     public event Action<Scene>? OnRemoved;
 
     /// <summary>
+    /// Gets/sets whether or not to prevent culling and always draw this actor
+    /// </summary>
+    internal bool PreventCulling { get; set; }
+
+    /// <summary>
     /// Creates a new Actor2D object
     /// </summary>
     /// <param name="position">Initial position</param>
@@ -47,6 +52,7 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
         this.Transform = new Transform2D(position);
         this.Name = GetType().Name;
         this.Scene = scene;
+        this.PreventCulling = true;
         components = new List<ActorComponent2D>();
     }
 
@@ -85,6 +91,15 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Removes a component from this actor
+    /// </summary>
+    /// <param name="component">Component to remove</param>
+    /// <returns>True if component was successfully removed, false if otherwise</returns>
+    protected bool RemoveComponent(ActorComponent2D component) {
+        return components.Remove(component);
     }
 
     /// <summary>

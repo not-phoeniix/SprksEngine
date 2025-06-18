@@ -51,6 +51,11 @@ public class SpriteComponent2D : ActorComponent2D {
     public Rectangle? SourceRect { get; set; }
 
     /// <summary>
+    /// Gets/sets the texture offset to use when drawing
+    /// </summary>
+    public Vector2 Offset { get; set; }
+
+    /// <summary>
     /// Gets/sets the shader used when rendering this sprite
     /// </summary>
     public Effect? Shader {
@@ -73,6 +78,7 @@ public class SpriteComponent2D : ActorComponent2D {
     /// <param name="actor">Actor to attach component to</param>
     internal SpriteComponent2D(Actor2D actor) : base(actor) {
         Color = Color.White;
+        Offset = Vector2.Zero;
         Anchor = new Vector2(0.5f, 0.5f);
         SpriteEffects = SpriteEffects.None;
         SourceRect = null;
@@ -86,15 +92,6 @@ public class SpriteComponent2D : ActorComponent2D {
 
     /// <inheritdoc/>
     public override void Draw(SpriteBatch sb) {
-        Draw(Actor.Transform.GlobalPosition, sb);
-    }
-
-    /// <summary>
-    /// Manually draws this sprite component at a particular position
-    /// </summary>
-    /// <param name="position">Position to draw sprite at</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    internal void Draw(Vector2 position, SpriteBatch sb) {
         if (Texture == null) return;
 
         // use either source rect size for drawing or whole
@@ -104,8 +101,10 @@ public class SpriteComponent2D : ActorComponent2D {
             new(Texture.Width, Texture.Height);
         spriteSize *= Actor.Transform.GlobalScale;
 
+        Vector2 pos = Actor.Transform.GlobalPosition + Offset;
+
         Rectangle dest = new(
-            Vector2.Floor(position).ToPoint(),
+            Vector2.Floor(pos).ToPoint(),
             Vector2.Floor(spriteSize).ToPoint()
         );
 

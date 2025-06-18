@@ -104,8 +104,9 @@ public class MainScene(string name) : Scene2D(name) {
         AddLight(miniLight);
 
         Texture2D parallaxTexture = ContentHelper.I.Load<Texture2D>("parallax");
-        ParallaxLayer2D parallax = new(parallaxTexture, new Vector2(0.685f), this);
+        ParallaxLayer2D parallax = new(parallaxTexture, new Vector2(0.3f), this);
         parallax.Transform.ZIndex = 0;
+        parallax.RepeatSize = new Point(4, 4);
         AddActor(parallax);
 
         base.LoadContent();
