@@ -2,6 +2,7 @@
 using Embyr.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace LightingTest2D;
 
@@ -10,6 +11,10 @@ public class Game : Embyr.Game {
         MainScene scene = new("main_scene");
 
         ActionBindingPreset binds = ActionBindingPreset.MakeDefault();
+        binds.AddActionBind("left", Keys.A);
+        binds.AddActionBind("right", Keys.D);
+        binds.AddActionBind("up", Keys.W);
+        binds.AddActionBind("down", Keys.S);
 
         return new GameSetupParams() {
             InitialScene = scene,

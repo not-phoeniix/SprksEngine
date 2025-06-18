@@ -86,6 +86,15 @@ public class SpriteComponent2D : ActorComponent2D {
 
     /// <inheritdoc/>
     public override void Draw(SpriteBatch sb) {
+        Draw(Actor.Transform.GlobalPosition, sb);
+    }
+
+    /// <summary>
+    /// Manually draws this sprite component at a particular position
+    /// </summary>
+    /// <param name="position">Position to draw sprite at</param>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    internal void Draw(Vector2 position, SpriteBatch sb) {
         if (Texture == null) return;
 
         // use either source rect size for drawing or whole
@@ -95,10 +104,8 @@ public class SpriteComponent2D : ActorComponent2D {
             new(Texture.Width, Texture.Height);
         spriteSize *= Actor.Transform.GlobalScale;
 
-        Vector2 drawPos = Actor.Transform.GlobalPosition;
-
         Rectangle dest = new(
-            Vector2.Floor(drawPos).ToPoint(),
+            Vector2.Floor(position).ToPoint(),
             Vector2.Floor(spriteSize).ToPoint()
         );
 

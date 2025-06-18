@@ -103,6 +103,11 @@ public class MainScene(string name) : Scene2D(name) {
         miniLight.Transform.GlobalZIndex = 8;
         AddLight(miniLight);
 
+        Texture2D parallaxTexture = ContentHelper.I.Load<Texture2D>("parallax");
+        ParallaxLayer2D parallax = new(parallaxTexture, new Vector2(0.685f), this);
+        parallax.Transform.ZIndex = 0;
+        AddActor(parallax);
+
         base.LoadContent();
     }
 
@@ -111,6 +116,9 @@ public class MainScene(string name) : Scene2D(name) {
             -50,
             MathF.Sin(Performance.TotalTime * 2) * 35
         );
+
+        Vector2 input = Input.GetComposite2D("left", "up", "right", "down");
+        Camera.Position += input * 100 * dt;
 
         globalLight.Transform.GlobalRotation += dt * 0.5f;
 
