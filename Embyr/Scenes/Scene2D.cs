@@ -127,9 +127,15 @@ public abstract class Scene2D : Scene {
 
     /// <inheritdoc/>
     protected override sealed bool RemoveActor(IActor actor) {
-        if (actor is Actor2D a && actors.Remove(a)) {
-            actor?.InvokeOnRemoved(this);
-            return true;
+        if (actor is Actor2D a) {
+            if (a.PreventCulling) {
+                actorsNoCulling.Remove(a);
+            }
+
+            if (actors.Remove(a)) {
+                actor?.InvokeOnRemoved(this);
+                return true;
+            }
         }
 
         return false;

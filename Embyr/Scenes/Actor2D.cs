@@ -38,7 +38,7 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
     /// <summary>
     /// Gets/sets whether or not to prevent culling and always draw this actor
     /// </summary>
-    internal bool PreventCulling { get; set; }
+    public bool PreventCulling { get; protected set; }
 
     /// <summary>
     /// Creates a new Actor2D object
@@ -52,7 +52,7 @@ public abstract class Actor2D : IActor, ITransform2D, IDrawable2D, IDebugDrawabl
         this.Transform = new Transform2D(position);
         this.Name = GetType().Name;
         this.Scene = scene;
-        this.PreventCulling = true;
+        this.PreventCulling = false;
         components = new List<ActorComponent2D>();
     }
 
