@@ -34,13 +34,7 @@ public class Game : Embyr.Game {
             EnablePostProcessing = true
         };
 
-        PostProcessingEffect[] fx = [
-            new BloomPostProcessingEffect(
-                GraphicsDevice,
-                luminanceThreshold: 0.95f,
-                numBlurPasses: 3
-            )
-        ];
+        PostProcessingEffect[] fx = [];
 
         return new RendererSetupParams() {
             RendererSettings = settings,

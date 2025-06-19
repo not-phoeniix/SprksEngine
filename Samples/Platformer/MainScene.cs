@@ -81,7 +81,7 @@ public class MainScene(string name) : Scene2D(name) {
         AddLight(new Light2D() {
             IsGlobal = true,
             Color = new Color(1.0f, 0.8f, 1.0f),
-            Intensity = 0.4f,
+            Intensity = 0.02f,
             Transform = new Transform2D() {
                 GlobalZIndex = 1000
             }

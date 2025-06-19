@@ -17,7 +17,7 @@ public class Boid : Agent2D {
     private readonly float alignStrength;
 
     public Boid(Rectangle containingRect, Vector2 position, Scene2D scene)
-    : base("boid", position, scene) {
+    : base(position, scene) {
         PhysicsComponent2D physics = AddComponent<PhysicsComponent2D>();
         physics.EnableGravity = false;
         physics.EnableCollisions = false;

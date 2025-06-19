@@ -25,6 +25,6 @@ public class TestActor : Actor3D, IDebugDrawable3D {
     }
 
     public void DebugDraw(Camera3D camera) {
-        Bounds.RenderBoundingBox(camera, Color.Red);
+        // Bounds.RenderBoundingBox(camera, Color.Red);
     }
 }
