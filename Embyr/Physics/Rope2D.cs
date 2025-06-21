@@ -184,6 +184,16 @@ public class Rope2D : Actor2D {
         }
     }
 
+    /// <summary>
+    /// Gets an enumerable to enumerate across all current global positions of rope nodes. Useful for custom drawing logic
+    /// </summary>
+    /// <returns>Enumerable of current global positions of nodes</returns>
+    public IEnumerable<Vector2> GetNodePositions() {
+        foreach (RopeNode node in nodes) {
+            yield return node.Transform.GlobalPosition;
+        }
+    }
+
     /// <inheritdoc/>
     public override void Update(float dt) {
         foreach (RopeNode node in nodes) {
