@@ -76,7 +76,7 @@ internal class RendererDeferred2D : Renderer {
         fxRenderGBufferClear.Parameters["AlbedoClearColor"].SetValue(new Vector4(0.0f));
         fxRenderGBufferClear.Parameters["NormalDepthClearColor"].SetValue(new Vector4(0.5f, 0.5f, 1.0f, 1.0f));
         fxRenderGBufferClear.Parameters["ObstructorsClearColor"].SetValue(new Vector4(1.0f));
-        SpriteBatch.Begin(SpriteSortMode.Immediate, effect: fxRenderGBufferClear);
+        SpriteBatch.Begin(effect: fxRenderGBufferClear);
         SpriteBatch.DrawRectFill(new Rectangle(0, 0, albedoBuffer.Width, albedoBuffer.Height), Color.Black);
         SpriteBatch.End();
 
@@ -175,7 +175,7 @@ internal class RendererDeferred2D : Renderer {
         Matrix worldMatrix = scene.Camera.FlooredMatrix;
         SpriteBatch.Begin(
             SpriteSortMode.Deferred,
-            null,
+            BlendState.AlphaBlend,
             SamplerState.PointClamp,
             null,
             null,
