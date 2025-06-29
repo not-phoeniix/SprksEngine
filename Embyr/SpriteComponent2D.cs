@@ -135,7 +135,7 @@ public class SpriteComponent2D : ActorComponent2D {
             SourceRect,
             Color,
             Actor.Transform.GlobalRotation,
-            Anchor * spriteSize,
+            Vector2.Floor(Anchor * spriteSize),
             SpriteEffects,
             0
         );
