@@ -13,53 +13,6 @@ namespace Embyr;
 //* lol this used to be Game1
 
 /// <summary>
-/// Represents all possible render layers in game
-/// </summary>
-public enum GameLayer {
-    //! these should be sorted in order of drawing! back to front!
-
-    /// <summary>
-    /// Background parallax layer, furthest from world
-    /// </summary>
-    ParallaxBg,
-
-    /// <summary>
-    /// Far-distanced parallax layer relative to world
-    /// </summary>
-    ParallaxFar,
-
-    /// <summary>
-    /// Medium-distanced parallax layer to world
-    /// </summary>
-    ParallaxMid,
-
-    /// <summary>
-    /// Nearest parallax layer to world
-    /// </summary>
-    ParallaxNear,
-
-    /// <summary>
-    /// Main world layer, where all gameplay and world goes, transformed by camera matrix
-    /// </summary>
-    World,
-
-    /// <summary>
-    /// Main debug for world layer, where debug information is drawn to in world-space, transformed by camera matrix
-    /// </summary>
-    WorldDebug,
-
-    /// <summary>
-    /// UI layer, where all UI is drawn to, independent of world space
-    /// </summary>
-    UI,
-
-    /// <summary>
-    /// Debug ui layer, where all UI's debug info is drawn to
-    /// </summary>
-    UIDebug,
-}
-
-/// <summary>
 /// Game class that all the game runs within
 /// </summary>
 public abstract class Game : Microsoft.Xna.Framework.Game {
@@ -174,6 +127,9 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
     }
 
+    /// <summary>
+    /// Initializes game along with basic window and engine setup parameters
+    /// </summary>
     protected override sealed void Initialize() {
         Debug.WriteLine("Setting up Embyr game...");
 
@@ -184,6 +140,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
 
         EngineSettings.GameCanvasResolution = setupParams.CanvasRes;
+        EngineSettings.GameWindowResolution = setupParams.WindowRes;
         EngineSettings.CurrentBindingPreset = setupParams.DefaultBindingPreset ?? ActionBindingPreset.MakeDefault();
         EngineSettings.EnableVSync = setupParams.EnableVSync;
         EngineSettings.IsFullscreen = setupParams.IsFullscreen;
@@ -201,17 +158,20 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         IsFixedTimeStep = false;
 
         // allowing user resizing seems to explode things <3 unsure why <3
-        // Window.AllowUserResizing = true;
+        Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnResize;
         Window.Title = setupParams.WindowTitle;
 
-        Point res = EngineSettings.GameCanvasResolution + new Point(CanvasExpandSize);
+        graphics.ApplyChanges();
 
         ResizeCanvasDestination();
 
         base.Initialize();
     }
 
+    /// <summary>
+    /// Loads game content and initializes shaders, content management, and renderer
+    /// </summary>
     protected override sealed void LoadContent() {
         ShaderManager.I.Init(GraphicsDevice, ShaderManager.ShaderProfile.OpenGL);
         ContentHelper.I.Init(this, setupParams.RenderPipeline ?? throw new NullReferenceException("Cannot initialize content manager with null pipeline!"));
@@ -248,6 +208,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
     #region // Game loop
 
+    /// <summary>
+    /// Updates game logic, is run before every draw call
+    /// </summary>
+    /// <param name="gameTime">GameTime of this current frame</param>
     protected override void Update(GameTime gameTime) {
         Performance.Update(gameTime);
         Performance.FrametimeMeasureStart();
@@ -294,6 +258,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             );
             SetFullscreen(EngineSettings.IsFullscreen, EngineSettings.IsBorderless);
             graphics.SynchronizeWithVerticalRetrace = EngineSettings.EnableVSync;
+            graphics.PreferredBackBufferWidth = EngineSettings.GameWindowResolution.X;
+            graphics.PreferredBackBufferHeight = EngineSettings.GameWindowResolution.Y;
 
             graphics.ApplyChanges();
 
@@ -305,6 +271,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         base.Update(gameTime);
     }
 
+    /// <summary>
+    /// Draws the game to the window
+    /// </summary>
+    /// <param name="gameTime">GameTime of this current frame</param>
     protected override sealed void Draw(GameTime gameTime) {
         Performance.DrawMeasureStart();
 
@@ -315,6 +285,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
 
         Renderer.Render(canvasDestination, canvasScaling);
+        DrawCropBars();
 
         base.Draw(gameTime);
 
@@ -407,6 +378,35 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         OnResolutionChange?.Invoke(width, height, CanvasExpandSize);
 
         ResizeCanvasDestination();
+    }
+
+    private void DrawCropBars() {
+        Rectangle nonExpandedRect = canvasDestination;
+        nonExpandedRect.Inflate(
+            -CanvasExpandSize / 2 * canvasScaling,
+            -CanvasExpandSize / 2 * canvasScaling
+        );
+
+        bool drawHoriz = nonExpandedRect.X == 0;
+
+        Rectangle minBar = new(
+            0,
+            0,
+            drawHoriz ? nonExpandedRect.Width : nonExpandedRect.Left,
+            drawHoriz ? nonExpandedRect.Top : nonExpandedRect.Height
+        );
+
+        Rectangle maxBar = new(
+            drawHoriz ? 0 : nonExpandedRect.Right,
+            drawHoriz ? nonExpandedRect.Bottom : 0,
+            drawHoriz ? nonExpandedRect.Width : nonExpandedRect.Left,
+            drawHoriz ? nonExpandedRect.Top : nonExpandedRect.Height
+        );
+
+        Renderer.SpriteBatch.Begin();
+        Renderer.SpriteBatch.DrawRectFill(minBar, EngineSettings.RenderClearColor);
+        Renderer.SpriteBatch.DrawRectFill(maxBar, EngineSettings.RenderClearColor);
+        Renderer.SpriteBatch.End();
     }
 
     #endregion
