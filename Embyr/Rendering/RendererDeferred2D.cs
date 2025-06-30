@@ -315,9 +315,9 @@ internal class RendererDeferred2D : Renderer {
             lightRotations[i] = light.Transform.Rotation;
             lightSizeParams[i] = new Vector4(
                 light.Radius,
-                light.AngularWidth,
                 light.LinearFalloff,
-                light.AngularFalloff
+                light.InnerAngle,
+                light.OuterAngle
             );
             lightCastsShadow[i] = light.CastsShadow ? 1 : 0;
 

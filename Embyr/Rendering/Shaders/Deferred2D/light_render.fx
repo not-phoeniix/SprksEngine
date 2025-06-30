@@ -37,20 +37,6 @@ float Depth3DScalar;
 
 //* ~~~ functions ~~~
 
-float makePositiveAngle(float angle) {
-    // get sign and integer number of times the angle goes into 360 deg
-    float signValue = sign(angle);
-    float wholeDivisions = floor(abs(angle) / (M_PI * 2.0));
-
-    // we have one more division to add if it's negative
-    if (signValue == -1.0) {
-        wholeDivisions += 1.0;
-    }
-
-    // calculate rotated angle and return
-    return angle - (M_PI * 2.0 * wholeDivisions * signValue);
-}
-
 // creates a pixel-relative circle float value, where 0.0-1.0 signifies circle-nocircle
 float pixelCircle(float2 centerPixel, float2 fragCoordPixel, float pixelRadius, float smoothFactor) {
     float len = length(centerPixel - fragCoordPixel);
@@ -61,30 +47,6 @@ float pixelCircle(float2 centerPixel, float2 fragCoordPixel, float pixelRadius, 
         pixelRadius - smoothFactor,
         pixelRadius + smoothFactor,
         len + (smoothFactor * 0.25));
-}
-
-// creates an angular scalar for lighting
-float angleDist(float fragAngle, float facingAngle, float angularWidth, float smoothFactor) {
-    float fragAngleAdjusted = makePositiveAngle(fragAngle);
-    float facingAngleAdjusted = makePositiveAngle(facingAngle);
-
-    float distOne = abs(fragAngle - facingAngle);
-    float distTwo = abs(fragAngleAdjusted - facingAngle);
-    float distThree = abs(fragAngle - facingAngleAdjusted);
-    float distFour = abs(fragAngleAdjusted - facingAngleAdjusted);
-    float dist = min(distOne, min(distTwo, min(distThree, distFour)));
-
-    return smoothstep(
-        (angularWidth / 2.0) - smoothFactor,
-        (angularWidth / 2.0) + smoothFactor,
-        dist + (smoothFactor * 0.25));
-}
-
-// quantizes a continuous float value from 0.0-1.0 to be in even discreet steps
-float quantize(float value, uint numSteps) {
-    value *= float(numSteps);
-    value = floor(value);
-    return value / float(numSteps);
 }
 
 // uses distance field to march rays for collision checking
@@ -161,21 +123,29 @@ float softShadow(float2 lightPos, float2 texCoord, float k) {
 //! NOTE: function returns a float4 so we can use alpha
 //!   channel to blend with previous pass
 
-float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float angularWidth, float linearFalloff, float angularFalloff, float intensity, bool castsShadow) {
+float4 LocalLight(float2 uv, float3 normal, float4 depth, float2 position, float zIndex, float rotation, float3 color, float radius, float linearFalloff, float innerAngle, float outerAngle, float intensity, bool castsShadow) {
     float2 fragCoordPixel = uv * ScreenRes;
     float2 centerPixelPos = position * ScreenRes;
     float aspect = ScreenRes.x / ScreenRes.y;
 
-    // value from 0-1 on brightness of a light circle
+    // ~~~ linear scalar calculations ~~~
+
     float linearScalar = saturate(1.0 - pixelCircle(centerPixelPos, fragCoordPixel, radius, linearFalloff));
 
-    // ~~~ angular calculations ~~~
+    // ~~~ angular scalar calculations ~~~
 
-    float2 centerToFrag = uv - position;
-    centerToFrag.x *= aspect;
-    float angleToFrag = atan2(centerToFrag.y, centerToFrag.x);
+    float2 toFrag = normalize(uv - position);
+    float2 lightDir = float2(cos(rotation), sin(rotation));
 
-    float angleScalar = clamp(1.0 - angleDist(angleToFrag, rotation, angularWidth, angularFalloff), 0.0, 1.0);
+    // get saturated cosine of angle between light and frag direction
+    float cosDirFrag = saturate(dot(toFrag, lightDir));
+
+	// outer is restricted so lights aren't inverted, set to slightly larget when equal or less
+    float cosInner = cos(innerAngle);
+    float cosOuter = cos(max(outerAngle, innerAngle + 0.0001));
+
+    float falloffRange = cosOuter - cosInner;
+    float angleScalar = saturate((cosOuter - cosDirFrag) / falloffRange);
 
     // ~~~ normal calculations ~~~
     float3 lightPos = float3(position, zIndex * Depth3DScalar);
@@ -230,9 +200,9 @@ float4 MainPS(VSOutput input) : COLOR {
     [unroll(MAX_LIGHTS)] for (int i = 0; i < NumLights; i++) {
         // ~~~ initial light calculations ~~~
         float radius = SizeParams[i].x;
-        float angularWidth = SizeParams[i].y;
-        float linearFalloff = SizeParams[i].z;
-        float angularFalloff = SizeParams[i].w;
+        float linearFalloff = SizeParams[i].y;
+        float innerAngle = SizeParams[i].z;
+        float outerAngle = SizeParams[i].w;
         bool isGlobal = Positions[i].w > 0.0;
         float2 position = Positions[i].xy;
         float zIndex = Positions[i].z;
@@ -260,9 +230,9 @@ float4 MainPS(VSOutput input) : COLOR {
                 Rotations[i],
                 Colors[i],
                 radius,
-                angularWidth,
                 linearFalloff,
-                angularFalloff,
+                innerAngle,
+                outerAngle,
                 Intensities[i],
                 castsShadow);
         }

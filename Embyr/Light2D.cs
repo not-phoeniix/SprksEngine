@@ -15,14 +15,14 @@ public class Light2D : Light, ITransform2D {
     public float LinearFalloff { get; set; }
 
     /// <summary>
-    /// Gets/sets the angular width of light (in radians)
+    /// Gets/sets the inner angle of light for spotlights
     /// </summary>
-    public float AngularWidth { get; set; }
+    public float InnerAngle { get; set; }
 
     /// <summary>
-    /// Gets/sets the angular falloff of the light
+    /// Gets/sets the outer angle of the light for spotlights
     /// </summary>
-    public float AngularFalloff { get; set; }
+    public float OuterAngle { get; set; }
 
     /// <summary>
     /// Gets/sets the radius/distance of a light in pixels
@@ -35,8 +35,8 @@ public class Light2D : Light, ITransform2D {
     public Light2D() : base() {
         Transform = new Transform2D();
         LinearFalloff = 20;
-        AngularWidth = MathF.PI * 2;
-        AngularFalloff = 0;
+        InnerAngle = MathF.Tau;
+        OuterAngle = MathF.Tau;
         Radius = 50;
     }
 }

@@ -35,6 +35,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         public bool EnableVSync { get; init; }
         public bool IsFullscreen { get; init; }
         public bool IsBorderless { get; init; }
+        public bool AllowWindowResizing { get; init; }
         public ActionBindingPreset? DefaultBindingPreset { get; init; }
 
         /// <summary>
@@ -50,6 +51,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             EnableVSync = true;
             IsFullscreen = false;
             IsBorderless = false;
+            AllowWindowResizing = false;
             RenderPipeline = null;
             DefaultBindingPreset = null;
         }
@@ -157,8 +159,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         graphics.IsFullScreen = EngineSettings.IsFullscreen;
         IsFixedTimeStep = false;
 
-        // allowing user resizing seems to explode things <3 unsure why <3
-        Window.AllowUserResizing = true;
+        Window.AllowUserResizing = setupParams.AllowWindowResizing;
         Window.ClientSizeChanged += OnResize;
         Window.Title = setupParams.WindowTitle;
 
