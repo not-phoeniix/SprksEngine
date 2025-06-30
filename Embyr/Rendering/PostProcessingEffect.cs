@@ -170,19 +170,14 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         }
     }
 
-    /// <summary>
-    /// Changes the resolution of this post processing effect
-    /// </summary>
-    /// <param name="width">New width in pixels</param>
-    /// <param name="height">New height in pixels</param>
-    /// <param name="canvasExpandSize">Extra expand size in pixels</param>
-    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) {
+    /// <inheritdoc/>
+    public virtual void ChangeResolution(int width, int height) {
         foreach (Pass p in passes) {
-            p.Resize(width + canvasExpandSize, height + canvasExpandSize);
+            p.Resize(width, height);
         }
 
-        Width = width + canvasExpandSize;
-        Height = height + canvasExpandSize;
+        Width = width;
+        Height = height;
     }
 
     /// <summary>

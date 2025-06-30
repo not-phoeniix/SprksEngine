@@ -57,8 +57,7 @@ internal class RendererDeferred2D : Renderer {
 
         RecreateRenderTargets(
             EngineSettings.GameCanvasResolution.X,
-            EngineSettings.GameCanvasResolution.Y,
-            Game.CanvasExpandSize
+            EngineSettings.GameCanvasResolution.Y
         );
     }
 
@@ -157,9 +156,9 @@ internal class RendererDeferred2D : Renderer {
     }
 
     /// <inheritdoc/>
-    public override void ChangeResolution(int width, int height, int canvasExpandSize) {
-        base.ChangeResolution(width, height, canvasExpandSize);
-        RecreateRenderTargets(width, height, canvasExpandSize);
+    public override void ChangeResolution(int width, int height) {
+        base.ChangeResolution(width, height);
+        RecreateRenderTargets(width, height);
     }
 
     /// <summary>
@@ -184,13 +183,13 @@ internal class RendererDeferred2D : Renderer {
         );
     }
 
-    private void RecreateRenderTargets(int width, int height, int canvasExpandSize) {
+    private void RecreateRenderTargets(int width, int height) {
         void ResizeBuffer(ref RenderTarget2D buffer, SurfaceFormat format) {
             buffer?.Dispose();
             buffer = new RenderTarget2D(
                 GraphicsDevice,
-                width + canvasExpandSize,
-                height + canvasExpandSize,
+                width,
+                height,
                 false,
                 format,
                 DepthFormat.None

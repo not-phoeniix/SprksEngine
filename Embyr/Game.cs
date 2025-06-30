@@ -72,7 +72,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
     #region // Fields
 
-    internal static readonly int CanvasExpandSize = 32;
+    internal static readonly int CanvasExpandSize = 2;
 
     private readonly GraphicsDeviceManager graphics;
     private GameSetupParams setupParams;
@@ -97,9 +97,9 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     public Action OnLoseFocus;
 
     /// <summary>
-    /// Action called when low res canvas resolution changes, parameters are width, height, and canvas expand size
+    /// Action called when low res canvas resolution changes, parameters are width and height
     /// </summary>
-    public Action<int, int, int> OnResolutionChange;
+    public Action<int, int> OnResolutionChange;
 
     /// <summary>
     /// Gets bounds of any menu to create
@@ -254,8 +254,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         if (EngineSettings.ShouldApplyGraphicsChanges) {
             ChangeResolution(
-                EngineSettings.GameCanvasResolution.X,
-                EngineSettings.GameCanvasResolution.Y
+                EngineSettings.GameCanvasResolution.X + CanvasExpandSize,
+                EngineSettings.GameCanvasResolution.Y + CanvasExpandSize
             );
             SetFullscreen(EngineSettings.IsFullscreen, EngineSettings.IsBorderless);
             graphics.SynchronizeWithVerticalRetrace = EngineSettings.EnableVSync;
@@ -373,10 +373,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     }
 
     private void ChangeResolution(int width, int height) {
-        SceneManager.I.ChangeResolution(width, height, CanvasExpandSize);
-        Renderer?.ChangeResolution(width, height, CanvasExpandSize);
+        SceneManager.I.ChangeResolution(width, height);
+        Renderer?.ChangeResolution(width, height);
 
-        OnResolutionChange?.Invoke(width, height, CanvasExpandSize);
+        OnResolutionChange?.Invoke(width, height);
 
         ResizeCanvasDestination();
     }

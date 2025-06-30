@@ -187,8 +187,8 @@ public abstract class Scene2D : Scene {
     #endregion
 
     /// <inheritdoc/>
-    public override void ChangeResolution(int width, int height, int canvasExpandSize) {
-        Camera = new Camera2D(width + canvasExpandSize, height + canvasExpandSize) {
+    public override void ChangeResolution(int width, int height) {
+        Camera = new Camera2D(width, height) {
             Position = Camera.Position,
             Zoom = Camera.Zoom,
             Rotation = Camera.Rotation

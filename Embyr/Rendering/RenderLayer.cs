@@ -130,18 +130,13 @@ internal class RenderLayer : IResolution {
         sb.Draw(effectTarget, position, ColorTint);
     }
 
-    /// <summary>
-    /// Changes the resolution of this RenderLayer
-    /// </summary>
-    /// <param name="width">New width of layer in pixels</param>
-    /// <param name="height">New height of layer in pixels</param>
-    /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public void ChangeResolution(int width, int height, int canvasExpandSize) {
+    /// <inheritdoc/>
+    public void ChangeResolution(int width, int height) {
         renderTarget?.Dispose();
         renderTarget = new RenderTarget2D(
             gd,
-            width + canvasExpandSize,
-            height + canvasExpandSize,
+            width,
+            height,
             false,
             surfaceFormat,
             DepthFormat.None
@@ -149,8 +144,8 @@ internal class RenderLayer : IResolution {
         effectTarget?.Dispose();
         effectTarget = new RenderTarget2D(
             gd,
-            width + canvasExpandSize,
-            height + canvasExpandSize,
+            width,
+            height,
             false,
             surfaceFormat,
             DepthFormat.None

@@ -74,7 +74,10 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
         CurrentScene = initialScene;
         initialScene.LoadContent();
 
-        ChangeResolution(EngineSettings.GameCanvasResolution.X, EngineSettings.GameCanvasResolution.Y, Game.CanvasExpandSize);
+        ChangeResolution(
+            EngineSettings.GameCanvasResolution.X + Game.CanvasExpandSize,
+            EngineSettings.GameCanvasResolution.Y + Game.CanvasExpandSize
+        );
     }
 
     #region // Game loop
@@ -183,15 +186,10 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
         }
     }
 
-    /// <summary>
-    /// Changes the resolution of all internal scenes, and updates shaders
-    /// </summary>
-    /// <param name="width">Width in pixels to set</param>
-    /// <param name="height">Height in pixels to set</param>
-    /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public void ChangeResolution(int width, int height, int canvasExpandSize) {
+    /// <inheritdoc/>
+    public void ChangeResolution(int width, int height) {
         if (!IsLoading) {
-            CurrentScene.ChangeResolution(width, height, canvasExpandSize);
+            CurrentScene.ChangeResolution(width, height);
         }
     }
 

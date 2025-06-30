@@ -101,6 +101,7 @@ public class TileMap<T> : Actor2D where T : Enum {
         base.Draw(sb);
 
         Rectangle tilespaceView = GetTilespaceViewRect();
+        tilespaceView.Inflate(1, 1);
         for (int y = tilespaceView.Top; y <= tilespaceView.Bottom; y++) {
             for (int x = tilespaceView.Left; x <= tilespaceView.Right; x++) {
                 // don't draw if index is out of bounds
@@ -210,8 +211,9 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <returns>Rectangle converted into tile-space</returns>
     public Rectangle PixelToTileSpace(Rectangle rect, int padding = 0) {
         rect.Location -= Vector2.Floor(
-            Transform.GlobalPosition - new Vector2(Tile<T>.PixelSize / 2)
+            Transform.GlobalPosition
         ).ToPoint();
+
         return new Rectangle(
             (int)MathF.Floor(rect.X / Tile<T>.PixelSize) - padding,
             (int)MathF.Floor(rect.Y / Tile<T>.PixelSize) - padding,

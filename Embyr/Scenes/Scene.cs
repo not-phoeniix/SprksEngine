@@ -155,13 +155,8 @@ public abstract class Scene : IResolution {
         MenuStackPeek()?.DebugDraw(sb);
     }
 
-    /// <summary>
-    /// Changes the resolution of this scene
-    /// </summary>
-    /// <param name="width">New resolution width in pixels</param>
-    /// <param name="height">New resolution height in pixels</param>
-    /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) { }
+    /// <inheritdoc/>
+    public virtual void ChangeResolution(int width, int height) { }
 
     /// <summary>
     /// Adds an actor to this scene immediately (MAY CRASH WITH UPDATE LOOP)

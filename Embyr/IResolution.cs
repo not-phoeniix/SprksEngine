@@ -1,7 +1,7 @@
 namespace Embyr;
 
 /// <summary>
-/// Interface that contains method for changing resolution
+/// Interface that describes an object that has a screen resolution
 /// </summary>
 public interface IResolution {
     /// <summary>
@@ -9,6 +9,5 @@ public interface IResolution {
     /// </summary>
     /// <param name="width">Resolution width (in pixels)</param>
     /// <param name="height">Resolution height (in pixels)</param>
-    /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public void ChangeResolution(int width, int height, int canvasExpandSize);
+    public void ChangeResolution(int width, int height);
 }

@@ -11,7 +11,6 @@ namespace Embyr.Rendering;
 internal abstract class Renderer : IResolution {
     private readonly ToneMapGammaPostProcessingEffect toneMapPPE;
     private readonly Menu? loadingMenu;
-    private RenderTarget2D[] mips;
 
     /// <summary>
     /// List of all post processing effects to use when drawing
@@ -98,20 +97,16 @@ internal abstract class Renderer : IResolution {
         SpriteBatch.End();
     }
 
-    /// <summary>
-    /// Changes resolution of this renderer
-    /// </summary>
-    /// <param name="width">Width in pixels</param>
-    /// <param name="height">Height in pixels</param>
-    /// <param name="canvasExpandSize">Number of extra expanded pixels for canvas</param>
-    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) {
+    /// <inheritdoc/>
+    public virtual void ChangeResolution(int width, int height) {
         foreach (PostProcessingEffect fx in PostProcessingEffects) {
-            fx.ChangeResolution(width, height, canvasExpandSize);
+            fx.ChangeResolution(width, height);
         }
 
-        loadingMenu?.ChangeResolution(width, height, canvasExpandSize);
-        SceneRenderLayer.ChangeResolution(width, height, canvasExpandSize);
-        UIRenderLayer.ChangeResolution(width, height, canvasExpandSize);
+        toneMapPPE.ChangeResolution(width, height);
+        loadingMenu?.ChangeResolution(width, height);
+        SceneRenderLayer.ChangeResolution(width, height);
+        UIRenderLayer.ChangeResolution(width, height);
     }
 
     /// <summary>

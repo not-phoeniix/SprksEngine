@@ -198,14 +198,14 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
         }
     }
 
-    /// <summary>
-    /// Changes the resolution of this menu by changing the bounding rectangle values
-    /// </summary>
-    /// <param name="width">Resolution width (in pixels)</param>
-    /// <param name="height">Resolution height (in pixels)</param>
-    /// <param name="canvasExpandSize">Number of pixels to expand bounds for scroll smoothing</param>
-    public virtual void ChangeResolution(int width, int height, int canvasExpandSize) {
-        Bounds = new Rectangle(canvasExpandSize / 2, canvasExpandSize / 2, width, height);
+    /// <inheritdoc/>
+    public virtual void ChangeResolution(int width, int height) {
+        Bounds = new Rectangle(
+            Game.CanvasExpandSize / 2,
+            Game.CanvasExpandSize / 2,
+            width - Game.CanvasExpandSize,
+            height - Game.CanvasExpandSize
+        );
     }
 
     /// <summary>
@@ -385,5 +385,32 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
     /// </summary>
     public void InvokeBackAction() {
         OnBackAction?.Invoke();
+    }
+
+    // TODO: remove this function after rewriting UI library...
+    //   this is a very jank workaround !!
+    //   I am aware it's not a good solution !!!!
+
+    /// <summary>
+    /// Resizes menu bounds accounting for canvas expand size
+    /// </summary>
+    /// <param name="left">Coordinates of right side of rectangle</param>
+    /// <param name="right">Coordinates of right side of rectangle</param>
+    /// <param name="top">Coordinates of top side of rectangle</param>
+    /// <param name="bottom">Coordinates of bottom side of rectangle</param>
+    public void SmartResizeBounds(int left, int right, int top, int bottom) {
+        int minX = Game.CanvasExpandSize / 2;
+        int minY = Game.CanvasExpandSize / 2;
+        int maxX = EngineSettings.GameCanvasResolution.X + minX;
+        int maxY = EngineSettings.GameCanvasResolution.Y + minY;
+
+        left = Math.Clamp(left, minX, maxX);
+        right = Math.Clamp(right, minX, maxX);
+        top = Math.Clamp(top, minY, maxY);
+        bottom = Math.Clamp(bottom, minY, maxY);
+
+        int width = Math.Max(right - left, 0);
+        int height = Math.Max(bottom - top, 0);
+        Bounds = new Rectangle(left, top, width, height);
     }
 }
