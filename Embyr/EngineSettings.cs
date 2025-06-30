@@ -103,6 +103,11 @@ public static class EngineSettings {
     public static float Gamma { get; set; } = 2.2f;
 
     /// <summary>
+    /// Gets/sets the title of the game window
+    /// </summary>
+    public static string WindowTitle { get; set; } = "Embyr Project";
+
+    /// <summary>
     /// Toggles the value of <c>EngineSettings.ShowDebugDrawing</c>
     /// </summary>
     public static void ToggleDebugDrawing() {

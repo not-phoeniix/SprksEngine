@@ -148,6 +148,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         EngineSettings.IsFullscreen = setupParams.IsFullscreen;
         EngineSettings.IsBorderless = setupParams.IsBorderless;
         EngineSettings.RenderClearColor = setupParams.RenderClearColor;
+        EngineSettings.WindowTitle = setupParams.WindowTitle;
 
         loadingMenu = setupParams.LoadingMenu;
 
@@ -161,7 +162,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         Window.AllowUserResizing = setupParams.AllowWindowResizing;
         Window.ClientSizeChanged += OnResize;
-        Window.Title = setupParams.WindowTitle;
 
         graphics.ApplyChanges();
 
@@ -217,6 +217,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.Update(gameTime);
         Performance.FrametimeMeasureStart();
         Performance.UpdateMeasureStart();
+
+        Window.Title = EngineSettings.WindowTitle;
 
         Matrix invertCam2DMat = Matrix.Identity;
         if (SceneManager.I.CurrentScene is Scene2D scene) {
