@@ -87,6 +87,11 @@ public abstract class Scene : IResolution {
             MenuStackPeek()?.Update(dt);
         }
 
+        // flush the add/remove queues at first,
+        //   happens regardless of pause state
+        FlushAddQueue();
+        FlushRemovalQueue();
+
         // deal with actor and scene updating only when not paused
         if (!Paused) {
             // update all actors, reorganize them in the update loop!!
@@ -95,11 +100,6 @@ public abstract class Scene : IResolution {
                 CustomActorUpdate(actor, dt);
             }
         }
-
-        // flush the add/remove queues after all actor updating,
-        //   happens regardless of pause state
-        FlushAddQueue();
-        FlushRemovalQueue();
 
         menuStackChanged = false;
     }
