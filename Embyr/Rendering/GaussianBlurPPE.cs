@@ -5,7 +5,7 @@ namespace Embyr.Rendering;
 /// <summary>
 /// Gaussian blur, inherits from PostProcessingEffect
 /// </summary>
-public class GaussianBlurPostProcessingEffect : PostProcessingEffect {
+public class GaussianBlurPPE : PostProcessingEffect {
     private readonly Effect fxBlur;
 
     private int numPasses;
@@ -31,7 +31,7 @@ public class GaussianBlurPostProcessingEffect : PostProcessingEffect {
     /// Creates a new GaussianBlurPostProcessingEffect
     /// </summary>
     /// <param name="gd">GraphicsDevice to create effect with</param>
-    public GaussianBlurPostProcessingEffect(GraphicsDevice gd) : base(gd) {
+    public GaussianBlurPPE(GraphicsDevice gd) : base(gd) {
         fxBlur = ShaderManager.I.LoadShader("Blurs/gaussian_blur_separated");
         numPasses = 1;
         SetupPasses(numPasses);
@@ -44,17 +44,13 @@ public class GaussianBlurPostProcessingEffect : PostProcessingEffect {
             AddPass(new Pass(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(false),
-                Width,
-                Height
+                s => s.Parameters["IsVertical"].SetValue(false)
             ));
 
             AddPass(new Pass(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(true),
-                Width,
-                Height
+                s => s.Parameters["IsVertical"].SetValue(true)
             ));
         }
     }

@@ -6,7 +6,7 @@ namespace Embyr.Rendering;
 /// <summary>
 /// Tone mapping and gamma correction post process, inherits from PostProcessingEffect
 /// </summary>
-public class ToneMapGammaPostProcessingEffect : PostProcessingEffect {
+public class ToneMapGammaPPE : PostProcessingEffect {
     private readonly Effect fxToneMap;
 
     /// <summary>
@@ -18,15 +18,13 @@ public class ToneMapGammaPostProcessingEffect : PostProcessingEffect {
     /// Creates a new GaussianBlurPostProcessingEffect
     /// </summary>
     /// <param name="gd">GraphicsDevice to create effect with</param>
-    public ToneMapGammaPostProcessingEffect(GraphicsDevice gd) : base(gd) {
+    public ToneMapGammaPPE(GraphicsDevice gd) : base(gd) {
         fxToneMap = ShaderManager.I.LoadShader("PostProcessing/tone_map_gamma");
 
         AddPass(new Pass(
             fxToneMap,
             gd,
             s => s.Parameters["Gamma"].SetValue(Gamma),
-            Width,
-            Height,
             SurfaceFormat.Color
         ));
     }

@@ -9,7 +9,7 @@ namespace Embyr.Rendering;
 /// An abstract class that represents a renderer
 /// </summary>
 internal abstract class Renderer : IResolution {
-    private readonly ToneMapGammaPostProcessingEffect toneMapPPE;
+    private readonly ToneMapGammaPPE toneMapPPE;
     private readonly Menu? loadingMenu;
 
     /// <summary>
@@ -54,7 +54,7 @@ internal abstract class Renderer : IResolution {
         this.loadingMenu = loadingMenu;
         this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
-        this.toneMapPPE = new ToneMapGammaPostProcessingEffect(gd);
+        this.toneMapPPE = new ToneMapGammaPPE(gd);
 
         Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);
         SceneRenderLayer = new RenderLayer(res, gd, SurfaceFormat.HalfVector4, true);
@@ -144,7 +144,7 @@ internal abstract class Renderer : IResolution {
     /// </summary>
     /// <param name="targetLayer">Render layer to render effects onto</param>
     protected void RenderPostProcessing(RenderLayer targetLayer) {
-        // render all post processing effects !!
+        // render all PRE-TONEMAP post processing effects !!
         RenderTarget2D prevTarget = targetLayer.RenderTarget;
         for (int i = 0; i < PostProcessingEffects.Count; i++) {
             // just don't do any post processing if it's disabled!
@@ -152,7 +152,7 @@ internal abstract class Renderer : IResolution {
 
             // grab reference to iteration effect, skip if disabled
             PostProcessingEffect fx = PostProcessingEffects[i];
-            if (!fx.Enabled) continue;
+            if (!fx.Enabled || fx.PostToneMap) continue;
 
             fx.InputRenderTarget = prevTarget;
             fx.Draw(SpriteBatch);
@@ -160,11 +160,26 @@ internal abstract class Renderer : IResolution {
             prevTarget = fx.FinalRenderTarget;
         }
 
-        // apply tone mapping
+        // ~~~ apply tone mapping ~~~
         toneMapPPE.Gamma = Settings.Gamma;
         toneMapPPE.InputRenderTarget = prevTarget;
         toneMapPPE.Draw(SpriteBatch);
         prevTarget = toneMapPPE.FinalRenderTarget;
+
+        // render all POST-TONEMAP post processing effects !!
+        for (int i = 0; i < PostProcessingEffects.Count; i++) {
+            // just don't do any post processing if it's disabled!
+            if (!Settings.EnablePostProcessing) break;
+
+            // grab reference to iteration effect, skip if disabled
+            PostProcessingEffect fx = PostProcessingEffects[i];
+            if (!fx.Enabled || !fx.PostToneMap) continue;
+
+            fx.InputRenderTarget = prevTarget;
+            fx.Draw(SpriteBatch);
+
+            prevTarget = fx.FinalRenderTarget;
+        }
 
         // draw final post process layer BACK to world layer
         targetLayer.ScreenSpaceEffect = null;

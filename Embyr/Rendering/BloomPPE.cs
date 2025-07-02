@@ -6,7 +6,7 @@ namespace Embyr.Rendering;
 /// HDR bloom post processing effect with 5 pixel radius gaussian blur,
 /// inherits from <c>PostProcessingEffect</c>
 /// </summary>
-public class BloomPostProcessingEffect : PostProcessingEffect {
+public class BloomPPE : PostProcessingEffect {
     private readonly Effect fxBloomThreshold;
     private readonly Effect fxBlur;
     private readonly Effect fxBloomCombine;
@@ -27,7 +27,7 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
 
             if (value != numBlurPasses) {
                 ClearPasses();
-                SetupPasses(Width, Height, value);
+                SetupPasses(value);
             }
 
             numBlurPasses = value;
@@ -40,25 +40,23 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
     /// <param name="gd">GraphicsDevice to create bloom with</param>
     /// <param name="luminanceThreshold">HDR luminance threshold to apply bloom to</param>
     /// <param name="numBlurPasses">Number of blur passes to use when blurring bloom</param>
-    public BloomPostProcessingEffect(GraphicsDevice gd, float luminanceThreshold = 1.0f, int numBlurPasses = 2) : base(gd) {
+    public BloomPPE(GraphicsDevice gd, float luminanceThreshold = 1.0f, int numBlurPasses = 2) : base(gd) {
         fxBloomThreshold = ShaderManager.I.LoadShader("PostProcessing/bloom_threshold");
         fxBlur = ShaderManager.I.LoadShader("Blurs/gaussian_blur_separated");
         fxBloomCombine = ShaderManager.I.LoadShader("PostProcessing/bloom_combine");
 
         LuminanceThreshold = luminanceThreshold;
         this.numBlurPasses = numBlurPasses;
-        SetupPasses(Width, Height, numBlurPasses);
+        SetupPasses(numBlurPasses);
     }
 
-    private void SetupPasses(int width, int height, int numBlurPasses) {
+    private void SetupPasses(int numBlurPasses) {
         Pass thresholdPass = new(
             fxBloomThreshold,
             GraphicsDevice,
             (shader) => {
                 shader.Parameters["Threshold"].SetValue(LuminanceThreshold);
-            },
-            width,
-            height
+            }
         );
 
         AddPass(thresholdPass);
@@ -67,17 +65,13 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
             Pass blurVertical = new(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(true),
-                width,
-                height
+                s => s.Parameters["IsVertical"].SetValue(true)
             );
 
             Pass blurHorizontal = new(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(false),
-                width,
-                height
+                s => s.Parameters["IsVertical"].SetValue(false)
             );
 
             AddPass(blurVertical);
@@ -89,9 +83,7 @@ public class BloomPostProcessingEffect : PostProcessingEffect {
             GraphicsDevice,
             (shader) => {
                 shader.Parameters["InitialTexture"].SetValue(InputRenderTarget);
-            },
-            width,
-            height
+            }
         );
 
         AddPass(combinePass);

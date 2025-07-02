@@ -14,11 +14,12 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         private readonly Effect shader;
         private readonly Action<Effect>? passShaderDataHandler;
         private readonly SurfaceFormat surfaceFormat;
+        private readonly GraphicsDevice graphicsDevice;
 
         /// <summary>
         /// Gets the render target of this effect pass
         /// </summary>
-        public RenderTarget2D RenderTarget { get; private set; }
+        internal RenderTarget2D? RenderTarget { get; private set; }
 
         /// <summary>
         /// Color to clear pass's render target
@@ -31,21 +32,26 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="shader">Shader that pass runs on</param>
         /// <param name="graphicsDevice">Graphics device to create pass with</param>
         /// <param name="passShaderDataHandler">Callback to handle passing of shader data, called before drawing</param>
-        /// <param name="width">Resolution width in pixels of effect pass</param>
-        /// <param name="height">Resolution height in pixels of effect pass</param>
         /// <param name="surfaceFormat">Surface format of pass's internal render target</param>
         public Pass(
             Effect shader,
             GraphicsDevice graphicsDevice,
             Action<Effect>? passShaderDataHandler,
-            int width,
-            int height,
             SurfaceFormat surfaceFormat = SurfaceFormat.HalfVector4
         ) {
             this.shader = shader;
             this.passShaderDataHandler = passShaderDataHandler;
             this.ClearColor = Color.Black;
             this.surfaceFormat = surfaceFormat;
+            this.graphicsDevice = graphicsDevice;
+        }
+
+        /// <summary>
+        /// Creates the render target contained within this pass
+        /// </summary>
+        /// <param name="width">Width of target in pixels</param>
+        /// <param name="height">Height of target in pixels</param>
+        internal void CreateRenderTarget(int width, int height) {
             RenderTarget = new RenderTarget2D(
                 graphicsDevice,
                 width,
@@ -61,7 +67,15 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// </summary>
         /// <param name="inputTarget">Input screenspace target to render with shader</param>
         /// <param name="sb">SpriteBatch to draw with</param>
-        public void Draw(RenderTarget2D inputTarget, SpriteBatch sb) {
+        internal void Draw(RenderTarget2D inputTarget, SpriteBatch sb) {
+            if (RenderTarget == null) {
+                throw new NullReferenceException("Cannot draw post processing effect, Render Target was never created!");
+            }
+
+            if (inputTarget == null) {
+                throw new NullReferenceException("Cannot draw post processing effect, inputted render target is null!");
+            }
+
             passShaderDataHandler?.Invoke(shader);
             shader.Parameters["ScreenRes"]?.SetValue(new Vector2(RenderTarget.Width, RenderTarget.Height));
 
@@ -78,7 +92,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// </summary>
         /// <param name="width">New width in pixels of this pass</param>
         /// <param name="height">New height in pixels of this pass</param>
-        public void Resize(int width, int height) {
+        internal void Resize(int width, int height) {
             RenderTarget?.Dispose();
             RenderTarget = new RenderTarget2D(
                 shader.GraphicsDevice,
@@ -103,12 +117,18 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     /// <summary>
     /// Gets the width of this effect target in pixels
     /// </summary>
-    public int Width { get; private set; }
+    internal int Width { get; private set; }
 
     /// <summary>
     /// Gets the height of this effect target in pixels
     /// </summary>
-    public int Height { get; private set; }
+    internal int Height { get; private set; }
+
+    /// <summary>
+    /// Gets whether or not post processing effect
+    /// should apply after tonemapping at the end of the pipeline
+    /// </summary>
+    internal bool PostToneMap { get; }
 
     /// <summary>
     /// Graphics device of this effect
@@ -118,12 +138,12 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     /// <summary>
     /// Gets a reference to the inputted render target from before this effect is applied
     /// </summary>
-    public RenderTarget2D? InputRenderTarget { get; set; }
+    internal RenderTarget2D? InputRenderTarget { get; set; }
 
     /// <summary>
     /// Gets the render target of the final effect in this post processing effect
     /// </summary>
-    public RenderTarget2D FinalRenderTarget {
+    internal RenderTarget2D FinalRenderTarget {
         get {
             if (passes.Count == 0) {
                 throw new Exception("Cannot get final render target - no passes set up in effect!");
@@ -142,8 +162,10 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     /// Creates a new PostProcessingEffect
     /// </summary>
     /// <param name="graphicsDevice">Graphics Device to create effect with</param>
-    public PostProcessingEffect(GraphicsDevice graphicsDevice) {
+    /// <param name="postToneMap">Whether or not to trigger post processing effect after tonemapping is applied, at the end of the pipeline</param>
+    public PostProcessingEffect(GraphicsDevice graphicsDevice, bool postToneMap = false) {
         this.GraphicsDevice = graphicsDevice ?? throw new NullReferenceException("Graphics device null, cannot create post processing effect!");
+        this.PostToneMap = postToneMap;
         passes = new List<Pass>();
         Enabled = true;
 
@@ -164,7 +186,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         for (int i = 0; i < passes.Count; i++) {
             RenderTarget2D prevTarget = i == 0
                 ? InputRenderTarget
-                : passes[i - 1].RenderTarget;
+                : passes[i - 1].RenderTarget!;
 
             passes[i].Draw(prevTarget, sb);
         }
@@ -198,6 +220,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
     protected void AddPass(Pass pass) {
         if (pass != null) {
             passes.Add(pass);
+            pass.CreateRenderTarget(Width, Height);
         }
     }
 
