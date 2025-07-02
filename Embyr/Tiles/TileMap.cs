@@ -9,8 +9,11 @@ namespace Embyr.Tiles;
 /// A 2D grid/map of tiles, inherits from Actor2D
 /// </summary>
 /// <typeparam name="T">Tile's type enum, contains all possible tile type values</typeparam>
-public class TileMap<T> : Actor2D where T : Enum {
+public sealed class TileMap<T> : Actor2D where T : Enum {
+    private static readonly int chunkSize = 8;
+
     private readonly NList2D<Tile<T>?> tiles;
+    private readonly NList2D<BoxCollider2D> chunks;
     private readonly BoxCollider2D collider;
 
     /// <summary>
@@ -42,8 +45,9 @@ public class TileMap<T> : Actor2D where T : Enum {
     public TileMap(Vector2 position, float simulationDistance, Scene2D scene)
     : base(position, scene) {
         this.SimulationDistance = simulationDistance;
-        this.tiles = new NList2D<Tile<T>?>();
         this.Transform = new Transform2D(position);
+        this.tiles = new NList2D<Tile<T>?>();
+        this.chunks = new NList2D<BoxCollider2D>();
         this.collider = AddComponent<BoxCollider2D>();
         collider.Collidable = false;
     }
@@ -123,6 +127,13 @@ public class TileMap<T> : Actor2D where T : Enum {
                 tiles[x, y]?.DebugDraw(sb);
             }
         }
+
+        for (int x = chunks.Min.X; x < chunks.Max.X; x++) {
+            for (int y = chunks.Min.Y; y < chunks.Max.Y; y++) {
+                if (!chunks.InBounds(x, y)) continue;
+                chunks[x, y]?.DebugDraw(sb);
+            }
+        }
     }
 
     /// <summary>
@@ -132,15 +143,36 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <param name="x">X index to add, can be negative</param>
     /// <param name="y">Y index to add, can be negative</param>
     public void AddTile(Tile<T>? tile, int x, int y) {
-        tiles.Add(tile, x, y);
+        RemoveTile(x, y, false);
+
+        Point chunkIndex = new(
+            (int)MathF.Floor((float)x / chunkSize),
+            (int)MathF.Floor((float)y / chunkSize)
+        );
+
+        Point chunkPixelSize = new(chunkSize * Tile<T>.PixelSize);
+
+        if (!chunks.TryGetData(chunkIndex.X, chunkIndex.Y, out BoxCollider2D? chunk) || chunk == null) {
+            chunk = new BoxCollider2D(this) {
+                Collidable = false,
+                Size = chunkPixelSize,
+                Offset = new Point(chunkPixelSize.X / 2 - (Tile<T>.PixelSize / 2)) + chunkPixelSize * chunkIndex
+            };
+            collider.AddChild(chunk);
+
+            chunks.Add(chunk, chunkIndex.X, chunkIndex.Y);
+        }
 
         if (tile != null) {
+            tiles.Add(tile, x, y);
+
             tile.Transform.Parent = Transform;
             tile.Transform.Position = new Vector2(
                 x * Tile<T>.PixelSize,
                 y * Tile<T>.PixelSize
             );
-            collider.AddChild(tile.Collider);
+
+            chunk.AddChild(tile.Collider);
         }
 
         for (int x2 = x - 1; x2 <= x + 1; x2++) {
@@ -168,6 +200,50 @@ public class TileMap<T> : Actor2D where T : Enum {
     /// <param name="pos">X/Y index point to add tile to</param>
     public void AddTile(Tile<T>? tile, Point pos) {
         AddTile(tile, pos.X, pos.Y);
+    }
+
+    /// <summary>
+    /// Removes a tile from this map and returns it
+    /// </summary>
+    /// <param name="x">X index to add, can be negative</param>
+    /// <param name="y">Y index to add, can be negative</param>
+    /// <returns>Reference to the tile removed at that index, can be null</returns>
+    public Tile<T>? RemoveTile(int x, int y) {
+        return RemoveTile(x, y, true);
+    }
+
+    /// <summary>
+    /// Removes a tile from this map and returns it
+    /// </summary>
+    /// <param name="pos">X/Y index point to add tile to</param>
+    /// <returns>Reference to the tile removed at that index, can be null</returns>
+    public Tile<T>? RemoveTile(Point pos) {
+        return RemoveTile(pos.X, pos.Y);
+    }
+
+    private Tile<T>? RemoveTile(int x, int y, bool recalculate) {
+        // detatch existing tile if it exists
+        if (tiles.TryGetData(x, y, out Tile<T>? existingTile) && existingTile != null) {
+            Transform.RemoveChild(existingTile.Transform);
+            existingTile.Collider.RemoveFromParent();
+            tiles[x, y] = null;
+
+            if (recalculate) {
+                for (int x2 = x - 1; x2 <= x + 1; x2++) {
+                    for (int y2 = y - 1; y2 <= y + 1; y2++) {
+                        if (tiles.InBounds(x2, y2)) {
+                            tiles[x2, y2]?.UpdateEdges(this, null);
+                        }
+                    }
+                }
+
+                RecalculateBounds();
+            }
+
+            return existingTile;
+        }
+
+        return null;
     }
 
     private Rectangle GetTilespaceViewRect() {

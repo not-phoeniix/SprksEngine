@@ -128,7 +128,7 @@ public class PhysicsComponent2D : ActorComponent2D {
     /// <summary>
     /// Callback executed when the component collides with a tile
     /// </summary>
-    public event Action? OnCollide;
+    public event Action<Collider2D>? OnCollide;
 
     /// <summary>
     /// Creates a new physics component
@@ -331,6 +331,7 @@ public class PhysicsComponent2D : ActorComponent2D {
 
             float largestArea = 0;
             Vector2 displacement = Vector2.Zero;
+            Collider2D? largestAreaCollider = null;
 
             // find largest collision area
             foreach (Actor2D a in scene.GetActorsInRadius(Actor.Transform.GlobalPosition, collisionRadius)) {
@@ -342,12 +343,13 @@ public class PhysicsComponent2D : ActorComponent2D {
                 // get most specific collider at first, will
                 //   be null if it does not collide so we skip
                 otherCollider = otherCollider?.GetMostSpecificCollidingChild(collider);
-                if (otherCollider == null) continue;
+                if (otherCollider == null || !otherCollider.Collidable) continue;
 
                 float area = otherCollider.GetOverlappingArea(collider);
 
                 if (area > largestArea) {
                     largestArea = area;
+                    largestAreaCollider = otherCollider;
                     displacement = collider.GetDisplacementVector(otherCollider);
                     anyCollisionsOccured = true;
                     somethingCollided = true;
@@ -375,8 +377,8 @@ public class PhysicsComponent2D : ActorComponent2D {
             }
 
             // invoke collision callback when a collision occurs for the first frame
-            if (somethingCollided && !somethingCollidedPrev) {
-                OnCollide?.Invoke();
+            if (somethingCollided && !somethingCollidedPrev && largestAreaCollider != null) {
+                OnCollide?.Invoke(largestAreaCollider);
                 somethingCollidedPrev = true;
             }
 
