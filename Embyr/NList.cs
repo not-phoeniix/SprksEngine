@@ -7,13 +7,13 @@ namespace Embyr;
 /// A collection in 1D space, can be indexed negatively
 /// </summary>
 public sealed class NList<T> {
-    private T[] data;
+    private T?[] data;
     private int offset;
 
     /// <summary>
     /// Access data by index, can be negative
     /// </summary>
-    public T this[int i] {
+    public T? this[int i] {
         get { return GetData(i); }
         set { SetData(value, i); }
     }
@@ -38,8 +38,7 @@ public sealed class NList<T> {
     /// <summary>
     /// Creates a new negative collection array
     /// </summary>
-    /// <param name="width">Width of collection array</param>
-    /// <param name="height">Height of collection array</param>
+    /// <param name="size">Initial size of NList</param>
     public NList(int size) {
         data = new T[size];
         offset = size / 2;
@@ -53,10 +52,9 @@ public sealed class NList<T> {
     /// <summary>
     /// Retrieves an item from the collection via indexed x/y
     /// </summary>
-    /// <param name="x">X index (can be negative)</param>
-    /// <param name="y">Y index (can be negative)</param>
+    /// <param name="i">Index (can be negative)</param>
     /// <returns>Reference to item at inputted indices</returns>
-    public T GetData(int i) {
+    public T? GetData(int i) {
         // throw exception if out of bounds
         if (!InBounds(i)) {
             throw new Exception($"Index ({i}) is out of bounds of negative collection!");
@@ -66,12 +64,28 @@ public sealed class NList<T> {
     }
 
     /// <summary>
+    /// Tries to get data in this NList without throwing an out of bounds exception
+    /// </summary>
+    /// <param name="i">Index (can be negative)</param>
+    /// <param name="data">Output data if it exists</param>
+    /// <returns>Whether or not data exists in n list</returns>
+    public bool TryGetData(int i, out T? data) {
+        if (InBounds(i)) {
+            data = this.data[i + offset];
+            return true;
+        }
+
+        data = default;
+        return false;
+    }
+
+    /// <summary>
     /// Puts an item into the collection at the given
     /// index, only within current existing size
     /// </summary>
     /// <param name="item">Item to add to collection</param>
     /// <param name="i">Index to set data at (can be negative)</param>
-    public void SetData(T item, int i) {
+    public void SetData(T? item, int i) {
         // throw exception if out of bounds
         if (!InBounds(i)) {
             throw new Exception($"Index ({i}) is out of bounds of negative collection!");
@@ -119,10 +133,10 @@ public sealed class NList<T> {
 
         // create new offset and new array
         int newOffset = newSize / 2;
-        T[] newData = new T[newSize];
+        T?[] newData = new T[newSize];
 
         // copy old array contents into "center" of new array
-        for (int i = -size / 2; i < size / 2; i++) {
+        for (int i = -size / 2; i < Math.Max(size / 2, -size / 2 + 1); i++) {
             newData[i + newOffset] = data[i + offset];
         }
 

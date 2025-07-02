@@ -7,13 +7,13 @@ namespace Embyr;
 /// A collection in 2D space, can be indexed negatively
 /// </summary>
 public sealed class NList2D<T> {
-    private T[,] data;
+    private T?[,] data;
     private Point offset;
 
     /// <summary>
     /// Access data by index, can be negative
     /// </summary>
-    public T this[int x, int y] {
+    public T? this[int x, int y] {
         get { return GetData(x, y); }
         set { SetData(value, x, y); }
     }
@@ -63,7 +63,7 @@ public sealed class NList2D<T> {
     /// <param name="x">X index (can be negative)</param>
     /// <param name="y">Y index (can be negative)</param>
     /// <returns>Reference to item at inputted indices</returns>
-    public T GetData(int x, int y) {
+    public T? GetData(int x, int y) {
         // throw exception if out of bounds
         if (!InBounds(x, y)) {
             throw new Exception($"Index ({x}, {y}) is out of bounds of negative collection!");
@@ -73,13 +73,30 @@ public sealed class NList2D<T> {
     }
 
     /// <summary>
+    /// Tries to get data in this NList2D without throwing an out of bounds exception
+    /// </summary>
+    /// <param name="x">X index (can be negative)</param>
+    /// <param name="y">Y index (can be negative)</param>
+    /// <param name="data">Output data if it exists</param>
+    /// <returns>Whether or not data exists in n list</returns>
+    public bool TryGetData(int x, int y, out T? data) {
+        if (InBounds(x, y)) {
+            data = this.data[x + offset.X, y + offset.Y];
+            return true;
+        }
+
+        data = default;
+        return false;
+    }
+
+    /// <summary>
     /// Puts an item into the collection at the given
     /// index, only within current existing size
     /// </summary>
     /// <param name="item">Item to add to collection</param>
     /// <param name="x">X index (can be negative)</param>
     /// <param name="y">Y index (can be negative)</param>
-    public void SetData(T item, int x, int y) {
+    public void SetData(T? item, int x, int y) {
         // throw exception if out of bounds
         if (!InBounds(x, y)) {
             throw new Exception($"Index ({x}, {y}) is out of bounds of negative collection!");
@@ -145,11 +162,11 @@ public sealed class NList2D<T> {
 
         // create new offset and new array
         Point newOffset = new(newWidth / 2, offset.Y);
-        T[,] newData = new T[newWidth, height];
+        T?[,] newData = new T[newWidth, height];
 
         // copy old array contents into "center" of new array
-        for (int x = -width / 2; x < width / 2; x++) {
-            for (int y = -height / 2; y < height / 2; y++) {
+        for (int x = -width / 2; x < Math.Max(width / 2, -width / 2 + 1); x++) {
+            for (int y = -height / 2; y < Math.Max(height / 2, -height / 2 + 1); y++) {
                 newData[x + newOffset.X, y + newOffset.Y] = data[x + offset.X, y + offset.Y];
             }
         }
@@ -167,11 +184,11 @@ public sealed class NList2D<T> {
 
         // create new offset and new array
         Point newOffset = new(offset.X, newHeight / 2);
-        T[,] newData = new T[width, newHeight];
+        T?[,] newData = new T[width, newHeight];
 
         // copy old array contents into "center" of new array
-        for (int x = -width / 2; x < width / 2; x++) {
-            for (int y = -height / 2; y < height / 2; y++) {
+        for (int x = -width / 2; x < Math.Max(width / 2, -width / 2 + 1); x++) {
+            for (int y = -height / 2; y < Math.Max(height / 2, -height / 2 + 1); y++) {
                 newData[x + newOffset.X, y + newOffset.Y] = data[x + offset.X, y + offset.Y];
             }
         }
