@@ -134,8 +134,6 @@ public class PhysicsComponent2D : ActorComponent2D {
     /// Creates a new physics component
     /// </summary>
     /// <param name="actor">Actor to attach this component to</param>
-    /// <param name="mass">Mass of object</param>
-    /// <param name="maxSpeed">Maximum speed of object</param>
     internal PhysicsComponent2D(Actor2D actor) : base(actor) {
         this.prevTransformPos = actor.Transform.GlobalPosition;
         this.position = actor.Transform.GlobalPosition;
@@ -154,7 +152,6 @@ public class PhysicsComponent2D : ActorComponent2D {
     /// <summary>
     /// Updates physics simulation for this component. Should be called every PhysicsUpdate.
     /// </summary>
-    /// <param name="scene">Scene that physics component exists in</param>
     /// <param name="deltaTime">Time passed since last PhysicsUpdate</param>
     public override void PhysicsUpdate(float deltaTime) {
         // update prev pos before anything changes first
