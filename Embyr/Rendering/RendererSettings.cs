@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework;
+
 namespace Embyr.Rendering;
 
 /// <summary>
@@ -13,6 +15,16 @@ public sealed class RendererSettings {
     /// Gets/sets whether or not to enable post processing
     /// </summary>
     public bool EnablePostProcessing { get; set; } = true;
+
+    /// <summary>
+    /// Gets/sets whether or not to enable tonemapping during post processing pass
+    /// </summary>
+    public bool EnableTonemapping { get; set; } = true;
+
+    /// <summary>
+    /// Gets/sets the color to clear the canvas every frame
+    /// </summary>
+    public Color ClearColor { get; set; } = Color.Black;
 
     /// <summary>
     /// Gets/sets the volumetric scalar factor for lighting

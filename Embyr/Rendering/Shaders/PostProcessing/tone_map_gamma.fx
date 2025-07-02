@@ -6,6 +6,7 @@ sampler2D SpriteTextureSampler = sampler_state {
 };
 
 float Gamma;
+bool EnableTonemapping;
 
 // https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 //   Written by Krzysztof Narkowicz under Public Domain CC0
@@ -22,7 +23,9 @@ float4 MainPS(VSOutput input) : COLOR {
     float4 spriteColor = tex2D(SpriteTextureSampler, input.UV);
 
     // apply narkowicz ACES curve !!
-    spriteColor.rgb = ACESFilm(spriteColor.rgb);
+    if (EnableTonemapping == true) {
+        spriteColor.rgb = ACESFilm(spriteColor.rgb);
+    }
 
     // gamma correction
     spriteColor.rgb = pow(abs(spriteColor.rgb), 1.0 / Gamma);

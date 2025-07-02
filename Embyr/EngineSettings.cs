@@ -93,11 +93,6 @@ public static class EngineSettings {
     public static bool ShowDebugDepthBuffer { get; set; } = false;
 
     /// <summary>
-    /// Gets/sets the color to clear the canvas every frame
-    /// </summary>
-    public static Color RenderClearColor { get; set; } = Palette.Col2;
-
-    /// <summary>
     /// Gets/sets the gamma
     /// </summary>
     public static float Gamma { get; set; } = 2.2f;

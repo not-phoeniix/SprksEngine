@@ -9,7 +9,7 @@ namespace Embyr.Rendering;
 /// An abstract class that represents a renderer
 /// </summary>
 internal abstract class Renderer : IResolution {
-    private readonly ToneMapGammaPPE toneMapPPE;
+    private readonly ToneMapGammaPPE toneMapGammaPPE;
     private readonly Menu? loadingMenu;
 
     /// <summary>
@@ -54,7 +54,7 @@ internal abstract class Renderer : IResolution {
         this.loadingMenu = loadingMenu;
         this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
-        this.toneMapPPE = new ToneMapGammaPPE(gd);
+        this.toneMapGammaPPE = new ToneMapGammaPPE(gd);
 
         Point res = EngineSettings.GameCanvasResolution + new Point(Game.CanvasExpandSize);
         SceneRenderLayer = new RenderLayer(res, gd, SurfaceFormat.HalfVector4, true);
@@ -88,7 +88,7 @@ internal abstract class Renderer : IResolution {
     public virtual void Render(Rectangle canvasDestination, float canvasScale) {
         // draw different layers themselves to the screen
         GraphicsDevice.SetRenderTarget(null);
-        GraphicsDevice.Clear(EngineSettings.RenderClearColor);
+        GraphicsDevice.Clear(Settings.ClearColor);
         SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
         SceneRenderLayer.Draw(SpriteBatch, canvasDestination, canvasScale);
@@ -103,7 +103,7 @@ internal abstract class Renderer : IResolution {
             fx.ChangeResolution(width, height);
         }
 
-        toneMapPPE.ChangeResolution(width, height);
+        toneMapGammaPPE.ChangeResolution(width, height);
         loadingMenu?.ChangeResolution(width, height);
         SceneRenderLayer.ChangeResolution(width, height);
         UIRenderLayer.ChangeResolution(width, height);
@@ -161,10 +161,11 @@ internal abstract class Renderer : IResolution {
         }
 
         // ~~~ apply tone mapping ~~~
-        toneMapPPE.Gamma = Settings.Gamma;
-        toneMapPPE.InputRenderTarget = prevTarget;
-        toneMapPPE.Draw(SpriteBatch);
-        prevTarget = toneMapPPE.FinalRenderTarget;
+        toneMapGammaPPE.Gamma = Settings.Gamma;
+        toneMapGammaPPE.EnableTonemapping = Settings.EnableTonemapping;
+        toneMapGammaPPE.InputRenderTarget = prevTarget;
+        toneMapGammaPPE.Draw(SpriteBatch);
+        prevTarget = toneMapGammaPPE.FinalRenderTarget;
 
         // render all POST-TONEMAP post processing effects !!
         for (int i = 0; i < PostProcessingEffects.Count; i++) {

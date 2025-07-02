@@ -15,11 +15,20 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         private readonly Action<Effect>? passShaderDataHandler;
         private readonly SurfaceFormat surfaceFormat;
         private readonly GraphicsDevice graphicsDevice;
+        private RenderTarget2D renderTarget;
 
         /// <summary>
         /// Gets the render target of this effect pass
         /// </summary>
-        internal RenderTarget2D? RenderTarget { get; private set; }
+        internal RenderTarget2D RenderTarget {
+            get {
+                if (renderTarget == null) {
+                    throw new NullReferenceException("Render target for PPE pass never initialized!");
+                }
+
+                return renderTarget;
+            }
+        }
 
         /// <summary>
         /// Color to clear pass's render target
@@ -52,7 +61,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="width">Width of target in pixels</param>
         /// <param name="height">Height of target in pixels</param>
         internal void CreateRenderTarget(int width, int height) {
-            RenderTarget = new RenderTarget2D(
+            renderTarget = new RenderTarget2D(
                 graphicsDevice,
                 width,
                 height,
@@ -68,7 +77,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="inputTarget">Input screenspace target to render with shader</param>
         /// <param name="sb">SpriteBatch to draw with</param>
         internal void Draw(RenderTarget2D inputTarget, SpriteBatch sb) {
-            if (RenderTarget == null) {
+            if (renderTarget == null) {
                 throw new NullReferenceException("Cannot draw post processing effect, Render Target was never created!");
             }
 
@@ -77,13 +86,13 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
             }
 
             passShaderDataHandler?.Invoke(shader);
-            shader.Parameters["ScreenRes"]?.SetValue(new Vector2(RenderTarget.Width, RenderTarget.Height));
+            shader.Parameters["ScreenRes"]?.SetValue(new Vector2(renderTarget.Width, renderTarget.Height));
 
             sb.GraphicsDevice.SetRenderTarget(RenderTarget);
             sb.GraphicsDevice.Clear(ClearColor);
 
             sb.Begin(samplerState: SamplerState.PointClamp, effect: shader);
-            sb.Draw(inputTarget, new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height), Color.White);
+            sb.Draw(inputTarget, new Rectangle(0, 0, renderTarget.Width, renderTarget.Height), Color.White);
             sb.End();
         }
 
@@ -93,8 +102,8 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// <param name="width">New width in pixels of this pass</param>
         /// <param name="height">New height in pixels of this pass</param>
         internal void Resize(int width, int height) {
-            RenderTarget?.Dispose();
-            RenderTarget = new RenderTarget2D(
+            renderTarget?.Dispose();
+            renderTarget = new RenderTarget2D(
                 shader.GraphicsDevice,
                 width,
                 height,
@@ -108,7 +117,7 @@ public abstract class PostProcessingEffect : IDisposable, IResolution {
         /// Disposes memory for this pass
         /// </summary>
         public void Dispose() {
-            RenderTarget?.Dispose();
+            renderTarget?.Dispose();
         }
     }
 

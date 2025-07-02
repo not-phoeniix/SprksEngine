@@ -29,7 +29,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         public Menu? LoadingMenu { get; init; }
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
-        public Color RenderClearColor { get; init; }
         public RenderPipeline? RenderPipeline { get; init; }
         public string WindowTitle { get; init; }
         public bool EnableVSync { get; init; }
@@ -46,7 +45,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             LoadingMenu = null;
             CanvasRes = new Point(480, 270);
             WindowRes = new Point(1280, 720);
-            RenderClearColor = Palette.Col2;
             WindowTitle = "Embyr Project";
             EnableVSync = true;
             IsFullscreen = false;
@@ -147,7 +145,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         EngineSettings.EnableVSync = setupParams.EnableVSync;
         EngineSettings.IsFullscreen = setupParams.IsFullscreen;
         EngineSettings.IsBorderless = setupParams.IsBorderless;
-        EngineSettings.RenderClearColor = setupParams.RenderClearColor;
         EngineSettings.WindowTitle = setupParams.WindowTitle;
 
         loadingMenu = setupParams.LoadingMenu;
@@ -407,8 +404,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         );
 
         Renderer.SpriteBatch.Begin();
-        Renderer.SpriteBatch.DrawRectFill(minBar, EngineSettings.RenderClearColor);
-        Renderer.SpriteBatch.DrawRectFill(maxBar, EngineSettings.RenderClearColor);
+        Renderer.SpriteBatch.DrawRectFill(minBar, Renderer.Settings.ClearColor);
+        Renderer.SpriteBatch.DrawRectFill(maxBar, Renderer.Settings.ClearColor);
         Renderer.SpriteBatch.End();
     }
 

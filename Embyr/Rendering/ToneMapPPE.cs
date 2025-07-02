@@ -15,16 +15,26 @@ public class ToneMapGammaPPE : PostProcessingEffect {
     public float Gamma { get; set; }
 
     /// <summary>
+    /// Gets/sets whether or not to enable tonemaping, when false only gamma is applied
+    /// </summary>
+    public bool EnableTonemapping { get; set; }
+
+    /// <summary>
     /// Creates a new GaussianBlurPostProcessingEffect
     /// </summary>
     /// <param name="gd">GraphicsDevice to create effect with</param>
     public ToneMapGammaPPE(GraphicsDevice gd) : base(gd) {
         fxToneMap = ShaderManager.I.LoadShader("PostProcessing/tone_map_gamma");
+        Gamma = 2.2f;
+        EnableTonemapping = true;
 
         AddPass(new Pass(
             fxToneMap,
             gd,
-            s => s.Parameters["Gamma"].SetValue(Gamma),
+            s => {
+                s.Parameters["Gamma"].SetValue(Gamma);
+                s.Parameters["EnableTonemapping"].SetValue(EnableTonemapping);
+            },
             SurfaceFormat.Color
         ));
     }
