@@ -22,7 +22,6 @@ public class Game : Embyr.Game {
             CanvasRes = new Point(320, 180),
             WindowRes = new Point(1280, 720),
             EnableVSync = true,
-            RenderClearColor = Color.Black,
             RenderPipeline = RenderPipeline.Deferred2D,
             DefaultBindingPreset = binds
         };
@@ -34,11 +33,12 @@ public class Game : Embyr.Game {
             EnablePostProcessing = true,
             EnableLighting = true,
             Depth3DScalar = 0.01f,
+            ClearColor = Color.Black,
             Gamma = 2.2f
         };
 
         PostProcessingEffect[] fx = [
-            new BloomPostProcessingEffect(GraphicsDevice) {
+            new BloomPPE(GraphicsDevice) {
                 LuminanceThreshold = 2.0f,
                 NumBlurPasses = 4
             },

@@ -1,7 +1,6 @@
 using System;
 using Embyr;
 using Embyr.Scenes;
-using Embyr.Tiles;
 using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -73,8 +72,8 @@ public class MainScene(string name) : Scene2D(name) {
             Intensity = 6f,
             Radius = 100,
             LinearFalloff = 120,
-            AngularWidth = MathHelper.ToRadians(80),
-            AngularFalloff = MathHelper.ToRadians(45),
+            OuterAngle = MathHelper.ToRadians(80),
+            InnerAngle = MathHelper.ToRadians(0),
         };
         greenLight.Transform.GlobalPosition = new Vector2(70, -70);
         greenLight.Transform.LookAt(Vector2.Zero);
@@ -94,8 +93,8 @@ public class MainScene(string name) : Scene2D(name) {
             Intensity = 1.4f,
             Radius = 100,
             LinearFalloff = 40,
-            AngularWidth = MathHelper.ToRadians(150),
-            AngularFalloff = MathHelper.ToRadians(100),
+            OuterAngle = MathHelper.ToRadians(150),
+            InnerAngle = MathHelper.ToRadians(100),
             CastsShadow = true
         };
         miniLight.Transform.GlobalPosition = new Vector2(50, 34);
