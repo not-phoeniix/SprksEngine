@@ -3,9 +3,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Embyr.Scenes;
 using Embyr.Physics;
-using Embyr.Rendering;
 
-namespace Embyr.Tiles;
+namespace Embyr;
 
 /// <summary>
 /// Immovable tile struct, collides with other actors and can be instantiated within a <c>TileMap</c>

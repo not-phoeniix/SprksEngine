@@ -3,7 +3,7 @@ using Embyr.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Embyr.Tiles;
+namespace Embyr;
 
 /// <summary>
 /// A 2D grid/map of tiles, inherits from Actor2D
