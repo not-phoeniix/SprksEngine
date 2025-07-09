@@ -189,7 +189,4 @@ internal abstract class Renderer : IResolution {
             SpriteBatch
         );
     }
-
-    private void GenerateSceneMips() {
-    }
 }
