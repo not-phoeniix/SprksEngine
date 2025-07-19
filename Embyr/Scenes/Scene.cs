@@ -87,6 +87,9 @@ public abstract class Scene : IResolution {
             MenuStackPeek()?.Update(dt);
         }
 
+        // we build UI before any actor updating occurs
+        BuildUI();
+
         // flush the add/remove queues at first,
         //   happens regardless of pause state
         FlushAddQueue();
@@ -288,6 +291,11 @@ public abstract class Scene : IResolution {
 
         return null;
     }
+
+    /// <summary>
+    /// Builds immediate UI using <c>Embyr.UI.Element</c>
+    /// </summary>
+    public virtual void BuildUI() { }
 
     /// <summary>
     /// Gets enumerable of all actors in this scene to iterate across

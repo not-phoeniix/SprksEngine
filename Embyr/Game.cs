@@ -215,6 +215,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.FrametimeMeasureStart();
         Performance.UpdateMeasureStart();
 
+        UIBuilder.ResetPool();
+
         Window.Title = EngineSettings.WindowTitle;
 
         Matrix invertCam2DMat = Matrix.Identity;
@@ -240,6 +242,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             }
             loadingMenu?.Update(Performance.DeltaTime);
         }
+
+        UIBuilder.CalcPositions();
 
         // if game goes inactive, pause
         if (!IsActive && isActivePrev) {

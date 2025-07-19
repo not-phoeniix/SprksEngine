@@ -284,7 +284,8 @@ public abstract class Menu : IDrawable2D, IDebugDrawable2D, IResolution {
     }
 
     private void HandleMouseHoverInput() {
-        bool selectedIsOpenDropdown = SelectedInteractable is Dropdown dropdown && dropdown.Open;
+        // bool selectedIsOpenDropdown = SelectedInteractable is Dropdown dropdown && dropdown.Open;
+        bool selectedIsOpenDropdown = false;
         bool interactableSet = false;
 
         foreach (IMenuInteractable interactable in InteractableElements) {

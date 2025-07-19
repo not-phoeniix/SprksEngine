@@ -133,10 +133,11 @@ internal class RendererDeferred2D : Renderer {
         }
 
         // draw UI to its respective render layer
-        UIRenderLayer.DrawTo(scene.DrawOverlays, SpriteBatch);
-        if (EngineSettings.ShowDebugDrawing) {
-            UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
-        }
+        // UIRenderLayer.DrawTo(scene.DrawOverlays, SpriteBatch);
+        // if (EngineSettings.ShowDebugDrawing) {
+        //     UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
+        // }
+        UIRenderLayer.DrawTo(UIBuilder.DrawAll, SpriteBatch);
 
         // TODO: somehow get dynamic parallax drawing on different RenderLayer's
 
