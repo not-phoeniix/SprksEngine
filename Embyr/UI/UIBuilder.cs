@@ -108,6 +108,7 @@ public static class UIBuilder {
             );
             element.Children.Clear();
             element.Parent = null;
+            element.Clickable = false;
             elementPool.RemoveAt(elementPool.Count - 1);
         } else {
             element = new Element(properties);

@@ -174,18 +174,34 @@ public class MainScene(string name) : Scene2D(name) {
                     Gap = 1
                 });
                 {
-                    for (int i = 0; i < 3; i++) {
-                        UIBuilder.Element(new ElementProperties() {
+                    for (int y = 0; y < 3; y++) {
+                        UIBuilder.BeginElement(new ElementProperties() {
+                            Direction = AlignDirection.LeftToRight,
                             Style = new ElementStyle() {
-                                BackgroundColor = Color.Red
+                                BackgroundColor = Color.Transparent
                             },
-                            XSizing = ElementSizing.Fixed(10),
-                            YSizing = ElementSizing.Fixed(10),
+                            Gap = 1
                         });
+                        for (int x = 0; x < 3; x++) {
+                            int x2 = x;
+                            int y2 = y;
+
+                            UIBuilder.Clickable(
+                                new ElementProperties() {
+                                    Style = new ElementStyle() {
+                                        BackgroundColor = Color.Red,
+                                        HoverColor = Color.DarkRed
+                                    },
+                                    XSizing = ElementSizing.Fixed(10),
+                                    YSizing = ElementSizing.Fixed(10),
+                                },
+                                () => Debug.WriteLine($"[{x2}, {y2}]")
+                            );
+                        }
+                        UIBuilder.End();
                     }
                 }
                 UIBuilder.End();
-
             }
             UIBuilder.End();
 
