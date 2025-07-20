@@ -6,19 +6,15 @@ namespace Embyr.UI;
 // layout algo guidance/inspiration:
 //   https://www.youtube.com/watch?v=by9lQvpvMIc
 
-public enum AlignDirection {
-    LeftToRight,
-    TopToBottom
-}
-
 public static class UIBuilder {
     private static readonly List<Element> rootElements = new();
     private static readonly List<Element> elementPool = new();
+    private static readonly List<(Action, Element)> clickables = new();
 
     // tracks whatever the "current parent" is when calling begin/end
     private static Element? currentParent = null;
 
-    public static void Begin(ElementProperties props) {
+    public static void BeginElement(ElementProperties props) {
         // grab/create new element from pool
         Element element = GetElementFromPool(props);
 
@@ -46,6 +42,22 @@ public static class UIBuilder {
         currentParent = element.Parent;
     }
 
+    public static void Element(ElementProperties props) {
+        BeginElement(props);
+        End();
+    }
+
+    public static void BeginClickable(ElementProperties props, Action onClicked) {
+        BeginElement(props);
+        clickables.Add((onClicked, currentParent!));
+        currentParent!.Clickable = true;
+    }
+
+    public static void Clickable(ElementProperties props, Action onClicked) {
+        BeginClickable(props, onClicked);
+        End();
+    }
+
     internal static void CalcPositions() {
         foreach (Element element in rootElements) {
             element.CalcPositions();
@@ -59,6 +71,18 @@ public static class UIBuilder {
     }
 
     internal static void DrawAllDebug(SpriteBatch sb) {
+    }
+
+    internal static void ActivateClickables() {
+        foreach ((Action, Element) pair in clickables) {
+            Action action = pair.Item1;
+            Element element = pair.Item2;
+            if (element.Hovered && Input.IsLeftMouseDownOnce()) {
+                action?.Invoke();
+            }
+        }
+
+        clickables.Clear();
     }
 
     internal static void ResetPool() {

@@ -3,11 +3,18 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.UI;
 
+public enum AlignDirection {
+    LeftToRight,
+    TopToBottom
+}
+
 internal class Element {
     public Rectangle Bounds;
     public Element? Parent;
     public readonly List<Element> Children;
     public ElementProperties Props;
+    public bool Hovered { get; private set; }
+    public bool Clickable;
 
     public Element(ElementProperties properties) {
         Bounds = new Rectangle(
@@ -85,6 +92,8 @@ internal class Element {
 
             Children[i].CalcPositions();
         }
+
+        Hovered = Bounds.Contains(Input.MousePos);
     }
 
     public void ClearChildren(List<Element> destination) {
@@ -97,7 +106,18 @@ internal class Element {
     }
 
     public void Draw(SpriteBatch sb) {
-        sb.DrawRectFill(Bounds, Props.BackgroundColor);
+        if (Props.Style.BorderSize > 0) {
+            Rectangle borderBounds = Bounds;
+            borderBounds.Inflate(Props.Style.BorderSize, Props.Style.BorderSize);
+            sb.DrawRectOutline(borderBounds, Props.Style.BorderSize, Props.Style.BorderColor);
+        }
+
+        if (Hovered && Clickable) {
+            sb.DrawRectFill(Bounds, Props.Style.HoverColor);
+        } else {
+            sb.DrawRectFill(Bounds, Props.Style.BackgroundColor);
+        }
+
         foreach (Element child in Children) {
             child.Draw(sb);
         }

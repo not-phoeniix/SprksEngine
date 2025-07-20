@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 namespace Embyr.UI;
 
 public struct ElementProperties {
-    public Color BackgroundColor { get; set; }
+    public ElementStyle Style;
 
     public AlignDirection Direction { get; set; }
     public ElementSizing XSizing { get; set; }
@@ -13,7 +13,7 @@ public struct ElementProperties {
     public int Gap { get; set; }
 
     public ElementProperties() {
-        BackgroundColor = Color.Black;
+        Style = new ElementStyle();
         Direction = AlignDirection.LeftToRight;
         XSizing = ElementSizing.Fit();
         YSizing = ElementSizing.Fit();
@@ -22,7 +22,7 @@ public struct ElementProperties {
     }
 
     public ElementProperties(ElementProperties other) {
-        BackgroundColor = other.BackgroundColor;
+        Style = other.Style;
         Direction = other.Direction;
         XSizing = other.XSizing;
         YSizing = other.YSizing;

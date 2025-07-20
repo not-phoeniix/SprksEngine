@@ -6,6 +6,7 @@ using Embyr.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Diagnostics;
 
 namespace LightingTest2D;
 
@@ -127,15 +128,19 @@ public class MainScene(string name) : Scene2D(name) {
     }
 
     public override void BuildUI() {
-        UIBuilder.Begin(new ElementProperties() {
-            BackgroundColor = Color.Transparent,
+        UIBuilder.BeginElement(new ElementProperties() {
+            Style = new ElementStyle() {
+                BackgroundColor = Color.Transparent
+            },
             Gap = 4,
             Padding = new ElementPadding(10),
             Direction = AlignDirection.TopToBottom
         });
         {
-            UIBuilder.Begin(new ElementProperties() {
-                BackgroundColor = Color.Black,
+            UIBuilder.BeginElement(new ElementProperties() {
+                Style = new ElementStyle() {
+                    BackgroundColor = Color.Black
+                },
                 XSizing = ElementSizing.Fit(),
                 YSizing = ElementSizing.Fit(),
                 Gap = 4,
@@ -149,27 +154,34 @@ public class MainScene(string name) : Scene2D(name) {
                         1.0f
                     );
 
-                    UIBuilder.Begin(new ElementProperties() {
-                        BackgroundColor = gradientColor,
-                        XSizing = ElementSizing.Fixed(10),
-                        YSizing = ElementSizing.Fixed(10),
-                    });
-                    UIBuilder.End();
+                    UIBuilder.Clickable(
+                        new ElementProperties() {
+                            Style = new ElementStyle() {
+                                BackgroundColor = gradientColor
+                            },
+                            XSizing = ElementSizing.Fixed(10),
+                            YSizing = ElementSizing.Fixed(10),
+                        },
+                        static () => Debug.WriteLine("waow....")
+                    );
                 }
 
-                UIBuilder.Begin(new ElementProperties() {
+                UIBuilder.BeginElement(new ElementProperties() {
                     Direction = AlignDirection.TopToBottom,
-                    BackgroundColor = Color.Gray,
+                    Style = new ElementStyle() {
+                        BackgroundColor = Color.Gray
+                    },
                     Gap = 1
                 });
                 {
                     for (int i = 0; i < 3; i++) {
-                        UIBuilder.Begin(new ElementProperties() {
-                            BackgroundColor = Color.Red,
+                        UIBuilder.Element(new ElementProperties() {
+                            Style = new ElementStyle() {
+                                BackgroundColor = Color.Red
+                            },
                             XSizing = ElementSizing.Fixed(10),
                             YSizing = ElementSizing.Fixed(10),
                         });
-                        UIBuilder.End();
                     }
                 }
                 UIBuilder.End();
@@ -177,20 +189,23 @@ public class MainScene(string name) : Scene2D(name) {
             }
             UIBuilder.End();
 
-            UIBuilder.Begin(new ElementProperties() {
-                BackgroundColor = Color.CornflowerBlue,
+            UIBuilder.BeginElement(new ElementProperties() {
+                Style = new ElementStyle() {
+                    BackgroundColor = Color.CornflowerBlue
+                },
                 Direction = AlignDirection.TopToBottom,
                 Gap = 6,
                 Padding = new ElementPadding(2)
             });
             {
                 for (int i = 0; i < 6; i++) {
-                    UIBuilder.Begin(new ElementProperties() {
-                        BackgroundColor = Color.Goldenrod,
+                    UIBuilder.Element(new ElementProperties() {
+                        Style = new ElementStyle() {
+                            BackgroundColor = Color.Goldenrod
+                        },
                         XSizing = ElementSizing.Fixed(12),
                         YSizing = ElementSizing.Fixed(12),
                     });
-                    UIBuilder.End();
                 }
             }
             UIBuilder.End();
