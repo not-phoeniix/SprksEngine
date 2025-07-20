@@ -1,9 +1,4 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Embyr.Tools;
-using Embyr.UI;
-using Embyr.Rendering;
 
 namespace Embyr.Scenes;
 
@@ -13,8 +8,6 @@ namespace Embyr.Scenes;
 public abstract class Scene : IResolution {
     private readonly Queue<IActor> actorsToRemove = new();
     private readonly Queue<IActor> actorsToAdd = new();
-    private readonly Stack<Menu> menuStack = new();
-    private bool menuStackChanged;
 
     /// <summary>
     /// Gets/sets whether or not scene is paused,
@@ -64,7 +57,6 @@ public abstract class Scene : IResolution {
     /// content helper, should be called last in child override methods
     /// </summary>
     public virtual void Unload() {
-        menuStack.Clear();
         ContentHelper.I.LocalReset();
     }
 
@@ -72,7 +64,7 @@ public abstract class Scene : IResolution {
     /// Custom actor update logic, runs on every actor in the scene
     /// </summary>
     /// <param name="actor">Actor to update</param>
-    /// <param name="fdt">Time passed since last frame</param>
+    /// <param name="dt">Time passed since last frame</param>
     protected virtual void CustomActorUpdate(IActor actor, float dt) { }
 
     /// <summary>
@@ -80,13 +72,6 @@ public abstract class Scene : IResolution {
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
     public virtual void Update(float dt) {
-        // only update current menu if no changes to the menu
-        //   stack have occured, prevents double back/pause
-        //   actions from triggering
-        if (!menuStackChanged) {
-            MenuStackPeek()?.Update(dt);
-        }
-
         // we build UI before any actor updating occurs
         BuildUI();
 
@@ -103,8 +88,6 @@ public abstract class Scene : IResolution {
                 CustomActorUpdate(actor, dt);
             }
         }
-
-        menuStackChanged = false;
     }
 
     /// <summary>
@@ -131,31 +114,11 @@ public abstract class Scene : IResolution {
     /// </summary>
     /// <param name="dt">Time passed since last fixed update</param>
     public virtual void PhysicsUpdate(float dt) {
-        if (!menuStackChanged) {
-            MenuStackPeek()?.PhysicsUpdate(dt);
-        }
-
         if (!Paused) {
             foreach (IActor actor in GetUpdatableActors(false)) {
                 actor.PhysicsUpdate(dt);
             }
         }
-    }
-
-    /// <summary>
-    /// Draws all overlays/menus to the screen
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DrawOverlays(SpriteBatch sb) {
-        MenuStackPeek()?.Draw(sb);
-    }
-
-    /// <summary>
-    /// Draws all debug information for overlays/menus to the screen
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    public virtual void DebugDrawOverlays(SpriteBatch sb) {
-        MenuStackPeek()?.DebugDraw(sb);
     }
 
     /// <inheritdoc/>
@@ -225,33 +188,6 @@ public abstract class Scene : IResolution {
     /// <param name="light">Light to remove</param>
     /// <returns>True if successfully removed, false if not</returns>
     public abstract bool RemoveLight(Light light);
-
-    /// <summary>
-    /// Pushes a menu onto the menu stack
-    /// </summary>
-    /// <param name="menu">Menu to push</param>
-    public void MenuStackPush(Menu menu) {
-        if (menu == null) return;
-        menuStackChanged = true;
-        menuStack.Push(menu);
-    }
-
-    /// <summary>
-    /// Pops a menu from the menu stack
-    /// </summary>
-    /// <returns>Reference to popped menu, null if empty</returns>
-    public Menu? MenuStackPop() {
-        menuStackChanged = true;
-        return menuStack.Count > 0 ? menuStack.Pop() : null;
-    }
-
-    /// <summary>
-    /// Peeks at the top menu on the menu stack
-    /// </summary>
-    /// <returns>Reference to current top menu on the stack</returns>
-    public Menu? MenuStackPeek() {
-        return menuStack.Count > 0 ? menuStack.Peek() : null;
-    }
 
     /// <summary>
     /// Finds the first actor in this scene of a desired type - warning, this may be slow!

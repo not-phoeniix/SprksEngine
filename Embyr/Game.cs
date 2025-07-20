@@ -26,7 +26,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// </summary>
     public readonly struct GameSetupParams {
         public Scene? InitialScene { get; init; }
-        public Menu? LoadingMenu { get; init; }
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
         public RenderPipeline? RenderPipeline { get; init; }
@@ -42,7 +41,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         /// </summary>
         public GameSetupParams() {
             InitialScene = null;
-            LoadingMenu = null;
             CanvasRes = new Point(480, 270);
             WindowRes = new Point(1280, 720);
             WindowTitle = "Embyr Project";
@@ -76,7 +74,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     private GameSetupParams setupParams;
 
     private bool isActivePrev;
-    private Menu? loadingMenu;
     private Point prevWindowedSize;
 
     private Rectangle canvasDestination;
@@ -98,14 +95,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// Action called when low res canvas resolution changes, parameters are width and height
     /// </summary>
     public Action<int, int> OnResolutionChange;
-
-    /// <summary>
-    /// Gets bounds of any menu to create
-    /// </summary>
-    protected static Rectangle MenuBounds => new(
-        new Point(CanvasExpandSize / 2),
-        EngineSettings.GameCanvasResolution
-    );
 
     #endregion
 
@@ -147,8 +136,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         EngineSettings.IsBorderless = setupParams.IsBorderless;
         EngineSettings.WindowTitle = setupParams.WindowTitle;
 
-        loadingMenu = setupParams.LoadingMenu;
-
         graphics.PreferredBackBufferWidth = EngineSettings.GameWindowResolution.X;
         graphics.PreferredBackBufferHeight = EngineSettings.GameWindowResolution.Y;
         prevWindowedSize = EngineSettings.GameWindowResolution;
@@ -177,8 +164,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         RendererSetupParams rParams = SetupRenderer();
 
         Renderer = setupParams.RenderPipeline switch {
-            RenderPipeline.Deferred2D => new RendererDeferred2D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
-            RenderPipeline.Forward3D => new RendererForward3D(rParams.RendererSettings, GraphicsDevice, loadingMenu),
+            RenderPipeline.Deferred2D => new RendererDeferred2D(rParams.RendererSettings, GraphicsDevice),
+            RenderPipeline.Forward3D => new RendererForward3D(rParams.RendererSettings, GraphicsDevice),
             _ => throw new Exception("Inputted render pipeline not recognized!")
         };
 
@@ -236,14 +223,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
                 SceneManager.I.PhysicsUpdate(Performance.FixedDeltaTime);
             }
             SceneManager.I.Update(Performance.DeltaTime);
-        } else {
-            for (int i = 0; i < Performance.NumPhysicsUpdateToRun; i++) {
-                loadingMenu?.PhysicsUpdate(Performance.FixedDeltaTime);
-            }
-            loadingMenu?.Update(Performance.DeltaTime);
         }
 
         UIBuilder.CalcPositions();
+        UIBuilder.ActivateClickables();
 
         // if game goes inactive, pause
         if (!IsActive && isActivePrev) {
@@ -284,8 +267,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         if (!SceneManager.I.IsLoading) {
             Renderer.RenderScene(SceneManager.I.CurrentScene);
-        } else {
-            Renderer.RenderLoading();
         }
 
         Renderer.Render(canvasDestination, canvasScaling);

@@ -39,11 +39,6 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     }
 
     /// <summary>
-    /// Access to game graphics device, used for aseprite processing
-    /// </summary>
-    internal GraphicsDevice GraphicsDevice => game.GraphicsDevice;
-
-    /// <summary>
     /// Access to the game renderer, used for batch restarting and other info access
     /// </summary>
     internal Renderer Renderer => game.Renderer;

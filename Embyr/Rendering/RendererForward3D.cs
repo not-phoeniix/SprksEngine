@@ -23,9 +23,8 @@ internal class RendererForward3D : Renderer {
     /// </summary>
     /// <param name="settings">Renderer settings object to use when rendering</param>
     /// <param name="gd">GraphicsDevice to create renderer with</param>
-    /// <param name="loadingMenu">Optional loading menu to draw when a scene is loading</param>
-    public RendererForward3D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
-    : base(settings, gd, loadingMenu) {
+    public RendererForward3D(RendererSettings settings, GraphicsDevice gd)
+    : base(settings, gd) {
         forward3D = ShaderManager.I.LoadShader("3d_forward");
     }
 

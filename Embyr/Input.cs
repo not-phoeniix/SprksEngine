@@ -452,38 +452,6 @@ public static class Input {
     }
 
     /// <summary>
-    /// Calculates a Vector2 "center offset" which is between -1 and 1 in both components,
-    /// represents right stick and also left mouse position relative to the center of the
-    /// screen, can be used for camera offsets
-    /// </summary>
-    /// <returns>Vector2 representing look direction</returns>
-    public static Vector2 GetMouseCenterOffset() {
-        Vector2 direction = Vector2.Zero;
-
-        switch (Mode) {
-            case InputMode.Keyboard:
-                // calculate offset
-                Point center = SceneManager.I.GraphicsDevice.Viewport.Bounds.Center;
-                Vector2 offset = MouseWindowPos - center.ToVector2();
-
-                // scale each component to be between -1 to 1
-                offset.X /= center.X;
-                offset.Y /= center.Y;
-
-                // set direction to offset
-                direction = offset;
-                break;
-
-            case InputMode.Gamepad:
-                direction = padState.ThumbSticks.Right;
-                direction.Y *= -1;
-                break;
-        }
-
-        return direction;
-    }
-
-    /// <summary>
     /// Returns string of all keyboard input this frame (used for text input)
     /// </summary>
     /// <returns>String concatenation of all pressed keys</returns>

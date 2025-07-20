@@ -10,7 +10,6 @@ namespace Embyr.Rendering;
 /// </summary>
 internal abstract class Renderer : IResolution {
     private readonly ToneMapGammaPPE toneMapGammaPPE;
-    private readonly Menu? loadingMenu;
 
     /// <summary>
     /// List of all post processing effects to use when drawing
@@ -48,10 +47,9 @@ internal abstract class Renderer : IResolution {
     /// <param name="settings">Settings to use when rendering</param>
     /// <param name="gd">Graphics device used to create renderer</param>
     /// <param name="loadingMenu">Optional reference to the loading menu to show when loading between scenes</param>
-    public Renderer(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu) {
+    public Renderer(RendererSettings settings, GraphicsDevice gd) {
         GraphicsDevice = gd ?? throw new NullReferenceException("Cannot initialize renderer with null graphics device!");
         SpriteBatch = new SpriteBatch(gd);
-        this.loadingMenu = loadingMenu;
         this.Settings = settings ?? throw new NullReferenceException("Cannot initialize renderer with null settings object!");
         PostProcessingEffects = new List<PostProcessingEffect>();
         this.toneMapGammaPPE = new ToneMapGammaPPE(gd);
@@ -66,19 +64,6 @@ internal abstract class Renderer : IResolution {
     /// </summary>
     /// <param name="scene">Scene to render</param>
     public abstract void RenderScene(Scene scene);
-
-    /// <summary>
-    /// Renders the loading menu between scenes
-    /// </summary>
-    public virtual void RenderLoading() {
-        if (loadingMenu != null) {
-            UIRenderLayer.DrawTo(loadingMenu.Draw, SpriteBatch);
-
-            if (EngineSettings.ShowDebugDrawing) {
-                UIRenderLayer.DrawTo(loadingMenu.DebugDraw, SpriteBatch, resetTarget: false);
-            }
-        }
-    }
 
     /// <summary>
     /// Renders an already rendered scene output to the screen
@@ -104,7 +89,6 @@ internal abstract class Renderer : IResolution {
         }
 
         toneMapGammaPPE.ChangeResolution(width, height);
-        loadingMenu?.ChangeResolution(width, height);
         SceneRenderLayer.ChangeResolution(width, height);
         UIRenderLayer.ChangeResolution(width, height);
     }

@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Embyr.UI;
-using Embyr.Scenes;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Aseprite;
 using MonoGame.Aseprite.Content.Processors;
 using MonoGame.Aseprite.Sprites;
-using System.Reflection;
 using Embyr.Rendering;
 
 namespace Embyr;
@@ -20,11 +16,9 @@ public class ContentHelper : Singleton<ContentHelper> {
     private Microsoft.Xna.Framework.Game game;
     private Game.RenderPipeline pipeline;
     private ContentManager localContent;
-    private readonly Dictionary<string, AFont> globalAFontCache = new();
 
     private readonly Dictionary<string, Sprite> spriteCache = new();
     private readonly Dictionary<string, SpriteSheet> spriteSheetCache = new();
-    private readonly Dictionary<string, AFont> aFontCache = new();
     private readonly Dictionary<string, Texture2D> tilesetCache = new();
     private readonly Dictionary<string, GameMesh> gameMeshCache = new();
 
@@ -49,7 +43,6 @@ public class ContentHelper : Singleton<ContentHelper> {
     public void LocalReset() {
         spriteCache.Clear();
         spriteSheetCache.Clear();
-        aFontCache.Clear();
         tilesetCache.Clear();
         gameMeshCache.Clear();
 
@@ -78,8 +71,6 @@ public class ContentHelper : Singleton<ContentHelper> {
             return (T)GetContentSprite(contentName);
         } else if (type == typeof(SpriteSheet)) {
             return (T)GetContentSpriteSheet(contentName);
-        } else if (type == typeof(AFont)) {
-            return (T)GetContentAFont(contentName);
         } else if (type == typeof(Texture2D)) {
             return (T)GetContentTileset(contentName);
         } else if (type == typeof(GameMesh)) {
@@ -99,7 +90,6 @@ public class ContentHelper : Singleton<ContentHelper> {
     public void Unload(string contentName) {
         spriteCache.Remove(contentName);
         spriteSheetCache.Remove(contentName);
-        aFontCache.Remove(contentName);
         tilesetCache.Remove(contentName);
 
         localContent.UnloadAsset(contentName);
@@ -112,16 +102,6 @@ public class ContentHelper : Singleton<ContentHelper> {
     /// <param name="contentName">Content asset name/path</param>
     /// <returns>A reference to the loaded content</returns>
     public T LoadGlobal<T>(string contentName) {
-        if (typeof(T) == typeof(AFont)) {
-            if (!globalAFontCache.TryGetValue(contentName, out AFont font)) {
-                AsepriteFile file = game.Content.Load<AsepriteFile>(contentName);
-                font = new(file, 1, game.GraphicsDevice);
-                globalAFontCache[contentName] = font;
-            }
-
-            return (T)(object)font;
-        }
-
         return game.Content.Load<T>(contentName);
     }
 
@@ -153,21 +133,6 @@ public class ContentHelper : Singleton<ContentHelper> {
         }
 
         return sheet;
-    }
-
-    /// <summary>
-    /// Gets an AFont from internal scene cache
-    /// </summary>
-    /// <param name="contentName">Content string path to the AFont aseprite file</param>
-    /// <returns>Reference to cached AFont</returns>
-    private object GetContentAFont(string contentName) {
-        if (!aFontCache.TryGetValue(contentName, out AFont font)) {
-            AsepriteFile file = localContent.Load<AsepriteFile>(contentName);
-            font = new(file, 1, game.GraphicsDevice);
-            aFontCache[contentName] = font;
-        }
-
-        return font;
     }
 
     /// <summary>

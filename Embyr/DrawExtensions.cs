@@ -379,28 +379,6 @@ public static class DrawExtensions {
 
     #endregion
 
-    #region // String drawing
-
-    /// <summary>
-    /// Draws a string using an aseprite AFont
-    /// </summary>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    /// <param name="font">AFont to draw</param>
-    /// <param name="text">Text to draw to the screen</param>
-    /// <param name="position">Position to draw string at</param>
-    /// <param name="color">Color of text to draw</param>
-    public static void DrawString(
-        this SpriteBatch sb,
-        AFont font,
-        string text,
-        Vector2 position,
-        Color color
-    ) {
-        font.Draw(text, position, color, sb);
-    }
-
-    #endregion
-
     #region // 3D
 
     // /// <summary>

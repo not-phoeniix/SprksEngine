@@ -42,9 +42,8 @@ internal class RendererDeferred2D : Renderer {
     /// </summary>
     /// <param name="settings">Renderer settings object to use when rendering</param>
     /// <param name="gd">GraphicsDevice to create renderer with</param>
-    /// <param name="loadingMenu">Optional loading menu to draw when a scene is loading</param>
-    public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd, Menu? loadingMenu)
-    : base(settings, gd, loadingMenu) {
+    public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd)
+    : base(settings, gd) {
         fxLightRender = ShaderManager.I.LoadShader("Deferred2D/light_render");
         fxLightCombine = ShaderManager.I.LoadShader("Deferred2D/light_combine");
         fxJumpFloodSeed = ShaderManager.I.LoadShader("Deferred2D/jump_flood_seed");
