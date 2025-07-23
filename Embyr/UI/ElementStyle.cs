@@ -45,6 +45,11 @@ public struct ElementStyle {
     public int BorderSize { get; set; }
 
     /// <summary>
+    /// Gets/sets the font that text is rendered with
+    /// </summary>
+    public Font Font { get; set; }
+
+    /// <summary>
     /// Creates a new ElementStyle structure
     /// </summary>
     public ElementStyle() {
@@ -69,5 +74,6 @@ public struct ElementStyle {
         ActiveColor = style.ActiveColor;
         InactiveColor = style.InactiveColor;
         BorderSize = style.BorderSize;
+        Font = style.Font;
     }
 }
