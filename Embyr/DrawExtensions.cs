@@ -353,6 +353,28 @@ public static class DrawExtensions {
 
     #endregion
 
+    #region // Text
+
+    /// <summary>
+    /// Draws an <c>Embyr.UI.Font</c> to the screen
+    /// </summary>
+    /// <param name="sb">SpriteBatch to draw with</param>
+    /// <param name="font">Font of text to draw</param>
+    /// <param name="text">Text to draw</param>
+    /// <param name="position">Position to draw text at</param>
+    /// <param name="color">Color to draw text with</param>
+    public static void DrawString(
+        this SpriteBatch sb,
+        Font font,
+        string text,
+        Vector2 position,
+        Color color
+    ) {
+        font.DrawString(text, position, color, sb);
+    }
+
+    #endregion
+
     #region // Triangle drawing
 
     /// <summary>
