@@ -7,7 +7,6 @@ public class Font {
     // number of letters across and upwards in the atlas texture
     private const int textureAtlasWidth = 16;
     private const int textureAtlasHeight = 8;
-    private const int textureAtlasSpacing = 2;
 
     private readonly Texture2D texture;
     private readonly int charWidth;
@@ -15,12 +14,17 @@ public class Font {
     private readonly int charHorizSeparation;
     private readonly int charVertSeparation;
 
-    public Font(Texture2D texture, int charWidth, int charHeight, int charHorizSeparation, int charVertSeparation) {
+    private readonly int atlasGaps;
+    private readonly int atlasPadding;
+
+    public Font(Texture2D texture, int charWidth, int charHeight, int atlasGaps, int atlasPadding, int charHorizSeparation, int charVertSeparation) {
         this.texture = texture;
         this.charWidth = charWidth;
         this.charHeight = charHeight;
         this.charHorizSeparation = charHorizSeparation;
         this.charVertSeparation = charVertSeparation;
+        this.atlasGaps = atlasGaps;
+        this.atlasPadding = atlasPadding;
     }
 
     public void DrawString(string str, Vector2 position, Color color, SpriteBatch sb) {
@@ -43,8 +47,8 @@ public class Font {
         int yIndex = c / textureAtlasWidth;
 
         Point pos = new(
-            1 + xIndex * (charWidth + textureAtlasSpacing),
-            1 + yIndex * (charHeight + textureAtlasSpacing)
+            atlasPadding + xIndex * (charWidth + atlasGaps),
+            atlasPadding + yIndex * (charHeight + atlasGaps)
         );
 
         return new Rectangle(pos, new Point(charWidth, charHeight));
