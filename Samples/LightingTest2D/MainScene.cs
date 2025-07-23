@@ -141,9 +141,10 @@ public class MainScene(string name) : Scene2D(name) {
                 Style = new ElementStyle() {
                     BackgroundColor = Color.Black
                 },
-                XSizing = ElementSizing.Fit(),
+                XSizing = ElementSizing.Fixed(200),
                 YSizing = ElementSizing.Fit(),
                 Gap = 4,
+                Direction = AlignDirection.LeftToRight,
                 Padding = new ElementPadding(4)
             });
             {
@@ -159,8 +160,10 @@ public class MainScene(string name) : Scene2D(name) {
                             Style = new ElementStyle() {
                                 BackgroundColor = gradientColor
                             },
-                            XSizing = ElementSizing.Fixed(10),
-                            YSizing = ElementSizing.Fixed(10),
+                            // XSizing = ElementSizing.Fixed(10),
+                            XSizing = ElementSizing.Grow(),
+                            // YSizing = ElementSizing.Fixed(10),
+                            YSizing = ElementSizing.Grow()
                         },
                         static () => Debug.WriteLine("waow....")
                     );
@@ -210,8 +213,10 @@ public class MainScene(string name) : Scene2D(name) {
                     BackgroundColor = Color.CornflowerBlue
                 },
                 Direction = AlignDirection.TopToBottom,
-                Gap = 6,
-                Padding = new ElementPadding(2)
+                XSizing = ElementSizing.Fit(),
+                YSizing = ElementSizing.Fixed(30),
+                Gap = 1,
+                Padding = new ElementPadding(1)
             });
             {
                 for (int i = 0; i < 6; i++) {
@@ -219,8 +224,8 @@ public class MainScene(string name) : Scene2D(name) {
                         Style = new ElementStyle() {
                             BackgroundColor = Color.Goldenrod
                         },
-                        XSizing = ElementSizing.Fixed(12),
-                        YSizing = ElementSizing.Fixed(12),
+                        XSizing = ElementSizing.Fixed(20),
+                        YSizing = ElementSizing.Grow(),
                     });
                 }
             }

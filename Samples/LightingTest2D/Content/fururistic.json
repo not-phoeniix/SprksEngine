@@ -1,0 +1,10 @@
+{
+    "name": "Futuristic",
+    "atlasTexture": "futuristic-charmap",
+    "source": "https://opengameart.org/content/ascii-bitmap-font-futuristic",
+    "creator": "domsson",
+    "charWidth": 5,
+    "charHeight": 7,
+    "atlasPadding": 1,
+    "atlasGaps": 2
+}

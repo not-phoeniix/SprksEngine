@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.UI;
 
-// layout algo guidance/inspiration:
+// layout algorithm guidance/inspiration:
 //   https://www.youtube.com/watch?v=by9lQvpvMIc
 
 public static class UIBuilder {
@@ -36,7 +36,7 @@ public static class UIBuilder {
         }
 
         Element element = currentParent;
-        element.CalcSizing();
+        element.CalcFitSizing();
 
         // we move up the reference tree
         currentParent = element.Parent;
@@ -56,6 +56,15 @@ public static class UIBuilder {
     public static void Clickable(ElementProperties props, Action onClicked) {
         BeginClickable(props, onClicked);
         End();
+    }
+
+    public static void Text(ElementProperties props, string text) {
+    }
+
+    internal static void CalcGrowSizing() {
+        foreach (Element element in rootElements) {
+            element.CalcGrowSizing();
+        }
     }
 
     internal static void CalcPositions() {
@@ -100,12 +109,7 @@ public static class UIBuilder {
         if (elementPool.Count > 0) {
             element = elementPool[elementPool.Count - 1];
             element.Props = properties;
-            element.Bounds = new Rectangle(
-                0,
-                0,
-                properties.XSizing.DesiredSize,
-                properties.YSizing.DesiredSize
-            );
+            element.Bounds = properties.GetInitialBounds();
             element.Children.Clear();
             element.Parent = null;
             element.Clickable = false;
