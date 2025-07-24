@@ -157,20 +157,19 @@ public class MainScene(string name) : Scene2D(name) {
                     1.0f
                 );
 
-                UIBuilder.BeginClickable(
+                UIBuilder.Button(
                     new ElementProperties() {
                         Style = new ElementStyle() {
-                            BackgroundColor = gradientColor
+                            BackgroundColor = gradientColor,
+                            Color = Color.Black,
+                            Font = font
                         },
-                        // XSizing = ElementSizing.Fixed(10),
                         XSizing = ElementSizing.Grow(),
-                        // YSizing = ElementSizing.Fixed(10),
                         YSizing = ElementSizing.Grow()
                     },
+                    ":D",
                     static () => Debug.WriteLine("waow....")
                 );
-                UIBuilder.TextElement(ElementProperties.BlankText(font, Color.Black), ":D");
-                UIBuilder.End();
             }
 
             UIBuilder.BeginElement(new ElementProperties() {

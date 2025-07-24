@@ -58,6 +58,14 @@ public static class UIBuilder {
         End();
     }
 
+    public static void Button(ElementProperties props, string label, Action onClicked) {
+        BeginElement(props);
+        clickables.Add((onClicked, currentParent!));
+        currentParent!.Clickable = true;
+        currentParent!.InnerText = label;
+        End();
+    }
+
     public static void TextElement(ElementProperties props, string text) {
         BeginElement(props);
         currentParent!.InnerText = text;
