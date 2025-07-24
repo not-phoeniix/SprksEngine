@@ -58,7 +58,10 @@ public static class UIBuilder {
         End();
     }
 
-    public static void Text(ElementProperties props, string text) {
+    public static void TextElement(ElementProperties props, string text) {
+        BeginElement(props);
+        currentParent!.InnerText = text;
+        End();
     }
 
     internal static void CalcGrowSizing() {
@@ -112,6 +115,7 @@ public static class UIBuilder {
             element.Bounds = properties.GetInitialBounds();
             element.Children.Clear();
             element.Parent = null;
+            element.InnerText = "";
             element.Clickable = false;
             elementPool.RemoveAt(elementPool.Count - 1);
         } else {

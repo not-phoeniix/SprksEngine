@@ -12,12 +12,30 @@ public enum AlignDirection {
 }
 
 internal class Element {
+    private string innerText;
+    private Vector2 stringSize;
+
     public Rectangle Bounds;
     public Element? Parent;
     public readonly List<Element> Children;
     public ElementProperties Props;
     public bool Hovered { get; private set; }
     public bool Clickable;
+
+    public string InnerText {
+        get => innerText;
+        set {
+            if (innerText != value) {
+                if (!string.IsNullOrEmpty(value) && Props.Style.Font != null) {
+                    stringSize = Props.Style.Font.MeasureString(value);
+                } else {
+                    stringSize = Vector2.Zero;
+                }
+            }
+
+            innerText = value;
+        }
+    }
 
     public Element(ElementProperties properties) {
         this.Bounds = properties.GetInitialBounds();
@@ -30,6 +48,14 @@ internal class Element {
 
         Bounds.Width += Props.Padding.Left + Props.Padding.Right;
         Bounds.Height += Props.Padding.Top + Props.Padding.Bottom;
+
+        // fit text !!
+        if (Props.XSizing.Behavior == SizingBehavior.Fit) {
+            Bounds.Width += (int)stringSize.X;
+        }
+        if (Props.YSizing.Behavior == SizingBehavior.Fit) {
+            Bounds.Height += (int)stringSize.Y;
+        }
 
         // calculate additional space for gaps for children for THIS element
         int gap = Math.Max((Children.Count - 1) * Props.Gap, 0);
@@ -256,6 +282,19 @@ internal class Element {
             sb.DrawRectFill(Bounds, Props.Style.HoverColor);
         } else {
             sb.DrawRectFill(Bounds, Props.Style.BackgroundColor);
+        }
+
+        if (!string.IsNullOrEmpty(innerText) && Props.Style.Font != null) {
+            Vector2 centeredTextPos = Bounds.Center.ToVector2();
+            centeredTextPos -= Vector2.Ceiling(stringSize / 2);
+            centeredTextPos.Y += 1;
+
+            sb.DrawString(
+                Props.Style.Font,
+                innerText,
+                centeredTextPos,
+                Props.Style.Color
+            );
         }
 
         foreach (Element child in Children) {

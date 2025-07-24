@@ -6,6 +6,18 @@ namespace Embyr.UI;
 /// A structure that contains the styling rules for any MenuElement
 /// </summary>
 public struct ElementStyle {
+    public static ElementStyle EmptyTransparent() => EmptyTransparent(null, Color.Black);
+
+    public static ElementStyle EmptyTransparent(Font font, Color textColor) => new() {
+        BackgroundColor = Color.Transparent,
+        Color = textColor,
+        HoverColor = Color.Transparent,
+        ActiveColor = Color.Transparent,
+        InactiveColor = Color.Transparent,
+        BorderColor = Color.Transparent,
+        Font = font
+    };
+
     /// <summary>
     /// Color of background, everything within border
     /// </summary>

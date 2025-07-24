@@ -3,10 +3,11 @@ using Microsoft.Xna.Framework;
 namespace Embyr.UI;
 
 public struct ElementProperties {
-    public static ElementProperties BlankText => new() {
+    public static ElementProperties BlankText(Font font, Color color) => new() {
         Style = new ElementStyle() {
             BackgroundColor = Color.Transparent,
-            Color = Color.Black
+            Color = color,
+            Font = font
         },
         Direction = AlignDirection.LeftToRight,
         XSizing = ElementSizing.Grow(),

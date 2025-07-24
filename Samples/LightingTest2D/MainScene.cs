@@ -34,6 +34,7 @@ public class MainScene(string name) : Scene2D(name) {
     private Light2D greenLight;
     private Light2D globalLight;
     private Light2D miniLight;
+    private Font font;
 
     public override void LoadContent() {
         AmbientColor = Color.Black;
@@ -110,6 +111,16 @@ public class MainScene(string name) : Scene2D(name) {
         parallax.RepeatSize = new Point(4, 4);
         AddActor(parallax);
 
+        font = new Font(
+            ContentHelper.I.Load<Texture2D>("futuristic-charmap"),
+            5,
+            7,
+            2,
+            1,
+            1,
+            1
+        );
+
         base.LoadContent();
     }
 
@@ -130,103 +141,71 @@ public class MainScene(string name) : Scene2D(name) {
     public override void BuildUI() {
         UIBuilder.BeginElement(new ElementProperties() {
             Style = new ElementStyle() {
-                BackgroundColor = Color.Transparent
+                BackgroundColor = Color.Black
             },
+            XSizing = ElementSizing.Fixed(200),
+            YSizing = ElementSizing.Fit(),
             Gap = 4,
-            Padding = new ElementPadding(10),
-            Direction = AlignDirection.TopToBottom
+            Direction = AlignDirection.LeftToRight,
+            Padding = new ElementPadding(4)
         });
         {
-            UIBuilder.BeginElement(new ElementProperties() {
-                Style = new ElementStyle() {
-                    BackgroundColor = Color.Black
-                },
-                XSizing = ElementSizing.Fixed(200),
-                YSizing = ElementSizing.Fit(),
-                Gap = 4,
-                Direction = AlignDirection.LeftToRight,
-                Padding = new ElementPadding(4)
-            });
-            {
-                for (int i = 0; i < 10; i++) {
-                    Color gradientColor = new(
-                        i / 10.0f * 0.5f + 0.5f,
-                        1.0f,
-                        1.0f
-                    );
+            for (int i = 0; i < 10; i++) {
+                Color gradientColor = new(
+                    i / 10.0f * 0.5f + 0.5f,
+                    1.0f,
+                    1.0f
+                );
 
-                    UIBuilder.Clickable(
-                        new ElementProperties() {
-                            Style = new ElementStyle() {
-                                BackgroundColor = gradientColor
-                            },
-                            // XSizing = ElementSizing.Fixed(10),
-                            XSizing = ElementSizing.Grow(),
-                            // YSizing = ElementSizing.Fixed(10),
-                            YSizing = ElementSizing.Grow()
+                UIBuilder.BeginClickable(
+                    new ElementProperties() {
+                        Style = new ElementStyle() {
+                            BackgroundColor = gradientColor
                         },
-                        static () => Debug.WriteLine("waow....")
-                    );
-                }
-
-                UIBuilder.BeginElement(new ElementProperties() {
-                    Direction = AlignDirection.TopToBottom,
-                    Style = new ElementStyle() {
-                        BackgroundColor = Color.Gray
+                        // XSizing = ElementSizing.Fixed(10),
+                        XSizing = ElementSizing.Grow(),
+                        // YSizing = ElementSizing.Fixed(10),
+                        YSizing = ElementSizing.Grow()
                     },
-                    Gap = 1
-                });
-                {
-                    for (int y = 0; y < 3; y++) {
-                        UIBuilder.BeginElement(new ElementProperties() {
-                            Direction = AlignDirection.LeftToRight,
-                            Style = new ElementStyle() {
-                                BackgroundColor = Color.Transparent
-                            },
-                            Gap = 1
-                        });
-                        for (int x = 0; x < 3; x++) {
-                            int x2 = x;
-                            int y2 = y;
-
-                            UIBuilder.Clickable(
-                                new ElementProperties() {
-                                    Style = new ElementStyle() {
-                                        BackgroundColor = Color.Red,
-                                        HoverColor = Color.DarkRed
-                                    },
-                                    XSizing = ElementSizing.Fixed(10),
-                                    YSizing = ElementSizing.Fixed(10),
-                                },
-                                () => Debug.WriteLine($"[{x2}, {y2}]")
-                            );
-                        }
-                        UIBuilder.End();
-                    }
-                }
+                    static () => Debug.WriteLine("waow....")
+                );
+                UIBuilder.TextElement(ElementProperties.BlankText(font, Color.Black), ":D");
                 UIBuilder.End();
             }
-            UIBuilder.End();
 
             UIBuilder.BeginElement(new ElementProperties() {
-                Style = new ElementStyle() {
-                    BackgroundColor = Color.CornflowerBlue
-                },
                 Direction = AlignDirection.TopToBottom,
-                XSizing = ElementSizing.Fit(),
-                YSizing = ElementSizing.Fixed(30),
-                Gap = 1,
-                Padding = new ElementPadding(1)
+                Style = new ElementStyle() {
+                    BackgroundColor = Color.Gray
+                },
+                Gap = 1
             });
             {
-                for (int i = 0; i < 6; i++) {
-                    UIBuilder.Element(new ElementProperties() {
+                for (int y = 0; y < 3; y++) {
+                    UIBuilder.BeginElement(new ElementProperties() {
+                        Direction = AlignDirection.LeftToRight,
                         Style = new ElementStyle() {
-                            BackgroundColor = Color.Goldenrod
+                            BackgroundColor = Color.Transparent
                         },
-                        XSizing = ElementSizing.Fixed(20),
-                        YSizing = ElementSizing.Grow(),
+                        Gap = 1
                     });
+                    for (int x = 0; x < 3; x++) {
+                        int x2 = x;
+                        int y2 = y;
+
+                        UIBuilder.Clickable(
+                            new ElementProperties() {
+                                Style = new ElementStyle() {
+                                    BackgroundColor = Color.Red,
+                                    HoverColor = Color.DarkRed
+                                },
+                                XSizing = ElementSizing.Fixed(10),
+                                YSizing = ElementSizing.Fixed(10),
+                            },
+                            () => Debug.WriteLine($"[{x2}, {y2}]")
+                        );
+                    }
+                    UIBuilder.End();
                 }
             }
             UIBuilder.End();
