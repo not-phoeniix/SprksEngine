@@ -136,7 +136,15 @@ internal class RendererDeferred2D : Renderer {
         // if (EngineSettings.ShowDebugDrawing) {
         //     UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
         // }
-        UIRenderLayer.DrawTo(UIBuilder.DrawAll, SpriteBatch);
+        UIRenderLayer.DrawTo(
+            UIBuilder.DrawAll,
+            SpriteBatch,
+            Matrix.CreateTranslation(new Vector3(
+                Game.CanvasExpandSize / 2,
+                Game.CanvasExpandSize / 2,
+                0
+            ))
+        );
 
         // TODO: somehow get dynamic parallax drawing on different RenderLayer's
 

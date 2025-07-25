@@ -139,76 +139,134 @@ public class MainScene(string name) : Scene2D(name) {
     }
 
     public override void BuildUI() {
+        ElementStyle textStyle = new() {
+            Font = font,
+            BackgroundColor = Color.Black,
+            Color = Color.White
+        };
+
         UIBuilder.BeginElement(new ElementProperties() {
-            Style = new ElementStyle() {
-                BackgroundColor = Color.Black
-            },
-            XSizing = ElementSizing.Fixed(200),
-            YSizing = ElementSizing.Fit(),
-            Gap = 4,
-            Direction = AlignDirection.LeftToRight,
-            Padding = new ElementPadding(4)
+            Direction = AlignDirection.TopToBottom,
+            Style = ElementStyle.EmptyTransparent(),
+            XSizing = ElementSizing.Grow(),
+            YSizing = ElementSizing.Grow()
         });
         {
-            for (int i = 0; i < 10; i++) {
-                Color gradientColor = new(
-                    i / 10.0f * 0.5f + 0.5f,
-                    1.0f,
-                    1.0f
-                );
-
-                UIBuilder.Button(
-                    new ElementProperties() {
-                        Style = new ElementStyle() {
-                            BackgroundColor = gradientColor,
-                            Color = Color.Black,
-                            Font = font
-                        },
-                        XSizing = ElementSizing.Grow(),
-                        YSizing = ElementSizing.Grow()
-                    },
-                    ":D",
-                    static () => Debug.WriteLine("waow....")
-                );
-            }
-
             UIBuilder.BeginElement(new ElementProperties() {
-                Direction = AlignDirection.TopToBottom,
                 Style = new ElementStyle() {
-                    BackgroundColor = Color.Gray
+                    BackgroundColor = Color.Black
                 },
-                Gap = 1
+                XSizing = ElementSizing.Grow(),
+                YSizing = ElementSizing.Fit(),
+                Gap = 4,
+                Direction = AlignDirection.LeftToRight,
+                Padding = new ElementPadding(4)
             });
             {
-                for (int y = 0; y < 3; y++) {
-                    UIBuilder.BeginElement(new ElementProperties() {
-                        Direction = AlignDirection.LeftToRight,
-                        Style = new ElementStyle() {
-                            BackgroundColor = Color.Transparent
-                        },
-                        Gap = 1
-                    });
-                    for (int x = 0; x < 3; x++) {
-                        int x2 = x;
-                        int y2 = y;
+                for (int i = 0; i < 10; i++) {
+                    Color gradientColor = new(
+                        i / 10.0f * 0.5f + 0.5f,
+                        1.0f,
+                        1.0f
+                    );
 
-                        UIBuilder.Clickable(
-                            new ElementProperties() {
-                                Style = new ElementStyle() {
-                                    BackgroundColor = Color.Red,
-                                    HoverColor = Color.DarkRed
-                                },
-                                XSizing = ElementSizing.Fixed(10),
-                                YSizing = ElementSizing.Fixed(10),
+                    UIBuilder.Button(
+                        new ElementProperties() {
+                            Style = new ElementStyle() {
+                                BackgroundColor = gradientColor,
+                                Color = Color.Black,
+                                Font = font
                             },
-                            () => Debug.WriteLine($"[{x2}, {y2}]")
-                        );
-                    }
-                    UIBuilder.End();
+                            XSizing = ElementSizing.Grow(),
+                            YSizing = ElementSizing.Grow()
+                        },
+                        ":D",
+                        static () => Debug.WriteLine("waow....")
+                    );
                 }
+
+                UIBuilder.BeginElement(new ElementProperties() {
+                    Direction = AlignDirection.TopToBottom,
+                    Style = new ElementStyle() {
+                        BackgroundColor = Color.Gray
+                    },
+                    Gap = 1
+                });
+                {
+                    for (int y = 0; y < 3; y++) {
+                        UIBuilder.BeginElement(new ElementProperties() {
+                            Direction = AlignDirection.LeftToRight,
+                            Style = new ElementStyle() {
+                                BackgroundColor = Color.Transparent
+                            },
+                            Gap = 1
+                        });
+                        for (int x = 0; x < 3; x++) {
+                            int x2 = x;
+                            int y2 = y;
+
+                            UIBuilder.Clickable(
+                                new ElementProperties() {
+                                    Style = new ElementStyle() {
+                                        BackgroundColor = Color.Red,
+                                        HoverColor = Color.DarkRed
+                                    },
+                                    XSizing = ElementSizing.Fixed(10),
+                                    YSizing = ElementSizing.Fixed(10),
+                                },
+                                () => Debug.WriteLine($"[{x2}, {y2}]")
+                            );
+                        }
+                        UIBuilder.End();
+                    }
+                }
+                UIBuilder.End();
             }
             UIBuilder.End();
+
+            // separator element, pushes below elements down to bottom of screen
+            UIBuilder.BeginElement(new ElementProperties() {
+                Style = ElementStyle.EmptyTransparent(),
+                XSizing = ElementSizing.Grow(),
+                YSizing = ElementSizing.Grow(),
+            });
+            {
+                UIBuilder.TextElement(
+                    new ElementProperties() {
+                        Style = textStyle,
+                        Padding = new ElementPadding(2),
+                        YSizing = ElementSizing.Grow(),
+                    },
+                    "!!"
+                );
+
+                UIBuilder.Element(new ElementProperties() {
+                    Style = ElementStyle.EmptyTransparent(),
+                    XSizing = ElementSizing.Grow(),
+                    YSizing = ElementSizing.Grow(),
+                });
+
+                UIBuilder.TextElement(
+                    new ElementProperties() {
+                        Style = textStyle,
+                        Padding = new ElementPadding(2),
+                        YSizing = ElementSizing.Grow(),
+                    },
+                    "!!"
+                );
+            }
+            UIBuilder.End();
+
+            UIBuilder.TextElement(
+                new ElementProperties() {
+                    XSizing = ElementSizing.Grow(),
+                    Padding = new ElementPadding(5),
+                    Style = textStyle
+                },
+                "obtrusive ui, etc"
+            );
         }
+
         UIBuilder.End();
     }
 }

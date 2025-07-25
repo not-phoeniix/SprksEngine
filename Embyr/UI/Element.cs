@@ -92,6 +92,17 @@ internal class Element {
     }
 
     public void CalcGrowSizing() {
+        // grow to fit entire screen if root element !
+        if (Parent == null) {
+            if (Props.XSizing.Behavior == SizingBehavior.Grow) {
+                Bounds.Width = EngineSettings.GameCanvasResolution.X;
+            }
+
+            if (Props.YSizing.Behavior == SizingBehavior.Grow) {
+                Bounds.Height = EngineSettings.GameCanvasResolution.Y;
+            }
+        }
+
         if (Props.Direction == AlignDirection.LeftToRight) {
             GrowHorizontal();
         } else {
