@@ -95,11 +95,11 @@ internal class Element {
         // grow to fit entire screen if root element !
         if (Parent == null) {
             if (Props.XSizing.Behavior == SizingBehavior.Grow) {
-                Bounds.Width = EngineSettings.GameCanvasResolution.X;
+                Bounds.Width = Math.Max(EngineSettings.GameCanvasResolution.X, Bounds.Width);
             }
 
             if (Props.YSizing.Behavior == SizingBehavior.Grow) {
-                Bounds.Height = EngineSettings.GameCanvasResolution.Y;
+                Bounds.Height = Math.Max(EngineSettings.GameCanvasResolution.Y, Bounds.Height);
             }
         }
 
