@@ -40,8 +40,8 @@ public class MainScene(string name) : Scene2D(name) {
         AmbientColor = Color.Black;
         Gravity = 0;
 
-        Texture2D tileset = ContentHelper.I.Load<Texture2D>("tileset");
-        Texture2D tileNormals = ContentHelper.I.Load<Texture2D>("normals");
+        Texture2D tileset = Assets.Load<Texture2D>("tileset");
+        Texture2D tileNormals = Assets.Load<Texture2D>("normals");
 
         TileMap<TileType> map = new(Vector2.Zero, 1000, this);
         for (int x = 0; x < types.GetLength(1); x++) {
@@ -105,21 +105,13 @@ public class MainScene(string name) : Scene2D(name) {
         miniLight.Transform.GlobalZIndex = 8;
         AddLight(miniLight);
 
-        Texture2D parallaxTexture = ContentHelper.I.Load<Texture2D>("parallax");
+        Texture2D parallaxTexture = Assets.Load<Texture2D>("parallax");
         ParallaxLayer2D parallax = new(parallaxTexture, new Vector2(0.3f), this);
         parallax.Transform.ZIndex = 0;
         parallax.RepeatSize = new Point(4, 4);
         AddActor(parallax);
 
-        font = new Font(
-            ContentHelper.I.Load<Texture2D>("futuristic-charmap"),
-            5,
-            7,
-            2,
-            1,
-            1,
-            1
-        );
+        font = Assets.Load<Font>("futuristic");
 
         base.LoadContent();
     }

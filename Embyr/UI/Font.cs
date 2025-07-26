@@ -11,20 +11,27 @@ public class Font {
     private readonly Texture2D texture;
     private readonly int charWidth;
     private readonly int charHeight;
-    private readonly int charHorizSeparation;
-    private readonly int charVertSeparation;
-
     private readonly int atlasGaps;
     private readonly int atlasPadding;
 
-    public Font(Texture2D texture, int charWidth, int charHeight, int atlasGaps, int atlasPadding, int charHorizSeparation, int charVertSeparation) {
+    public int HorizCharSeparation { get; set; }
+    public int VertCharSeparation { get; set; }
+
+    public string Name { get; }
+    public string Creator { get; }
+    public string Url { get; }
+
+    internal Font(Texture2D texture, string name, string creator, string url, int charWidth, int charHeight, int atlasGaps, int atlasPadding) {
         this.texture = texture;
         this.charWidth = charWidth;
         this.charHeight = charHeight;
-        this.charHorizSeparation = charHorizSeparation;
-        this.charVertSeparation = charVertSeparation;
         this.atlasGaps = atlasGaps;
         this.atlasPadding = atlasPadding;
+        this.HorizCharSeparation = 1;
+        this.VertCharSeparation = 1;
+        this.Name = name;
+        this.Creator = creator;
+        this.Url = url;
     }
 
     public void DrawString(string text, Vector2 position, Color color, SpriteBatch sb) {
@@ -32,12 +39,12 @@ public class Font {
 
         foreach (char c in text) {
             if (c == '\n') {
-                offset.Y += charHeight + charVertSeparation;
+                offset.Y += charHeight + VertCharSeparation;
                 offset.X = 0;
             } else {
                 sb.Draw(texture, Vector2.Floor(position + offset), GetSource(c), color);
 
-                offset.X += charWidth + charHorizSeparation;
+                offset.X += charWidth + HorizCharSeparation;
             }
         }
     }
@@ -49,7 +56,7 @@ public class Font {
         int i = 0;
         foreach (char c in text) {
             if (c == '\n') {
-                size.Y += charHeight + charVertSeparation;
+                size.Y += charHeight + VertCharSeparation;
                 tempWidth = 0;
             } else {
                 tempWidth += charWidth;
@@ -57,7 +64,7 @@ public class Font {
                 // only add separation amount if we're not
                 //   at the end of the string
                 if (i != text.Length - 1) {
-                    tempWidth += charHorizSeparation;
+                    tempWidth += HorizCharSeparation;
                 }
 
                 size.X = Math.Max(size.X, tempWidth);

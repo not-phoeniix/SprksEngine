@@ -59,9 +59,6 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     public void Init(Game game, Scene initialScene) {
         this.game = game;
 
-        // on game exit, unload current scene
-        game.Exiting += (sender, args) => CurrentScene?.Unload();
-
         scenes = new Dictionary<string, Scene>() {
             { initialScene.Name, initialScene }
         };

@@ -57,7 +57,7 @@ public abstract class Scene : IResolution {
     /// content helper, should be called last in child override methods
     /// </summary>
     public virtual void Unload() {
-        ContentHelper.I.LocalReset();
+        Assets.ClearLocalContent();
     }
 
     /// <summary>

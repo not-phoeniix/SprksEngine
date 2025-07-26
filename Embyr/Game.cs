@@ -13,7 +13,7 @@ namespace Embyr;
 //* lol this used to be Game1
 
 /// <summary>
-/// Game class that all the game runs within
+/// Main game class, base building blocks that this Emybr game runs within
 /// </summary>
 public abstract class Game : Microsoft.Xna.Framework.Game {
     public enum RenderPipeline {
@@ -159,7 +159,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// </summary>
     protected override sealed void LoadContent() {
         ShaderManager.I.Init(GraphicsDevice, ShaderManager.ShaderProfile.OpenGL);
-        ContentHelper.I.Init(this, setupParams.RenderPipeline ?? throw new NullReferenceException("Cannot initialize content manager with null pipeline!"));
+        Assets.Init(this);
 
         RendererSetupParams rParams = SetupRenderer();
 
