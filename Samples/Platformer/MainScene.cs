@@ -3,7 +3,6 @@ using Embyr.Scenes;
 using Embyr.Tiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Aseprite.Tilemaps;
 
 namespace Platformer;
 

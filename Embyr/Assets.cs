@@ -8,6 +8,7 @@ public static class Assets {
 
     internal static void Init(Game game) {
         localContent = new ContentManager(game.Content.ServiceProvider, game.Content.RootDirectory);
+        Assets.game = game;
     }
 
     internal static void ClearLocalContent() {
