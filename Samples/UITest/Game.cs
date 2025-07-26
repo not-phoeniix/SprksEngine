@@ -1,44 +1,41 @@
+﻿using System;
 using Embyr;
 using Embyr.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace Platformer;
+namespace UITest;
 
 public class Game : Embyr.Game {
     protected override GameSetupParams SetupGame() {
         MainScene scene = new("main_scene");
 
-        ActionBindingPreset binds = new("default");
-        binds.AddActionBind("left", Keys.A);
-        binds.AddActionBind("right", Keys.D);
-        binds.AddActionBind("jump", Keys.Space);
-
         return new GameSetupParams() {
             InitialScene = scene,
-            WindowTitle = "Platformer Sample !!",
-            CanvasRes = new Point(300, 200),
-            WindowRes = new Point(900, 600),
+            WindowTitle = "UI Test :D",
+            CanvasRes = new Point(480, 270),
+            WindowRes = new Point(1280, 720),
+            IsFullscreen = false,
             EnableVSync = true,
             RenderPipeline = RenderPipeline.Deferred2D,
-            DefaultBindingPreset = binds
+            DefaultBindingPreset = ActionBindingPreset.MakeDefault()
         };
     }
 
     protected override RendererSetupParams SetupRenderer() {
         RendererSettings settings = new() {
-            VolumetricScalar = 0.1f,
-            EnableLighting = true,
-            EnablePostProcessing = true,
-            ClearColor = Color.Black
+            VolumetricScalar = 0,
+            EnablePostProcessing = false,
+            EnableLighting = false,
+            Depth3DScalar = 0.01f,
+            ClearColor = Color.Black,
+            Gamma = 2.2f
         };
-
-        PostProcessingEffect[] fx = [];
 
         return new RendererSetupParams() {
             RendererSettings = settings,
-            PostProcessingEffects = fx
+            PostProcessingEffects = Array.Empty<PostProcessingEffect>()
         };
     }
 }

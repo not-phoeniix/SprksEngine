@@ -1,10 +1,13 @@
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr;
 
 public static class Assets {
     private static ContentManager localContent;
     private static Game game;
+
+    public static GraphicsDevice GraphicsDevice => game.GraphicsDevice;
 
     internal static void Init(Game game) {
         localContent = new ContentManager(game.Content.ServiceProvider, game.Content.RootDirectory);

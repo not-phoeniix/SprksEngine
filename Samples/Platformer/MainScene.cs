@@ -1,6 +1,5 @@
 using Embyr;
 using Embyr.Scenes;
-using Embyr.Tiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -34,8 +33,8 @@ public class MainScene(string name) : Scene2D(name) {
         Gravity = 400;
         AmbientColor = Color.Black;
 
-        Texture2D tileTexture = ContentHelper.I.Load<Texture2D>("tileset");
-        Texture2D tileNormalMap = ContentHelper.I.Load<Texture2D>("normals");
+        Texture2D tileTexture = Assets.Load<Texture2D>("tileset");
+        Texture2D tileNormalMap = Assets.Load<Texture2D>("normals");
         tilemap = new TileMap<TileType>(Vector2.Zero, 1000, this);
 
         int width = layout.GetLength(1);

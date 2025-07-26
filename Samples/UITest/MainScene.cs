@@ -1,0 +1,203 @@
+using System.Diagnostics;
+using Embyr;
+using Embyr.Scenes;
+using Embyr.UI;
+using Microsoft.Xna.Framework;
+
+namespace UITest;
+
+public class MainScene(string name) : Scene2D(name) {
+    private Font font;
+    private ElementStyle textStyle;
+
+    public override void LoadContent() {
+        font = Assets.Load<Font>("futuristic");
+        textStyle = new ElementStyle() {
+            Font = font,
+            BackgroundColor = Color.DarkSlateGray,
+            Color = Color.White
+        };
+
+        base.LoadContent();
+    }
+
+    public override void BuildUI() {
+        // using C# scopes { } is a nice way to
+        //   show hierarchy with the elements :]
+
+        UIBuilder.BeginElement(new ElementProperties() {
+            Direction = AlignDirection.TopToBottom,
+            Style = ElementStyle.EmptyTransparent(),
+            XSizing = ElementSizing.Grow(),
+            YSizing = ElementSizing.Grow()
+        });
+        {
+            BuildTopBar();
+
+            UIBuilder.BeginElement(new ElementProperties() {
+                Style = ElementStyle.EmptyTransparent(),
+                XSizing = ElementSizing.Grow(),
+                YSizing = ElementSizing.Grow(),
+                Direction = AlignDirection.LeftToRight
+            });
+            {
+                BuildSideBar();
+
+                BuildMiddleSection();
+
+                BuildSideBar();
+            }
+            UIBuilder.End();
+
+            BuildBottomBar();
+        }
+        UIBuilder.End();
+    }
+
+    //* !!! Element section build methods !!!
+    //*   these are easy-to-reuse smaller chunks of UI code
+    //*   that make the BuildUI method much less cluttered
+
+    private void BuildTopBar() {
+        UIBuilder.BeginElement(new ElementProperties() {
+            Style = new ElementStyle() {
+                BackgroundColor = Color.DarkSlateGray
+            },
+            XSizing = ElementSizing.Grow(),
+            YSizing = ElementSizing.Fit(),
+            Gap = 4,
+            Direction = AlignDirection.LeftToRight,
+            Padding = new ElementPadding(4)
+        });
+        {
+            for (int i = 0; i < 10; i++) {
+                Color gradientColor = new(
+                    i / 10.0f * 0.5f + 0.5f,
+                    1.0f,
+                    1.0f
+                );
+
+                UIBuilder.Button(
+                    new ElementProperties() {
+                        Style = new ElementStyle() {
+                            BackgroundColor = gradientColor,
+                            Color = Color.Black,
+                            Font = font
+                        },
+                        XSizing = ElementSizing.Grow(),
+                        YSizing = ElementSizing.Grow()
+                    },
+                    ":D",
+                    static () => Debug.WriteLine("waow....")
+                );
+            }
+
+            UIBuilder.BeginElement(new ElementProperties() {
+                Direction = AlignDirection.TopToBottom,
+                Style = new ElementStyle() {
+                    BackgroundColor = Color.Gray
+                },
+                Gap = 1
+            });
+            {
+                for (int y = 0; y < 3; y++) {
+                    UIBuilder.BeginElement(new ElementProperties() {
+                        Direction = AlignDirection.LeftToRight,
+                        Style = new ElementStyle() {
+                            BackgroundColor = Color.Transparent
+                        },
+                        Gap = 1
+                    });
+                    for (int x = 0; x < 3; x++) {
+                        int x2 = x;
+                        int y2 = y;
+
+                        UIBuilder.Clickable(
+                            new ElementProperties() {
+                                Style = new ElementStyle() {
+                                    BackgroundColor = Color.Red,
+                                    HoverColor = Color.DarkRed
+                                },
+                                XSizing = ElementSizing.Fixed(10),
+                                YSizing = ElementSizing.Fixed(10),
+                            },
+                            () => Debug.WriteLine($"[{x2}, {y2}]")
+                        );
+                    }
+                    UIBuilder.End();
+                }
+            }
+            UIBuilder.End();
+        }
+        UIBuilder.End();
+    }
+
+    private void BuildSideBar() {
+        UIBuilder.TextElement(
+            new ElementProperties() {
+                Style = textStyle,
+                Padding = new ElementPadding(2),
+                YSizing = ElementSizing.Grow(),
+            },
+            "!!"
+        );
+    }
+
+    private void BuildMiddleSection() {
+        UIBuilder.BeginElement(new ElementProperties() {
+            Style = ElementStyle.EmptyTransparent(),
+            XSizing = ElementSizing.Grow(),
+            YSizing = ElementSizing.Grow(),
+            Direction = AlignDirection.TopToBottom,
+            Gap = 5
+        });
+        {
+            UIBuilder.Element(new ElementProperties() {
+                Style = ElementStyle.EmptyTransparent(),
+                XSizing = ElementSizing.Grow(),
+                YSizing = ElementSizing.Grow(),
+            });
+
+            UIBuilder.TextElement(
+                new ElementProperties() {
+                    Style = new ElementStyle() {
+                        BackgroundColor = Color.Transparent,
+                        Color = Color.White,
+                        Font = font
+                    },
+                    XSizing = ElementSizing.Grow(),
+                },
+                "this layout sucks lol"
+            );
+            UIBuilder.TextElement(
+                new ElementProperties() {
+                    Style = new ElementStyle() {
+                        BackgroundColor = Color.Transparent,
+                        Color = new Color(0.7f, 0.7f, 0.7f),
+                        Font = font
+                    },
+                    XSizing = ElementSizing.Grow(),
+                },
+                "at least you have an idea of how this layout system works tho :]"
+            );
+
+            UIBuilder.Element(new ElementProperties() {
+                Style = ElementStyle.EmptyTransparent(),
+                XSizing = ElementSizing.Grow(),
+                YSizing = ElementSizing.Grow(),
+            });
+        }
+        UIBuilder.End();
+    }
+
+    private void BuildBottomBar() {
+        UIBuilder.TextElement(
+            new ElementProperties() {
+                XSizing = ElementSizing.Grow(),
+                Padding = new ElementPadding(5),
+                Style = textStyle
+            },
+            "obtrusive ui, etc"
+        );
+    }
+}

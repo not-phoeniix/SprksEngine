@@ -37,7 +37,7 @@ public class Player : Actor2D {
         Physics.GroundFrictionScale = 20.0f;
 
         SpriteComponent2D sprite = AddComponent<SpriteComponent2D>();
-        sprite.Texture = ContentHelper.I.Load<Texture2D>("player");
+        sprite.Texture = Assets.Load<Texture2D>("player");
 
         OnAdded += (scene) => scene.AddLight(light);
         OnRemoved += (scene) => scene.RemoveLight(light);

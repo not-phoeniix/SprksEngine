@@ -17,7 +17,6 @@ public class Game : Embyr.Game {
             InitialScene = scene,
             WindowTitle = "Boids :D",
             EnableVSync = true,
-            RenderClearColor = Color.Black
         };
     }
 
@@ -25,11 +24,12 @@ public class Game : Embyr.Game {
         rSettings = new RendererSettings() {
             VolumetricScalar = 0.02f,
             EnablePostProcessing = true,
-            EnableLighting = true
+            EnableLighting = true,
+            ClearColor = Color.Black
         };
 
         PostProcessingEffect[] fx = [
-            new BloomPostProcessingEffect(GraphicsDevice) {
+            new BloomPPE(GraphicsDevice) {
                 LuminanceThreshold = 0.9f,
                 NumBlurPasses = 4
             }

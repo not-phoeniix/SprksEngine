@@ -4,6 +4,7 @@ using Embyr;
 using Embyr.Rendering;
 using Embyr.Scenes;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace _3DTest;
@@ -25,8 +26,8 @@ public class MainScene(string name) : Scene3D(name) {
         float ambientGray = 0.01f;
         AmbientColor = new Color(ambientGray, ambientGray, ambientGray);
 
-        GameMesh cube = ContentHelper.I.Load<GameMesh>("cube");
-        GameMesh sphere = ContentHelper.I.Load<GameMesh>("sphere");
+        GameMesh cube = new(Assets.Load<Model>("cube"), Assets.GraphicsDevice);
+        GameMesh sphere = new(Assets.Load<Model>("sphere"), Assets.GraphicsDevice);
 
         TestActor floor = new(
             "floor",

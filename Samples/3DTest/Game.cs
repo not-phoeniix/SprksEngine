@@ -35,7 +35,6 @@ public class Game : Embyr.Game {
             CanvasRes = new Point(300, 200),
             WindowTitle = "3D test !!",
             EnableVSync = true,
-            RenderClearColor = Color.Black,
             DefaultBindingPreset = binds
         };
     }
@@ -44,7 +43,8 @@ public class Game : Embyr.Game {
         rSettings = new RendererSettings() {
             VolumetricScalar = 0.05f,
             EnablePostProcessing = true,
-            EnableLighting = true
+            EnableLighting = true,
+            ClearColor = Color.Black
         };
 
         PostProcessingEffect[] fx = [
