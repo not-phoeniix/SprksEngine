@@ -51,41 +51,35 @@ public class BloomPPE : PostProcessingEffect {
     }
 
     private void SetupPasses(int numBlurPasses) {
-        Pass thresholdPass = new(
-            fxBloomThreshold,
-            GraphicsDevice,
-            (shader) => {
-                shader.Parameters["Threshold"].SetValue(LuminanceThreshold);
-            }
-        );
-
+        Pass thresholdPass = new(fxBloomThreshold, GraphicsDevice, PassLuminance);
         AddPass(thresholdPass);
 
         for (int i = 0; i < numBlurPasses; i++) {
             Pass blurVertical = new(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(true)
+                static shader => shader.Parameters["IsVertical"].SetValue(true)
             );
 
             Pass blurHorizontal = new(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(false)
+                static shader => shader.Parameters["IsVertical"].SetValue(false)
             );
 
             AddPass(blurVertical);
             AddPass(blurHorizontal);
         }
 
-        Pass combinePass = new(
-            fxBloomCombine,
-            GraphicsDevice,
-            (shader) => {
-                shader.Parameters["InitialTexture"].SetValue(InputRenderTarget);
-            }
-        );
-
+        Pass combinePass = new(fxBloomCombine, GraphicsDevice, PassInitialTexture);
         AddPass(combinePass);
+    }
+
+    private void PassLuminance(Effect shader) {
+        shader.Parameters["Threshold"].SetValue(LuminanceThreshold);
+    }
+
+    private void PassInitialTexture(Effect shader) {
+        shader.Parameters["InitialTexture"].SetValue(InputRenderTarget);
     }
 }

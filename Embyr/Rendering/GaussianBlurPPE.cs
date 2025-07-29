@@ -44,13 +44,13 @@ public class GaussianBlurPPE : PostProcessingEffect {
             AddPass(new Pass(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(false)
+                static s => s.Parameters["IsVertical"].SetValue(false)
             ));
 
             AddPass(new Pass(
                 fxBlur,
                 GraphicsDevice,
-                s => s.Parameters["IsVertical"].SetValue(true)
+                static s => s.Parameters["IsVertical"].SetValue(true)
             ));
         }
     }

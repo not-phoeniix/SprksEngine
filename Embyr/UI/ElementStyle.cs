@@ -3,11 +3,21 @@ using Microsoft.Xna.Framework;
 namespace Embyr.UI;
 
 /// <summary>
-/// A structure that contains the styling rules for any MenuElement
+/// Object containing all properties describing how to describe
 /// </summary>
 public struct ElementStyle {
+    /// <summary>
+    /// Creates an empty and transparent element style, where theres no font and every color is transparent
+    /// </summary>
+    /// <returns>A new empty/transparent ElementStyle</returns>
     public static ElementStyle EmptyTransparent() => EmptyTransparent(null, Color.Black);
 
+    /// <summary>
+    /// Creates an empty and transparent element style used for text
+    /// </summary>
+    /// <param name="font">Font of text to use</param>
+    /// <param name="textColor">Color of text to use</param>
+    /// <returns>A new empty/transparent ElementStyle</returns>
     public static ElementStyle EmptyTransparent(Font font, Color textColor) => new() {
         BackgroundColor = Color.Transparent,
         Color = textColor,

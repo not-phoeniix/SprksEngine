@@ -6,23 +6,47 @@ namespace Embyr.UI;
 // layout algorithm guidance/inspiration:
 //   https://www.youtube.com/watch?v=by9lQvpvMIc
 
-public enum AlignDirection {
-    LeftToRight,
-    TopToBottom
-}
-
+/// <summary>
+/// A UI element node as part of a tree data structure for the UI hierarchy
+/// </summary>
 internal class Element {
-    private string innerText;
+    private string? innerText;
     private Vector2 stringSize;
 
+    /// <summary>
+    /// Rectangle bounds of this element
+    /// </summary>
     public Rectangle Bounds;
-    public Element? Parent;
-    public readonly List<Element> Children;
-    public ElementProperties Props;
-    public bool Hovered { get; private set; }
-    public bool Clickable;
 
-    public string InnerText {
+    /// <summary>
+    /// Gets/sets the reference to the parent element of this element
+    /// </summary>
+    public Element? Parent { get; set; }
+
+    /// <summary>
+    /// List of children elements of this element
+    /// </summary>
+    public readonly List<Element> Children;
+
+    /// <summary>
+    /// Gets the element properties describing this element
+    /// </summary>
+    public ElementProperties Props { get; private set; }
+
+    /// <summary>
+    /// Gets whether or not this element is hovered over by the mouse
+    /// </summary>
+    public bool Hovered { get; private set; }
+
+    /// <summary>
+    /// Gets/sets whether or not this element is clickable
+    /// </summary>
+    public bool Clickable { get; set; }
+
+    /// <summary>
+    /// Gets/sets the inner text of this element, can be null
+    /// </summary>
+    public string? InnerText {
         get => innerText;
         set {
             if (innerText != value) {
@@ -37,12 +61,32 @@ internal class Element {
         }
     }
 
+    /// <summary>
+    /// Creates a new Element instance
+    /// </summary>
+    /// <param name="properties">Element properties to describe this element</param>
     public Element(ElementProperties properties) {
         this.Bounds = properties.GetInitialBounds();
         this.Props = properties;
         this.Children = new List<Element>();
     }
 
+    /// <summary>
+    /// Resets this existing element instance to its initial state
+    /// </summary>
+    /// <param name="properties">Element properties to describe this element</param>
+    public void Reset(ElementProperties properties) {
+        Props = properties;
+        Bounds = properties.GetInitialBounds();
+        Children.Clear();
+        Parent = null;
+        InnerText = "";
+        Clickable = false;
+    }
+
+    /// <summary>
+    /// Calculates the sizing of this element and its children on axes that use fit behavior
+    /// </summary>
     public void CalcFitSizing() {
         //* reverse breadth-first search :D
 
@@ -91,6 +135,9 @@ internal class Element {
         }
     }
 
+    /// <summary>
+    /// Calculates the sizing of this element and its children on axes that use grow behavior
+    /// </summary>
     public void CalcGrowSizing() {
         // grow to fit entire screen if root element !
         if (Parent == null) {
@@ -114,7 +161,7 @@ internal class Element {
         }
     }
 
-    public void GrowHorizontal() {
+    private void GrowHorizontal() {
         //* breadth-first search :D
 
         int remainingWidth = Bounds.Width - (Props.Padding.Left + Props.Padding.Right);
@@ -176,7 +223,7 @@ internal class Element {
         }
     }
 
-    public void GrowVertical() {
+    private void GrowVertical() {
         //* breadth-first search :D
 
         int remainingWidth = Bounds.Width - (Props.Padding.Left + Props.Padding.Right);
@@ -238,6 +285,9 @@ internal class Element {
         }
     }
 
+    /// <summary>
+    /// Calculates the position of this element and its children
+    /// </summary>
     public void CalcPositions() {
         //* breadth-first search :D
 
@@ -271,6 +321,10 @@ internal class Element {
         Hovered = Bounds.Contains(Input.MousePos);
     }
 
+    /// <summary>
+    /// Clears all children recursively and places children in a list
+    /// </summary>
+    /// <param name="destination">Destination list to place children within</param>
     public void ClearChildren(List<Element> destination) {
         foreach (Element child in Children) {
             destination.Add(child);
@@ -280,6 +334,10 @@ internal class Element {
         Children.Clear();
     }
 
+    /// <summary>
+    /// Draws this element and its children
+    /// </summary>
+    /// <param name="sb">SpriteBatch to draw with</param>
     public void Draw(SpriteBatch sb) {
         //* breadth-first search :D
 

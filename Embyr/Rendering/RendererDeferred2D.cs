@@ -28,6 +28,7 @@ internal class RendererDeferred2D : Renderer {
     private RenderTarget2D distanceFrontBuffer;
     private RenderTarget2D obstructorDistanceField;
 
+    // light data
     private const int MaxLightsPerPass = 8;
     private Color globalLightTint;
     private readonly Vector4[] lightPositions = new Vector4[MaxLightsPerPass];
@@ -36,6 +37,8 @@ internal class RendererDeferred2D : Renderer {
     private readonly Vector4[] lightSizeParams = new Vector4[MaxLightsPerPass];
     private readonly float[] lightRotations = new float[MaxLightsPerPass];
     private readonly float[] lightCastsShadow = new float[MaxLightsPerPass];
+
+    private Scene2D? sceneToRender;
 
     /// <summary>
     /// Creates a new RendererDeferred2D instance
@@ -63,9 +66,12 @@ internal class RendererDeferred2D : Renderer {
     /// <inheritdoc/>
     public override void RenderScene(Scene inputScene) {
         // don't render non 2D scenes!
-        if (inputScene is not Scene2D scene) return;
+        sceneToRender = inputScene as Scene2D;
+        if (sceneToRender == null) {
+            return;
+        }
 
-        Matrix worldMatrix = scene.Camera.FlooredMatrix;
+        Matrix worldMatrix = sceneToRender.Camera.FlooredMatrix;
 
         SpriteBatch.GraphicsDevice.SetRenderTargets(sceneMRTTargets);
 
@@ -80,39 +86,37 @@ internal class RendererDeferred2D : Renderer {
 
         ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
         fxRenderGBuffer.Parameters["Gamma"].SetValue(Settings.Gamma);
-        SpriteBatchBegin(scene);
+        SpriteBatchBegin(sceneToRender);
 
-        foreach (Actor2D actor in scene.GetDrawableActors()) {
-            actor.Draw(SpriteBatch);
-        }
+        DrawSceneActors(SpriteBatch);
 
         SpriteBatch.End();
         ShaderManager.I.CurrentActorEffect = null;
 
         if (Settings.EnableLighting) {
             RenderDistanceField(obstructorDistanceField, 0.0f);
-            RenderLightsDeferred(scene, SpriteBatch);
+            RenderLightsDeferred(sceneToRender, SpriteBatch);
         }
 
         // draw buffers into the actual render layer
-        SceneRenderLayer.SmoothingOffset = scene.Camera.Position;
+        SceneRenderLayer.SmoothingOffset = sceneToRender.Camera.Position;
         if (EngineSettings.ShowDebugNormalBuffer) {
             SceneRenderLayer.ScreenSpaceEffect = null;
-            SceneRenderLayer.DrawTo(sb => sb.Draw(normalBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            SceneRenderLayer.DrawTo(DrawNormalBuffer, SpriteBatch, null);
         } else if (EngineSettings.ShowDebugDepthBuffer) {
             SceneRenderLayer.ScreenSpaceEffect = null;
-            SceneRenderLayer.DrawTo(sb => sb.Draw(depthBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            SceneRenderLayer.DrawTo(DrawDepthBuffer, SpriteBatch, null);
         } else {
             if (Settings.EnableLighting) {
                 fxLightCombine.Parameters["LightBuffer"].SetValue(lightBuffer);
                 fxLightCombine.Parameters["VolumetricScalar"].SetValue(Settings.VolumetricScalar);
-                fxLightCombine.Parameters["AmbientColor"].SetValue(scene.AmbientColor.ToVector3());
+                fxLightCombine.Parameters["AmbientColor"].SetValue(sceneToRender.AmbientColor.ToVector3());
                 SceneRenderLayer.ScreenSpaceEffect = fxLightCombine;
             } else {
                 SceneRenderLayer.ScreenSpaceEffect = null;
             }
 
-            SceneRenderLayer.DrawTo(sb => sb.Draw(albedoBuffer, Vector2.Zero, Color.White), SpriteBatch, null);
+            SceneRenderLayer.DrawTo(DrawAlbedoBuffer, SpriteBatch, null);
             RenderPostProcessing(SceneRenderLayer);
         }
 
@@ -120,11 +124,7 @@ internal class RendererDeferred2D : Renderer {
             SceneRenderLayer.ScreenSpaceEffect = null;
             SceneRenderLayer.IndividualEffect = null;
             SceneRenderLayer.DrawTo(
-                sb => {
-                    foreach (Actor2D actor in scene.GetDrawableActors()) {
-                        actor.DebugDraw(sb);
-                    }
-                },
+                DebugDrawSceneActors,
                 SpriteBatch,
                 worldMatrix,
                 resetTarget: false
@@ -132,10 +132,6 @@ internal class RendererDeferred2D : Renderer {
         }
 
         // draw UI to its respective render layer
-        // UIRenderLayer.DrawTo(scene.DrawOverlays, SpriteBatch);
-        // if (EngineSettings.ShowDebugDrawing) {
-        //     UIRenderLayer.DrawTo(scene.DebugDrawOverlays, SpriteBatch, resetTarget: false);
-        // }
         UIRenderLayer.DrawTo(
             UIBuilder.DrawAll,
             SpriteBatch,
@@ -380,5 +376,29 @@ internal class RendererDeferred2D : Renderer {
         }
 
         globalLightTint = new Color(globalSum);
+    }
+
+    private void DrawAlbedoBuffer(SpriteBatch sb) {
+        sb.Draw(albedoBuffer, Vector2.Zero, Color.White);
+    }
+
+    private void DrawDepthBuffer(SpriteBatch sb) {
+        sb.Draw(depthBuffer, Vector2.Zero, Color.White);
+    }
+
+    private void DrawNormalBuffer(SpriteBatch sb) {
+        sb.Draw(normalBuffer, Vector2.Zero, Color.White);
+    }
+
+    private void DrawSceneActors(SpriteBatch sb) {
+        foreach (Actor2D actor in sceneToRender!.GetDrawableActors()) {
+            actor.Draw(sb);
+        }
+    }
+
+    private void DebugDrawSceneActors(SpriteBatch sb) {
+        foreach (Actor2D actor in sceneToRender!.GetDrawableActors()) {
+            actor.DebugDraw(sb);
+        }
     }
 }

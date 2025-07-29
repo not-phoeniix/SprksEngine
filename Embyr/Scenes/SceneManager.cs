@@ -44,14 +44,6 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     internal Renderer Renderer => game.Renderer;
 
     /// <summary>
-    /// Gets the menu bounds for any new menu to be created
-    /// </summary>
-    public Rectangle MenuBounds => new(
-        new Point(Game.CanvasExpandSize / 2),
-        EngineSettings.GameCanvasResolution
-    );
-
-    /// <summary>
     /// Initializes the scene manager by loading shaders and setting up scenes. Doesn't load scene content.
     /// </summary>
     /// <param name="game">Game reference to use ContentManager from</param>

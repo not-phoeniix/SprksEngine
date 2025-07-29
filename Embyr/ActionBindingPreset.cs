@@ -166,9 +166,17 @@ public class ActionBindingPreset {
         public JsonArray ToJsonArr() {
             JsonArray arr = new();
 
-            KeyBinds.ForEach(k => arr.Add($"key_{k}"));
-            ButtonBinds.ForEach(b => arr.Add($"button_{b}"));
-            MouseBinds.ForEach(m => arr.Add($"mouse_{m}"));
+            foreach (Keys k in KeyBinds) {
+                arr.Add($"key_{k}");
+            }
+
+            foreach (Buttons b in ButtonBinds) {
+                arr.Add($"button_{b}");
+            }
+
+            foreach (MouseClick m in MouseBinds) {
+                arr.Add($"mouse_{m}");
+            }
 
             return arr;
         }

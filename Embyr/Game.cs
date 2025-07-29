@@ -225,6 +225,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             SceneManager.I.Update(Performance.DeltaTime);
         }
 
+        UIBuilder.ValidateTree();
         UIBuilder.CalcGrowSizing();
         UIBuilder.CalcPositions();
         UIBuilder.ActivateClickables();

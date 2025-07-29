@@ -13,8 +13,8 @@ public class FontReader : ContentTypeReader<Font> {
         JsonNode? node = JsonNode.Parse(input.ReadString());
 
         string name = node["name"].GetValue<string>();
-        string url = node["url"].GetValue<string>();
-        string creator = node["creator"].GetValue<string>();
+        string? url = node["url"]?.GetValue<string>();
+        string? creator = node["creator"]?.GetValue<string>();
         string atlasTexture = node["atlasTexture"].GetValue<string>();
         int charWidth = node["charWidth"].GetValue<int>();
         int charHeight = node["charHeight"].GetValue<int>();

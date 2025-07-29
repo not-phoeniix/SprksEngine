@@ -15,8 +15,6 @@ internal readonly struct ActionState {
     /// states from Keyboard, Mouse, and GamePad static classes
     /// </summary>
     /// <param name="preset">ActionBindingPreset to base input searching from</param>
-    /// <param name="disableDirectionals">Whether or not to disable checking for direction actions (like ui UDLR controls)</param>
-    /// <param name="normalizeMovement">Whether or not to normalize movement vector</param>
     public ActionState(ActionBindingPreset preset) {
         // don't create action state if preset is null
         if (preset == null) return;

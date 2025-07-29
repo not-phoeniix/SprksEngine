@@ -9,9 +9,6 @@ public class FontProcessor : ContentProcessor<string, JsonProcessedResult> {
     public override JsonProcessedResult Process(string input, ContentProcessorContext context) {
         string readerClass = $"{typeof(FontReader).FullName}, Embyr";
 
-        context.Logger.LogMessage("hiii... reader class: \"" + readerClass + "\"");
-        Debug.WriteLine("HELOOOOO !!! HAYO !!!!!!");
-
         return new JsonProcessedResult() {
             ProcessedJson = JsonNode.Parse(input),
             ReaderClass = readerClass

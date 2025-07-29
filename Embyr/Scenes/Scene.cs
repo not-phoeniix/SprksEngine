@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 namespace Embyr.Scenes;
 
 /// <summary>
-/// A scene in the game, contains data for lights, entities, menus, and other game logic
+/// An isolated scene in the game, contains actors to be simulated and drawn when loaded
 /// </summary>
 public abstract class Scene : IResolution {
     private readonly Queue<IActor> actorsToRemove = new();

@@ -76,33 +76,16 @@ internal class RenderLayer : IResolution {
     /// Draws to this render layer, automatically configures
     /// and begins/ends the spritebatch draw
     /// </summary>
-    /// <param name="drawActions">Action to invoke that contains all internal drawing code</param>
-    /// <param name="sb">SpriteBatch to draw with</param>
-    /// <param name="transform">Optional transform matrix to pass into SpriteBatch.Begin</param>
-    /// <param name="resetTarget">Whether or not to re-set the render target and clear again</param>
-    public void DrawTo(Action drawActions, SpriteBatch sb, Matrix? transform = null, bool resetTarget = true) {
-        if (ScreenSpaceEffect != null) {
-            DrawWithSSE(drawActions, sb, transform, resetTarget);
-        } else {
-            DrawNoSSE(drawActions, sb, transform, resetTarget);
-        }
-    }
-
-    /// <summary>
-    /// Draws to this render layer, automatically configures
-    /// and begins/ends the spritebatch draw
-    /// </summary>
     /// <param name="drawAction">Void method that passes in a SpriteBatch that contains drawing code</param>
     /// <param name="sb">SpriteBatch to draw with</param>
     /// <param name="transform">Optional transform matrix to pass into SpriteBatch.Begin</param>
     /// <param name="resetTarget">Whether or not to re-set the render target and clear again</param>
     public void DrawTo(Action<SpriteBatch> drawAction, SpriteBatch sb, Matrix? transform = null, bool resetTarget = true) {
-        DrawTo(
-            () => drawAction?.Invoke(sb),
-            sb,
-            transform,
-            resetTarget
-        );
+        if (ScreenSpaceEffect != null) {
+            DrawWithSSE(drawAction, sb, transform, resetTarget);
+        } else {
+            DrawNoSSE(drawAction, sb, transform, resetTarget);
+        }
     }
 
     /// <summary>
@@ -170,7 +153,7 @@ internal class RenderLayer : IResolution {
     }
 
     // draw without a screenspace effect
-    private void DrawNoSSE(Action drawActions, SpriteBatch sb, Matrix? transform, bool resetTarget) {
+    private void DrawNoSSE(Action<SpriteBatch> drawActions, SpriteBatch sb, Matrix? transform, bool resetTarget) {
         if (resetTarget) {
             sb.GraphicsDevice.SetRenderTarget(effectTarget);
             sb.GraphicsDevice.Clear(ClearColor);
@@ -180,12 +163,12 @@ internal class RenderLayer : IResolution {
             transformMatrix: transform,
             effect: IndividualEffect
         );
-        drawActions?.Invoke();
+        drawActions?.Invoke(sb);
         sb.End();
     }
 
     // draw with a screenspace effect
-    private void DrawWithSSE(Action drawActions, SpriteBatch sb, Matrix? transform, bool resetTarget) {
+    private void DrawWithSSE(Action<SpriteBatch> drawActions, SpriteBatch sb, Matrix? transform, bool resetTarget) {
         // draw all instructions to render target
         sb.GraphicsDevice.SetRenderTarget(renderTarget);
         if (resetTarget) {
@@ -198,7 +181,7 @@ internal class RenderLayer : IResolution {
             transformMatrix: transform,
             effect: IndividualEffect
         );
-        drawActions?.Invoke();
+        drawActions?.Invoke(sb);
         sb.End();
 
         // draw render target to effect target using effect in draw call

@@ -31,11 +31,13 @@ public class ToneMapGammaPPE : PostProcessingEffect {
         AddPass(new Pass(
             fxToneMap,
             gd,
-            s => {
-                s.Parameters["Gamma"].SetValue(Gamma);
-                s.Parameters["EnableTonemapping"].SetValue(EnableTonemapping);
-            },
+            PassShaderParams,
             SurfaceFormat.Color
         ));
+    }
+
+    private void PassShaderParams(Effect shader) {
+        shader.Parameters["Gamma"].SetValue(Gamma);
+        shader.Parameters["EnableTonemapping"].SetValue(EnableTonemapping);
     }
 }
