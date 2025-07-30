@@ -4,11 +4,28 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Embyr;
 
 /// <summary>
-/// Global helper class to load/manage assets in an Embyr game
+/// Describes a method that takes a loaded asset as input and processes it into another asset type
+/// </summary>
+/// <param name="input">Input asset loaded by the pipeline</param>
+/// <returns>A processed/transformed new asset based on input asset</returns>
+public delegate object ProcessCustomAssetDelegate(object input);
+
+/// <summary>
+/// Global asset manager class to load/manage assets in an Embyr game
 /// </summary>
 public static class Assets {
     private static ContentManager localContent;
     private static Game game;
+
+    // maps string content name to loaded content itself
+    private static readonly Dictionary<string, object> customLocalContent = new();
+    private static readonly Dictionary<string, object> customGlobalContent = new();
+
+    // maps output type to function that loads the input content
+    private static readonly Dictionary<Type, Func<string, object>> loadInputFuncs = new();
+
+    // maps output type to function used to create custom content from input content
+    private static readonly Dictionary<Type, ProcessCustomAssetDelegate> processInputFuncs = new();
 
     /// <summary>
     /// Gets the reference to the graphics device of the currently running game
@@ -25,13 +42,20 @@ public static class Assets {
     }
 
     /// <summary>
-    /// Clears local content manager and cache
+    /// Clears local content manager and cache, calling dispose on all disposable content
     /// </summary>
     internal static void ClearLocalContent() {
         localContent?.Unload();
         localContent?.Dispose();
 
         localContent = new ContentManager(game.Content.ServiceProvider, game.Content.RootDirectory);
+
+        foreach (object obj in customLocalContent.Values) {
+            if (obj is IDisposable d) {
+                d.Dispose();
+            }
+        }
+        customLocalContent.Clear();
     }
 
     /// <summary>
@@ -41,6 +65,10 @@ public static class Assets {
     /// <param name="content">String path of the processed asset</param>
     /// <returns>Loaded asset, returns the same reference with repeated calls</returns>
     public static T Load<T>(string content) {
+        if (IsCustomType(typeof(T))) {
+            return GetCustomContent<T>(content, global: false);
+        }
+
         return localContent.Load<T>(content);
     }
 
@@ -59,6 +87,10 @@ public static class Assets {
     /// <param name="content">String path of the processed asset</param>
     /// <returns>Loaded asset, returns the same reference with repeated calls</returns>
     public static T LoadGlobal<T>(string content) {
+        if (IsCustomType(typeof(T))) {
+            return GetCustomContent<T>(content, global: true);
+        }
+
         return game.Content.Load<T>(content);
     }
 
@@ -68,5 +100,48 @@ public static class Assets {
     /// <param name="content">String path of the processed asset</param>
     public static void UnloadGlobal(string content) {
         game.Content.UnloadAsset(content);
+    }
+
+    /// <summary>
+    /// Adds a new custom 2-stage asset type to the asset pipeline
+    /// </summary>
+    /// <typeparam name="I">Type of input asset to be processed initially, must be loadable already</typeparam>
+    /// <typeparam name="O">Type of output asset, the type that you will be able to load anywhere</typeparam>
+    /// <param name="processInstructions">
+    /// Process instructions to invoke that takes in an input loaded
+    /// asset and processes and returns the new processed asset
+    /// </param>
+    public static void AddAssetType<I, O>(ProcessCustomAssetDelegate processInstructions) {
+        processInputFuncs[typeof(O)] = processInstructions;
+        loadInputFuncs[typeof(O)] = (content) => Load<I>(content);
+    }
+
+    private static bool IsCustomType(Type t) {
+        return loadInputFuncs.ContainsKey(t) && processInputFuncs.ContainsKey(t);
+    }
+
+    private static T GetCustomContent<T>(string content, bool global) {
+        Type type = typeof(T);
+        if (!IsCustomType(type)) {
+            throw new Exception($"Cannot load content, asset type \"{typeof(T)}\" was never added to the asset pipeline!");
+        }
+
+        Dictionary<string, object> contentDict = global ? customGlobalContent : customLocalContent;
+
+        content = content.Replace('\\', '/');
+        if (!contentDict.TryGetValue(content, out object processedOutput)) {
+            // we get the input content by loading from the cached function
+            Func<string, object> loadInput = loadInputFuncs[type];
+            object inputContent = loadInput.Invoke(content);
+
+            // then we process the input content into our output type
+            ProcessCustomAssetDelegate processInput = processInputFuncs[type];
+            processedOutput = processInput.Invoke(inputContent);
+
+            // then we cache :]
+            contentDict[content] = processedOutput;
+        }
+
+        return (T)processedOutput;
     }
 }
