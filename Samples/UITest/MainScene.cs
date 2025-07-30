@@ -25,7 +25,7 @@ public class MainScene(string name) : Scene2D(name) {
         // using C# scopes { } is a nice way to
         //   show hierarchy with the elements :]
 
-        UIBuilder.BeginElement(new ElementProperties() {
+        Gooey.BeginElement(new ElementProperties() {
             Direction = AlignDirection.TopToBottom,
             Style = ElementStyle.EmptyTransparent(),
             XSizing = ElementSizing.Grow(),
@@ -34,7 +34,7 @@ public class MainScene(string name) : Scene2D(name) {
         {
             BuildTopBar();
 
-            UIBuilder.BeginElement(new ElementProperties() {
+            Gooey.BeginElement(new ElementProperties() {
                 Style = ElementStyle.EmptyTransparent(),
                 XSizing = ElementSizing.Grow(),
                 YSizing = ElementSizing.Grow(),
@@ -47,11 +47,11 @@ public class MainScene(string name) : Scene2D(name) {
 
                 BuildSideBar();
             }
-            UIBuilder.End();
+            Gooey.End();
 
             BuildBottomBar();
         }
-        UIBuilder.End();
+        Gooey.End();
     }
 
     //* !!! Element section build methods !!!
@@ -59,7 +59,7 @@ public class MainScene(string name) : Scene2D(name) {
     //*   that make the BuildUI method much less cluttered
 
     private void BuildTopBar() {
-        UIBuilder.BeginElement(new ElementProperties() {
+        Gooey.BeginElement(new ElementProperties() {
             Style = new ElementStyle() {
                 BackgroundColor = Color.DarkSlateGray
             },
@@ -77,7 +77,7 @@ public class MainScene(string name) : Scene2D(name) {
                     1.0f
                 );
 
-                UIBuilder.Button(
+                Gooey.Button(
                     new ElementProperties() {
                         Style = new ElementStyle() {
                             BackgroundColor = gradientColor,
@@ -92,7 +92,7 @@ public class MainScene(string name) : Scene2D(name) {
                 );
             }
 
-            UIBuilder.BeginElement(new ElementProperties() {
+            Gooey.BeginElement(new ElementProperties() {
                 Direction = AlignDirection.TopToBottom,
                 Style = new ElementStyle() {
                     BackgroundColor = Color.Gray
@@ -101,7 +101,7 @@ public class MainScene(string name) : Scene2D(name) {
             });
             {
                 for (int y = 0; y < 3; y++) {
-                    UIBuilder.BeginElement(new ElementProperties() {
+                    Gooey.BeginElement(new ElementProperties() {
                         Direction = AlignDirection.LeftToRight,
                         Style = new ElementStyle() {
                             BackgroundColor = Color.Transparent
@@ -112,7 +112,7 @@ public class MainScene(string name) : Scene2D(name) {
                         int x2 = x;
                         int y2 = y;
 
-                        UIBuilder.Clickable(
+                        Gooey.Clickable(
                             new ElementProperties() {
                                 Style = new ElementStyle() {
                                     BackgroundColor = Color.Red,
@@ -124,16 +124,16 @@ public class MainScene(string name) : Scene2D(name) {
                             () => Debug.WriteLine($"[{x2}, {y2}]")
                         );
                     }
-                    UIBuilder.End();
+                    Gooey.End();
                 }
             }
-            UIBuilder.End();
+            Gooey.End();
         }
-        UIBuilder.End();
+        Gooey.End();
     }
 
     private void BuildSideBar() {
-        UIBuilder.TextElement(
+        Gooey.TextElement(
             new ElementProperties() {
                 Style = textStyle,
                 Padding = new ElementPadding(2),
@@ -144,7 +144,7 @@ public class MainScene(string name) : Scene2D(name) {
     }
 
     private void BuildMiddleSection() {
-        UIBuilder.BeginElement(new ElementProperties() {
+        Gooey.BeginElement(new ElementProperties() {
             Style = ElementStyle.EmptyTransparent(),
             XSizing = ElementSizing.Grow(),
             YSizing = ElementSizing.Grow(),
@@ -152,13 +152,13 @@ public class MainScene(string name) : Scene2D(name) {
             Gap = 5
         });
         {
-            UIBuilder.Element(new ElementProperties() {
+            Gooey.Element(new ElementProperties() {
                 Style = ElementStyle.EmptyTransparent(),
                 XSizing = ElementSizing.Grow(),
                 YSizing = ElementSizing.Grow(),
             });
 
-            UIBuilder.TextElement(
+            Gooey.TextElement(
                 new ElementProperties() {
                     Style = new ElementStyle() {
                         BackgroundColor = Color.Transparent,
@@ -169,7 +169,7 @@ public class MainScene(string name) : Scene2D(name) {
                 },
                 "this layout sucks lol"
             );
-            UIBuilder.TextElement(
+            Gooey.TextElement(
                 new ElementProperties() {
                     Style = new ElementStyle() {
                         BackgroundColor = Color.Transparent,
@@ -181,17 +181,17 @@ public class MainScene(string name) : Scene2D(name) {
                 "at least you have an idea of how this layout system works tho :]"
             );
 
-            UIBuilder.Element(new ElementProperties() {
+            Gooey.Element(new ElementProperties() {
                 Style = ElementStyle.EmptyTransparent(),
                 XSizing = ElementSizing.Grow(),
                 YSizing = ElementSizing.Grow(),
             });
         }
-        UIBuilder.End();
+        Gooey.End();
     }
 
     private void BuildBottomBar() {
-        UIBuilder.TextElement(
+        Gooey.TextElement(
             new ElementProperties() {
                 XSizing = ElementSizing.Grow(),
                 Padding = new ElementPadding(5),

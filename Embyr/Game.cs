@@ -202,7 +202,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Performance.FrametimeMeasureStart();
         Performance.UpdateMeasureStart();
 
-        UIBuilder.ResetPool();
+        Gooey.ResetPool();
 
         Window.Title = EngineSettings.WindowTitle;
 
@@ -225,10 +225,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             SceneManager.I.Update(Performance.DeltaTime);
         }
 
-        UIBuilder.ValidateTree();
-        UIBuilder.CalcGrowSizing();
-        UIBuilder.CalcPositions();
-        UIBuilder.ActivateClickables();
+        Gooey.ValidateTree();
+        Gooey.CalcGrowSizing();
+        Gooey.CalcPositions();
+        Gooey.ActivateClickables();
 
         // if game goes inactive, pause
         if (!IsActive && isActivePrev) {

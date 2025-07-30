@@ -133,7 +133,7 @@ internal class RendererDeferred2D : Renderer {
 
         // draw UI to its respective render layer
         UIRenderLayer.DrawTo(
-            UIBuilder.DrawAll,
+            Gooey.DrawAll,
             SpriteBatch,
             Matrix.CreateTranslation(new Vector3(
                 Game.CanvasExpandSize / 2,

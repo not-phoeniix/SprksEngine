@@ -8,9 +8,9 @@ namespace Embyr.UI;
 //   https://www.youtube.com/watch?v=by9lQvpvMIc
 
 /// <summary>
-/// Static helper class used to build custom UI layouts
+/// Immediate-mode static GUI (pronounced GOOEY) builder class
 /// </summary>
-public static class UIBuilder {
+public static class Gooey {
     private static readonly List<Element> rootElements = new();
     private static readonly List<Element> elementPool = new();
     private static readonly List<(Action, Element)> clickables = new();
