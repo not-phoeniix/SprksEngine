@@ -63,14 +63,9 @@ internal class Element {
     }
 
     /// <summary>
-    /// Gets/sets the image attached to this element
+    /// Gets/sets the image properties to use when rendering images on this element
     /// </summary>
-    public Texture2D? Image { get; set; }
-
-    /// <summary>
-    /// Gets/sets the source rectangle to use when drawing the attached image
-    /// </summary>
-    public Rectangle? ImageSource { get; set; }
+    public ImageProperties? ImageProps { get; set; }
 
     /// <summary>
     /// Creates a new Element instance
@@ -89,7 +84,7 @@ internal class Element {
     public void Reset(ElementProperties properties) {
         Props = properties;
         Bounds = properties.GetInitialBounds();
-        Image = null;
+        ImageProps = null;
         Children.Clear();
         Parent = null;
         InnerText = "";
@@ -105,9 +100,17 @@ internal class Element {
         Bounds.Width += Props.Padding.Left + Props.Padding.Right;
         Bounds.Height += Props.Padding.Top + Props.Padding.Bottom;
 
-        if (Image != null) {
-            imageSize.X = ImageSource?.Width ?? Image.Width;
-            imageSize.Y = ImageSource?.Height ?? Image.Height;
+        if (ImageProps != null) {
+            ImageProperties props = ImageProps.Value;
+
+            imageSize.X = props.ManualSize?.X
+                       ?? props.SourceRect?.Width
+                       ?? props.Image.Width;
+
+            imageSize.Y = props.ManualSize?.Y
+                       ?? props.SourceRect?.Height
+                       ?? props.Image.Height;
+
         } else {
             imageSize = Point.Zero;
         }
@@ -372,9 +375,16 @@ internal class Element {
             sb.DrawRectFill(Bounds, Props.Style.BackgroundColor);
         }
 
-        if (Image != null) {
+        if (ImageProps != null) {
+            ImageProperties props = ImageProps.Value;
+
             Vector2 imagePos = Bounds.Center.ToVector2() - (imageSize.ToVector2() / 2.0f);
-            sb.Draw(Image, Vector2.Floor(imagePos), Color.White);
+            Rectangle dest = new(
+                Vector2.Floor(imagePos).ToPoint(),
+                imageSize
+            );
+
+            sb.Draw(props.Image, dest, props.SourceRect, props.Color);
         }
 
         if (!string.IsNullOrEmpty(innerText) && Props.Style.Font != null) {

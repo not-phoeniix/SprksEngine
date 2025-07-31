@@ -143,13 +143,17 @@ public class MainScene(string name) : Scene2D(name) {
             Direction = AlignDirection.TopToBottom
         });
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 8; i++) {
             Gooey.ImageElement(
                 new ElementProperties() {
                     Style = ElementStyle.EmptyTransparent(),
                     YSizing = ElementSizing.Grow()
                 },
-                dogImage
+                new ImageProperties() {
+                    Image = dogImage,
+                    Color = Color.LightPink,
+                    ManualSize = new Point(60, 30)
+                }
             );
         }
 
@@ -191,7 +195,7 @@ public class MainScene(string name) : Scene2D(name) {
                     },
                     XSizing = ElementSizing.Grow(),
                 },
-                "at least you have an idea of how this layout system works tho :]"
+                "at least you have an idea of how\nthis layout system works tho :]"
             );
 
             Gooey.Element(new ElementProperties() {
