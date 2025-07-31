@@ -12,6 +12,7 @@ namespace Embyr.UI;
 internal class Element {
     private string? innerText;
     private Vector2 stringSize;
+    private Point imageSize;
 
     /// <summary>
     /// Rectangle bounds of this element
@@ -62,6 +63,16 @@ internal class Element {
     }
 
     /// <summary>
+    /// Gets/sets the image attached to this element
+    /// </summary>
+    public Texture2D? Image { get; set; }
+
+    /// <summary>
+    /// Gets/sets the source rectangle to use when drawing the attached image
+    /// </summary>
+    public Rectangle? ImageSource { get; set; }
+
+    /// <summary>
     /// Creates a new Element instance
     /// </summary>
     /// <param name="properties">Element properties to describe this element</param>
@@ -78,6 +89,7 @@ internal class Element {
     public void Reset(ElementProperties properties) {
         Props = properties;
         Bounds = properties.GetInitialBounds();
+        Image = null;
         Children.Clear();
         Parent = null;
         InnerText = "";
@@ -93,12 +105,19 @@ internal class Element {
         Bounds.Width += Props.Padding.Left + Props.Padding.Right;
         Bounds.Height += Props.Padding.Top + Props.Padding.Bottom;
 
-        // fit text !!
+        if (Image != null) {
+            imageSize.X = ImageSource?.Width ?? Image.Width;
+            imageSize.Y = ImageSource?.Height ?? Image.Height;
+        } else {
+            imageSize = Point.Zero;
+        }
+
+        // fit text & image !!
         if (Props.XSizing.Behavior == SizingBehavior.Fit) {
-            Bounds.Width += (int)stringSize.X;
+            Bounds.Width += Math.Max((int)stringSize.X, imageSize.X);
         }
         if (Props.YSizing.Behavior == SizingBehavior.Fit) {
-            Bounds.Height += (int)stringSize.Y;
+            Bounds.Height += Math.Max((int)stringSize.Y, imageSize.Y);
         }
 
         // calculate additional space for gaps for children for THIS element
@@ -351,6 +370,11 @@ internal class Element {
             sb.DrawRectFill(Bounds, Props.Style.HoverColor);
         } else {
             sb.DrawRectFill(Bounds, Props.Style.BackgroundColor);
+        }
+
+        if (Image != null) {
+            Vector2 imagePos = Bounds.Center.ToVector2() - (imageSize.ToVector2() / 2.0f);
+            sb.Draw(Image, Vector2.Floor(imagePos), Color.White);
         }
 
         if (!string.IsNullOrEmpty(innerText) && Props.Style.Font != null) {

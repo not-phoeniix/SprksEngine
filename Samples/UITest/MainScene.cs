@@ -3,12 +3,14 @@ using Embyr;
 using Embyr.Scenes;
 using Embyr.UI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace UITest;
 
 public class MainScene(string name) : Scene2D(name) {
     private Font font;
     private ElementStyle textStyle;
+    private Texture2D dogImage;
 
     public override void LoadContent() {
         font = Assets.Load<Font>("futuristic");
@@ -17,6 +19,7 @@ public class MainScene(string name) : Scene2D(name) {
             BackgroundColor = Color.DarkSlateGray,
             Color = Color.White
         };
+        dogImage = Assets.Load<Texture2D>("dogwho_is___also____small");
 
         base.LoadContent();
     }
@@ -133,14 +136,24 @@ public class MainScene(string name) : Scene2D(name) {
     }
 
     private void BuildSideBar() {
-        Gooey.TextElement(
-            new ElementProperties() {
-                Style = textStyle,
-                Padding = new ElementPadding(2),
-                YSizing = ElementSizing.Grow(),
-            },
-            "!!"
-        );
+        Gooey.BeginElement(new ElementProperties() {
+            YSizing = ElementSizing.Grow(),
+            Style = textStyle,
+            Padding = new ElementPadding(2),
+            Direction = AlignDirection.TopToBottom
+        });
+
+        for (int i = 0; i < 5; i++) {
+            Gooey.ImageElement(
+                new ElementProperties() {
+                    Style = ElementStyle.EmptyTransparent(),
+                    YSizing = ElementSizing.Grow()
+                },
+                dogImage
+            );
+        }
+
+        Gooey.End();
     }
 
     private void BuildMiddleSection() {
@@ -197,7 +210,7 @@ public class MainScene(string name) : Scene2D(name) {
                 Padding = new ElementPadding(5),
                 Style = textStyle
             },
-            "obtrusive ui, etc"
+            "obtrusive gui, etc"
         );
     }
 }

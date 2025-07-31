@@ -109,6 +109,19 @@ public static class Gooey {
     }
 
     /// <summary>
+    /// Creates an image element, runs begin and end automatically
+    /// </summary>
+    /// <param name="props">Element properties to describe the element to create</param>
+    /// <param name="image">Image to draw in center of element</param>
+    /// <param name="sourceRect">Optional source rectangle to draw only a part of an image</param>
+    public static void ImageElement(ElementProperties props, Texture2D image, Rectangle? sourceRect = null) {
+        BeginElement(props);
+        currentParent!.Image = image;
+        currentParent!.ImageSource = sourceRect;
+        End();
+    }
+
+    /// <summary>
     /// Validates the element tree and throws an exception if the user missed an End() call
     /// </summary>
     internal static void ValidateTree() {
