@@ -21,7 +21,7 @@ public class FontReader : ContentTypeReader<Font> {
         int atlasPadding = node["atlasPadding"].GetValue<int>();
         int atlasGaps = node["atlasGaps"].GetValue<int>();
 
-        Texture2D texture = Assets.Load<Texture2D>(atlasTexture);
+        Texture2D texture = Assets.LoadGlobal<Texture2D>(atlasTexture);
 
         return new Font(
             texture,

@@ -22,7 +22,7 @@ public static class Assets {
     private static readonly Dictionary<string, object> customGlobalContent = new();
 
     // maps output type to function that loads the input content
-    private static readonly Dictionary<Type, Func<string, object>> loadInputFuncs = new();
+    private static readonly Dictionary<Type, Func<string, bool, object>> loadInputFuncs = new();
 
     // maps output type to function used to create custom content from input content
     private static readonly Dictionary<Type, ProcessCustomAssetDelegate> processInputFuncs = new();
@@ -66,18 +66,24 @@ public static class Assets {
     /// <returns>Loaded asset, returns the same reference with repeated calls</returns>
     public static T Load<T>(string content) {
         if (IsCustomType(typeof(T))) {
-            return GetCustomContent<T>(content, global: false);
+            return GetCustomContent<T>(content, isGlobal: false);
         }
 
         return localContent.Load<T>(content);
     }
 
     /// <summary>
-    /// Unloads an asset that has been previously loaded
+    /// Unloads an asset that has been previously loaded, disposing it if necessary
     /// </summary>
     /// <param name="content">String path of the processed asset</param>
     public static void Unload(string content) {
         localContent.UnloadAsset(content);
+
+        object asset = customLocalContent[content];
+        if (asset is IDisposable d) {
+            d.Dispose();
+        }
+        customLocalContent.Remove(content);
     }
 
     /// <summary>
@@ -88,18 +94,24 @@ public static class Assets {
     /// <returns>Loaded asset, returns the same reference with repeated calls</returns>
     public static T LoadGlobal<T>(string content) {
         if (IsCustomType(typeof(T))) {
-            return GetCustomContent<T>(content, global: true);
+            return GetCustomContent<T>(content, isGlobal: true);
         }
 
         return game.Content.Load<T>(content);
     }
 
     /// <summary>
-    /// Unloads an asset that has been previously loaded globally
+    /// Unloads an asset that has been previously loaded globally, disposing it if necessary
     /// </summary>
     /// <param name="content">String path of the processed asset</param>
     public static void UnloadGlobal(string content) {
         game.Content.UnloadAsset(content);
+
+        object asset = customGlobalContent[content];
+        if (asset is IDisposable d) {
+            d.Dispose();
+        }
+        customGlobalContent.Remove(content);
     }
 
     /// <summary>
@@ -113,26 +125,32 @@ public static class Assets {
     /// </param>
     public static void AddAssetType<I, O>(ProcessCustomAssetDelegate processInstructions) {
         processInputFuncs[typeof(O)] = processInstructions;
-        loadInputFuncs[typeof(O)] = (content) => Load<I>(content);
+        loadInputFuncs[typeof(O)] = (content, isGlobal) => {
+            if (isGlobal) {
+                return LoadGlobal<I>(content);
+            } else {
+                return Load<I>(content);
+            }
+        };
     }
 
     private static bool IsCustomType(Type t) {
         return loadInputFuncs.ContainsKey(t) && processInputFuncs.ContainsKey(t);
     }
 
-    private static T GetCustomContent<T>(string content, bool global) {
+    private static T GetCustomContent<T>(string content, bool isGlobal) {
         Type type = typeof(T);
         if (!IsCustomType(type)) {
             throw new Exception($"Cannot load content, asset type \"{typeof(T)}\" was never added to the asset pipeline!");
         }
 
-        Dictionary<string, object> contentDict = global ? customGlobalContent : customLocalContent;
+        Dictionary<string, object> contentDict = isGlobal ? customGlobalContent : customLocalContent;
 
         content = content.Replace('\\', '/');
         if (!contentDict.TryGetValue(content, out object processedOutput)) {
             // we get the input content by loading from the cached function
-            Func<string, object> loadInput = loadInputFuncs[type];
-            object inputContent = loadInput.Invoke(content);
+            Func<string, bool, object> loadInput = loadInputFuncs[type];
+            object inputContent = loadInput.Invoke(content, isGlobal);
 
             // then we process the input content into our output type
             ProcessCustomAssetDelegate processInput = processInputFuncs[type];
