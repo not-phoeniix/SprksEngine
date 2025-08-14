@@ -8,9 +8,9 @@ namespace Embyr.UI;
 /// </summary>
 public struct ImageProperties {
     /// <summary>
-    /// Image itself to draw
+    /// Texture/image itself to draw
     /// </summary>
-    public required Texture2D Image;
+    public required Texture2D Texture;
 
     /// <summary>
     /// Color tint of image

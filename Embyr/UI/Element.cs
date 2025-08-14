@@ -105,11 +105,11 @@ internal class Element {
 
             imageSize.X = props.ManualSize?.X
                        ?? props.SourceRect?.Width
-                       ?? props.Image.Width;
+                       ?? props.Texture.Width;
 
             imageSize.Y = props.ManualSize?.Y
                        ?? props.SourceRect?.Height
-                       ?? props.Image.Height;
+                       ?? props.Texture.Height;
 
         } else {
             imageSize = Point.Zero;
@@ -384,7 +384,7 @@ internal class Element {
                 imageSize
             );
 
-            sb.Draw(props.Image, dest, props.SourceRect, props.Color);
+            sb.Draw(props.Texture, dest, props.SourceRect, props.Color);
         }
 
         if (!string.IsNullOrEmpty(innerText) && Props.Style.Font != null) {

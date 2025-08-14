@@ -102,7 +102,7 @@ public static class Gooey {
     /// </summary>
     /// <param name="props">Element properties to describe the element to create</param>
     /// <param name="text">Text to display inside element</param>
-    public static void TextElement(ElementProperties props, string text) {
+    public static void Text(ElementProperties props, string text) {
         BeginElement(props);
         currentParent!.InnerText = text;
         End();
@@ -113,7 +113,7 @@ public static class Gooey {
     /// </summary>
     /// <param name="elementProps">Element properties to describe the element to create</param>
     /// <param name="imageProps">Image properties to describe this element's image</param>
-    public static void ImageElement(ElementProperties elementProps, ImageProperties imageProps) {
+    public static void Image(ElementProperties elementProps, ImageProperties imageProps) {
         BeginElement(elementProps);
         currentParent!.ImageProps = imageProps;
         End();

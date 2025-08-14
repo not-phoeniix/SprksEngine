@@ -144,13 +144,13 @@ public class MainScene(string name) : Scene2D(name) {
         });
 
         for (int i = 0; i < 8; i++) {
-            Gooey.ImageElement(
+            Gooey.Image(
                 new ElementProperties() {
                     Style = ElementStyle.EmptyTransparent(),
                     YSizing = ElementSizing.Grow()
                 },
                 new ImageProperties() {
-                    Image = dogImage,
+                    Texture = dogImage,
                     Color = Color.LightPink,
                     ManualSize = new Point(60, 30)
                 }
@@ -175,7 +175,7 @@ public class MainScene(string name) : Scene2D(name) {
                 YSizing = ElementSizing.Grow(),
             });
 
-            Gooey.TextElement(
+            Gooey.Text(
                 new ElementProperties() {
                     Style = new ElementStyle() {
                         BackgroundColor = Color.Transparent,
@@ -186,7 +186,7 @@ public class MainScene(string name) : Scene2D(name) {
                 },
                 "this layout sucks lol"
             );
-            Gooey.TextElement(
+            Gooey.Text(
                 new ElementProperties() {
                     Style = new ElementStyle() {
                         BackgroundColor = Color.Transparent,
@@ -208,7 +208,7 @@ public class MainScene(string name) : Scene2D(name) {
     }
 
     private void BuildBottomBar() {
-        Gooey.TextElement(
+        Gooey.Text(
             new ElementProperties() {
                 XSizing = ElementSizing.Grow(),
                 Padding = new ElementPadding(5),
