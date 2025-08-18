@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Embyr.UI;
 using System.Reflection;
 using Embyr.Rendering;
 
@@ -16,6 +10,7 @@ namespace Embyr.Scenes;
 public class SceneManager : Singleton<SceneManager>, IResolution {
     private Dictionary<string, Scene> scenes;
     private Game game;
+    private Action? queuedSceneChangeProc;
 
     /// <summary>
     /// Gets whether or not the scene manager is currently loading a scene
@@ -70,7 +65,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// Updates the current scene in the manager
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
-    public void Update(float dt) {
+    internal void Update(float dt) {
         if (!IsLoading) {
             CurrentScene.Update(dt);
         }
@@ -80,22 +75,43 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// Updates physics of the current scene in the scene manager
     /// </summary>
     /// <param name="dt">Time passed since last fixed update</param>
-    public void PhysicsUpdate(float dt) {
+    internal void PhysicsUpdate(float dt) {
         if (!IsLoading) {
             CurrentScene.PhysicsUpdate(dt);
+        }
+    }
+
+    /// <summary>
+    /// Changes scene if one was queued to change
+    /// </summary>
+    internal void ChangeQueuedScene() {
+        if (queuedSceneChangeProc != null) {
+            queuedSceneChangeProc.Invoke();
+            queuedSceneChangeProc = null;
         }
     }
 
     #endregion
 
     /// <summary>
+    /// Queues a scene change to occur at the end of the update loop, unloading previous and loading scene
+    /// </summary>
+    /// <typeparam name="T">Type of scene to change to, must inherit from <see cref="Scene"/></typeparam>
+    /// <param name="sceneName">Scene name to switch to</param>
+    /// <param name="onChangeSuccess">Action to execute when scene loading succeeds, passes newly loaded scene in as parameter</param>
+    /// <param name="onChangeFail">Action to execute when scene loading fails</param>
+    public void QueueChangeScene<T>(string sceneName, Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
+        queuedSceneChangeProc = () => ChangeScene<T>(sceneName, onChangeSuccess, onChangeFail);
+    }
+
+    /// <summary>
     /// Unloads current scene and loads the next scene, switching
     /// after loading is complete
     /// </summary>
     /// <param name="sceneName">Scene name to switch to</param>
-    /// <param name="onChangeSuccess">Action to execute when scene loading succeeds</param>
+    /// <param name="onChangeSuccess">Action to execute when scene loading succeeds, passes newly loaded scene in as parameter</param>
     /// <param name="onChangeFail">Action to execute when scene loading fails</param>
-    public void ChangeScene<T>(string sceneName, Action? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
+    public void ChangeScene<T>(string sceneName, Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
         // prevent changing scene while another is already loading
         if (IsLoading) {
             onChangeFail?.Invoke();
@@ -104,14 +120,18 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
 
         IsLoading = true;
 
-        if (!scenes.TryGetValue(sceneName, out Scene next)) {
-            ConstructorInfo ctor = typeof(T).GetConstructor([typeof(string)]);
+        if (!scenes.TryGetValue(sceneName, out Scene? next)) {
+            ConstructorInfo? ctor = typeof(T).GetConstructor([typeof(string)]);
+            if (ctor == null) {
+                throw new Exception("Scene does not contain a valid constructor! Scene cannot be changed!");
+            }
 
             next = ctor?.Invoke([sceneName]) as Scene;
             if (next != null) {
                 scenes.Add(sceneName, next);
             } else {
                 // if scene is null, we know something went wrong...
+                IsLoading = false;
                 onChangeFail?.Invoke();
                 return;
             }
@@ -147,7 +167,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
             // actually clear events in queue
             Input.ClearQueuedEvents();
 
-            onChangeSuccess?.Invoke();
+            onChangeSuccess?.Invoke((T)next);
 
         } catch (Exception ex) {
             // if "next" load fails, unload and remove

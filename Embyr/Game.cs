@@ -230,7 +230,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Gooey.CalcPositions();
         Gooey.ActivateClickables();
 
-        // if game goes inactive, pause
         if (!IsActive && isActivePrev) {
             OnLoseFocus?.Invoke();
         }
@@ -239,6 +238,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         IsMouseVisible = Input.Mode == InputMode.Keyboard;
 
         isActivePrev = IsActive;
+
+        SceneManager.I.ChangeQueuedScene();
 
         if (EngineSettings.ShouldApplyGraphicsChanges) {
             ChangeResolution(
