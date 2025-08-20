@@ -97,8 +97,8 @@ internal class Element {
     public void CalcFitSizing() {
         //* reverse breadth-first search :D
 
-        Bounds.Width += Props.Padding.Left + Props.Padding.Right;
-        Bounds.Height += Props.Padding.Top + Props.Padding.Bottom;
+        Bounds.Width += Props.Style.Padding.Left + Props.Style.Padding.Right;
+        Bounds.Height += Props.Style.Padding.Top + Props.Style.Padding.Bottom;
 
         if (ImageProps != null) {
             ImageProperties props = ImageProps.Value;
@@ -124,7 +124,7 @@ internal class Element {
         }
 
         // calculate additional space for gaps for children for THIS element
-        int gap = Math.Max((Children.Count - 1) * Props.Gap, 0);
+        int gap = Math.Max((Children.Count - 1) * Props.Style.Gap, 0);
         if (Props.Direction == AlignDirection.LeftToRight) {
             Bounds.Width += gap;
         } else {
@@ -186,15 +186,15 @@ internal class Element {
     private void GrowHorizontal() {
         //* breadth-first search :D
 
-        int remainingWidth = Bounds.Width - (Props.Padding.Left + Props.Padding.Right);
-        int remainingHeight = Bounds.Height - (Props.Padding.Top + Props.Padding.Bottom);
+        int remainingWidth = Bounds.Width - (Props.Style.Padding.Left + Props.Style.Padding.Right);
+        int remainingHeight = Bounds.Height - (Props.Style.Padding.Top + Props.Style.Padding.Bottom);
 
         // on axis remaining calculations
         foreach (Element child in Children) {
             remainingWidth -= child.Bounds.Width;
         }
 
-        remainingWidth -= Math.Max((Children.Count - 1) * Props.Gap, 0);
+        remainingWidth -= Math.Max((Children.Count - 1) * Props.Style.Gap, 0);
 
         while (remainingWidth > 0) {
             int smallestWidth = int.MaxValue;
@@ -248,15 +248,15 @@ internal class Element {
     private void GrowVertical() {
         //* breadth-first search :D
 
-        int remainingWidth = Bounds.Width - (Props.Padding.Left + Props.Padding.Right);
-        int remainingHeight = Bounds.Height - (Props.Padding.Top + Props.Padding.Bottom);
+        int remainingWidth = Bounds.Width - (Props.Style.Padding.Left + Props.Style.Padding.Right);
+        int remainingHeight = Bounds.Height - (Props.Style.Padding.Top + Props.Style.Padding.Bottom);
 
         // on axis remaining calculations
         foreach (Element child in Children) {
             remainingHeight -= child.Bounds.Height;
         }
 
-        remainingHeight -= Math.Max((Children.Count - 1) * Props.Gap, 0);
+        remainingHeight -= Math.Max((Children.Count - 1) * Props.Style.Gap, 0);
 
         while (remainingHeight > 0) {
             int smallestHeight = int.MaxValue;
@@ -315,9 +315,31 @@ internal class Element {
 
         int axisOffset = 0;
         if (Props.Direction == AlignDirection.LeftToRight) {
-            axisOffset += Props.Padding.Left;
+            axisOffset += Props.Style.Padding.Left;
         } else {
-            axisOffset += Props.Padding.Top;
+            axisOffset += Props.Style.Padding.Top;
+        }
+
+        Point parentSize = Parent?.Bounds.Size
+           ?? EngineSettings.GameCanvasResolution;
+
+        if (Parent == null) {
+            int xPos = Props.XAlignment switch {
+                ElementAlignment.Start => 0,
+                ElementAlignment.Center => (parentSize.X - Bounds.Width) / 2,
+                ElementAlignment.End => (parentSize.X - Bounds.Width),
+                _ => 0
+            };
+
+            int yPos = Props.YAlignment switch {
+                ElementAlignment.Start => 0,
+                ElementAlignment.Center => (parentSize.Y - Bounds.Height) / 2,
+                ElementAlignment.End => (parentSize.Y - Bounds.Height),
+                _ => 0
+            };
+
+            Bounds.X = xPos;
+            Bounds.Y = yPos;
         }
 
         for (int i = 0; i < Children.Count; i++) {
@@ -325,16 +347,16 @@ internal class Element {
                 // on axis
                 Children[i].Bounds.X = Bounds.Left + axisOffset;
                 // cross axis
-                Children[i].Bounds.Y = Bounds.Top + Props.Padding.Top;
+                Children[i].Bounds.Y = Bounds.Top + Props.Style.Padding.Top;
                 // increment offset
-                axisOffset += Children[i].Bounds.Width + Props.Gap;
+                axisOffset += Children[i].Bounds.Width + Props.Style.Gap;
             } else {
                 // on axis
                 Children[i].Bounds.Y = Bounds.Top + axisOffset;
                 // cross axis
-                Children[i].Bounds.X = Bounds.Left + Props.Padding.Left;
+                Children[i].Bounds.X = Bounds.Left + Props.Style.Padding.Left;
                 // increment offset
-                axisOffset += Children[i].Bounds.Height + Props.Gap;
+                axisOffset += Children[i].Bounds.Height + Props.Style.Gap;
             }
 
             Children[i].CalcPositions();

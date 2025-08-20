@@ -72,6 +72,16 @@ public struct ElementStyle {
     public Font Font { get; set; }
 
     /// <summary>
+    /// Gets/sets the padding rules of the element
+    /// </summary>
+    public ElementPadding Padding { get; set; }
+
+    /// <summary>
+    /// Gets/sets the pixel margin/gap between aligned child elements
+    /// </summary>
+    public int Gap { get; set; }
+
+    /// <summary>
     /// Creates a new ElementStyle structure
     /// </summary>
     public ElementStyle() {
@@ -82,20 +92,24 @@ public struct ElementStyle {
         ActiveColor = Color.Red;
         InactiveColor = Color.Gray;
         BorderSize = 0;
+        Padding = ElementPadding.Zero;
+        Gap = 0;
     }
 
     /// <summary>
     /// Clones from an existing element style
     /// </summary>
-    /// <param name="style">Style to copy from</param>
-    public ElementStyle(ElementStyle style) {
-        BackgroundColor = style.BackgroundColor;
-        Color = style.Color;
-        HoverColor = style.HoverColor;
-        BorderColor = style.BorderColor;
-        ActiveColor = style.ActiveColor;
-        InactiveColor = style.InactiveColor;
-        BorderSize = style.BorderSize;
-        Font = style.Font;
+    /// <param name="other">Style to copy from</param>
+    public ElementStyle(ElementStyle other) {
+        BackgroundColor = other.BackgroundColor;
+        Color = other.Color;
+        HoverColor = other.HoverColor;
+        BorderColor = other.BorderColor;
+        ActiveColor = other.ActiveColor;
+        InactiveColor = other.InactiveColor;
+        BorderSize = other.BorderSize;
+        Font = other.Font;
+        Padding = other.Padding;
+        Gap = other.Gap;
     }
 }

@@ -18,6 +18,26 @@ public enum AlignDirection {
 }
 
 /// <summary>
+/// Describes alignment positions of an element relative to its parent
+/// </summary>
+public enum ElementAlignment {
+    /// <summary>
+    /// Aligns the element at the start of the parent box
+    /// </summary>
+    Start,
+
+    /// <summary>
+    /// Aligns the element in the center of the parent box
+    /// </summary>
+    Center,
+
+    /// <summary>
+    /// Aligns the element at the end of the parent box
+    /// </summary>
+    End
+}
+
+/// <summary>
 /// Describes the properties to define an element in UI
 /// </summary>
 public struct ElementProperties {
@@ -42,14 +62,14 @@ public struct ElementProperties {
     public ElementSizing YSizing { get; set; }
 
     /// <summary>
-    /// Gets/sets the padding rules of the element
+    /// Gets/sets how to align the position of this element relative to its parent on the x axis
     /// </summary>
-    public ElementPadding Padding { get; set; }
+    public ElementAlignment XAlignment { get; set; }
 
     /// <summary>
-    /// Gets/sets the pixel gap between children when aligning
+    /// Gets/sets how to align the position of this element relative to its parent on the y axis
     /// </summary>
-    public int Gap { get; set; }
+    public ElementAlignment YAlignment { get; set; }
 
     /// <summary>
     /// Creates a new ElementProperties instance
@@ -59,8 +79,8 @@ public struct ElementProperties {
         Direction = AlignDirection.LeftToRight;
         XSizing = ElementSizing.Fit();
         YSizing = ElementSizing.Fit();
-        Padding = ElementPadding.Zero;
-        Gap = 0;
+        XAlignment = ElementAlignment.Start;
+        YAlignment = ElementAlignment.Start;
     }
 
     /// <summary>
@@ -72,8 +92,8 @@ public struct ElementProperties {
         Direction = other.Direction;
         XSizing = other.XSizing;
         YSizing = other.YSizing;
-        Padding = other.Padding;
-        Gap = other.Gap;
+        XAlignment = other.XAlignment;
+        YAlignment = other.YAlignment;
     }
 
     /// <summary>

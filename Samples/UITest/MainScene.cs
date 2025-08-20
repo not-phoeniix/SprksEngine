@@ -17,7 +17,8 @@ public class MainScene(string name) : Scene2D(name) {
         textStyle = new ElementStyle() {
             Font = font,
             BackgroundColor = Color.DarkSlateGray,
-            Color = Color.White
+            Color = Color.White,
+            Padding = new ElementPadding(2),
         };
         dogImage = Assets.Load<Texture2D>("dogwho_is___also____small");
 
@@ -64,13 +65,13 @@ public class MainScene(string name) : Scene2D(name) {
     private void BuildTopBar() {
         Gooey.BeginElement(new ElementProperties() {
             Style = new ElementStyle() {
-                BackgroundColor = Color.DarkSlateGray
+                BackgroundColor = Color.DarkSlateGray,
+                Padding = new ElementPadding(4),
+                Gap = 4,
             },
             XSizing = ElementSizing.Grow(),
             YSizing = ElementSizing.Fit(),
-            Gap = 4,
-            Direction = AlignDirection.LeftToRight,
-            Padding = new ElementPadding(4)
+            Direction = AlignDirection.LeftToRight
         });
         {
             for (int i = 0; i < 10; i++) {
@@ -98,18 +99,18 @@ public class MainScene(string name) : Scene2D(name) {
             Gooey.BeginElement(new ElementProperties() {
                 Direction = AlignDirection.TopToBottom,
                 Style = new ElementStyle() {
-                    BackgroundColor = Color.Gray
+                    BackgroundColor = Color.Gray,
+                    Gap = 1
                 },
-                Gap = 1
             });
             {
                 for (int y = 0; y < 3; y++) {
                     Gooey.BeginElement(new ElementProperties() {
                         Direction = AlignDirection.LeftToRight,
                         Style = new ElementStyle() {
-                            BackgroundColor = Color.Transparent
+                            BackgroundColor = Color.Transparent,
+                            Gap = 1
                         },
-                        Gap = 1
                     });
                     for (int x = 0; x < 3; x++) {
                         int x2 = x;
@@ -139,7 +140,6 @@ public class MainScene(string name) : Scene2D(name) {
         Gooey.BeginElement(new ElementProperties() {
             YSizing = ElementSizing.Grow(),
             Style = textStyle,
-            Padding = new ElementPadding(2),
             Direction = AlignDirection.TopToBottom
         });
 
@@ -162,11 +162,12 @@ public class MainScene(string name) : Scene2D(name) {
 
     private void BuildMiddleSection() {
         Gooey.BeginElement(new ElementProperties() {
-            Style = ElementStyle.EmptyTransparent(),
+            Style = new ElementStyle(ElementStyle.EmptyTransparent()) {
+                Gap = 5
+            },
             XSizing = ElementSizing.Grow(),
             YSizing = ElementSizing.Grow(),
             Direction = AlignDirection.TopToBottom,
-            Gap = 5
         });
         {
             Gooey.Element(new ElementProperties() {
@@ -211,8 +212,9 @@ public class MainScene(string name) : Scene2D(name) {
         Gooey.Text(
             new ElementProperties() {
                 XSizing = ElementSizing.Grow(),
-                Padding = new ElementPadding(5),
-                Style = textStyle
+                Style = new ElementStyle(textStyle) {
+                    Padding = new ElementPadding(5),
+                }
             },
             "obtrusive gui, etc"
         );
