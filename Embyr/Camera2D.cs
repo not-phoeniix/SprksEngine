@@ -149,10 +149,36 @@ public class Camera2D {
     /// Updates smooth follow logic, linearly interpolating between
     /// current position and target position according to lerp scale
     /// </summary>
+    /// <param name="target">Target position to follow</param>
+    /// <param name="lerpAmt">Speed/amount of linear interpolation to apply in the X/Y axes, must be >= 0</param>
+    /// <param name="dt">Time passed since last frame</param>
+    public void SmoothFollow(Vector2 target, Vector2 lerpAmt, float dt) {
+        if (lerpAmt.X < 0) lerpAmt.X = 0;
+        if (lerpAmt.Y < 0) lerpAmt.Y = 0;
+
+        Vector2 diff = target - Position;
+        Position += diff * lerpAmt * dt;
+    }
+
+    /// <summary>
+    /// Updates smooth follow logic, linearly interpolating between
+    /// current position and target position according to lerp scale
+    /// </summary>
     /// <param name="target">Target actor to follow</param>
     /// <param name="lerpAmt">Speed/amount of linear interpolation to apply, must be >= 0</param>
     /// <param name="dt">Time passed since last frame</param>
     public void SmoothFollow(Actor2D target, float lerpAmt, float dt) {
+        SmoothFollow(target.Transform.Position, lerpAmt, dt);
+    }
+
+    /// <summary>
+    /// Updates smooth follow logic, linearly interpolating between
+    /// current position and target position according to lerp scale
+    /// </summary>
+    /// <param name="target">Target actor to follow</param>
+    /// <param name="lerpAmt">Speed/amount of linear interpolation to apply in the X/Y axes, must be >= 0</param>
+    /// <param name="dt">Time passed since last frame</param>
+    public void SmoothFollow(Actor2D target, Vector2 lerpAmt, float dt) {
         SmoothFollow(target.Transform.Position, lerpAmt, dt);
     }
 
