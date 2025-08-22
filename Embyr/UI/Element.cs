@@ -320,26 +320,36 @@ internal class Element {
             axisOffset += Props.Style.Padding.Top;
         }
 
-        Point parentSize = Parent?.Bounds.Size
-           ?? EngineSettings.GameCanvasResolution;
+        bool xIsOnAxis = Parent?.Props.Direction == AlignDirection.LeftToRight;
+        Point parentSize = EngineSettings.GameCanvasResolution;
+        if (Parent != null) {
+            parentSize = Parent.Bounds.Size;
+            parentSize.X -= Parent.Props.Style.Padding.Left;
+            parentSize.X -= Parent.Props.Style.Padding.Right;
+            parentSize.Y -= Parent.Props.Style.Padding.Top;
+            parentSize.Y -= Parent.Props.Style.Padding.Bottom;
+        }
 
-        if (Parent == null) {
-            int xPos = Props.XAlignment switch {
-                ElementAlignment.Start => 0,
-                ElementAlignment.Center => (parentSize.X - Bounds.Width) / 2,
-                ElementAlignment.End => (parentSize.X - Bounds.Width),
+        // x alignment
+        if (Parent == null || (xIsOnAxis && Parent.Children.Count == 1) || !xIsOnAxis) {
+            int freeSpace = parentSize.X - Bounds.Width;
+
+            Bounds.X += Props.XAlignment switch {
+                ElementAlignment.Center => freeSpace / 2,
+                ElementAlignment.End => freeSpace,
                 _ => 0
             };
+        }
 
-            int yPos = Props.YAlignment switch {
-                ElementAlignment.Start => 0,
-                ElementAlignment.Center => (parentSize.Y - Bounds.Height) / 2,
-                ElementAlignment.End => (parentSize.Y - Bounds.Height),
+        // y alignment
+        if (Parent == null || (!xIsOnAxis && Parent.Children.Count == 1) || xIsOnAxis) {
+            int freeSpace = parentSize.Y - Bounds.Height;
+
+            Bounds.Y += Props.YAlignment switch {
+                ElementAlignment.Center => freeSpace / 2,
+                ElementAlignment.End => freeSpace,
                 _ => 0
             };
-
-            Bounds.X = xPos;
-            Bounds.Y = yPos;
         }
 
         for (int i = 0; i < Children.Count; i++) {
