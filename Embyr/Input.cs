@@ -151,6 +151,20 @@ public static class Input {
     }
 
     /// <summary>
+    /// Gets the two component vector current direction of the left gamepad stick
+    /// </summary>
+    public static Vector2 GamepadLeftStick {
+        get { return padState.ThumbSticks.Left; }
+    }
+
+    /// <summary>
+    /// Gets the two component vector current direction of the right gamepad stick
+    /// </summary>
+    public static Vector2 GamepadRightStick {
+        get { return padState.ThumbSticks.Right; }
+    }
+
+    /// <summary>
     /// Gets/sets the current action binding preset for the input manager
     /// </summary>
     internal static ActionBindingPreset CurrentBindingPreset { get; set; }
