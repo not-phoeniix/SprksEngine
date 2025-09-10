@@ -82,8 +82,6 @@ internal class ShaderManager : Singleton<ShaderManager> {
             throw new NullReferenceException($"Embedded resource stream null - cannot find shader resource \"{resourceName}\"");
         }
 
-        Debug.WriteLine($"Creating shader from resource \"{resourceName}\"...");
-
         using MemoryStream ms = new();
         stream.CopyTo(ms);
         byte[] byteCode = ms.ToArray();
