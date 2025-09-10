@@ -18,8 +18,11 @@ public static class EngineSettings {
     public static Point GameCanvasResolution {
         get => gameCanvasResolution;
         set {
+            if (gameCanvasResolution != value) {
+                ShouldApplyGraphicsChanges = true;
+            }
+
             gameCanvasResolution = value;
-            ShouldApplyGraphicsChanges = true;
         }
     }
 
@@ -29,8 +32,11 @@ public static class EngineSettings {
     public static Point GameWindowResolution {
         get => gameWindowResolution;
         set {
+            if (gameWindowResolution != value) {
+                ShouldApplyGraphicsChanges = true;
+            }
+
             gameWindowResolution = value;
-            ShouldApplyGraphicsChanges = true;
         }
     }
 
@@ -40,8 +46,11 @@ public static class EngineSettings {
     public static bool EnableVSync {
         get => enableVSync;
         set {
+            if (enableVSync != value) {
+                ShouldApplyGraphicsChanges = true;
+            }
+
             enableVSync = value;
-            ShouldApplyGraphicsChanges = true;
         }
     }
 
@@ -51,8 +60,11 @@ public static class EngineSettings {
     public static bool IsFullscreen {
         get => isFullscreen;
         set {
+            if (isFullscreen != value) {
+                ShouldApplyGraphicsChanges = true;
+            }
+
             isFullscreen = value;
-            ShouldApplyGraphicsChanges = true;
         }
     }
 
@@ -62,8 +74,11 @@ public static class EngineSettings {
     public static bool IsBorderless {
         get => isBorderless;
         set {
+            if (isBorderless != value) {
+                ShouldApplyGraphicsChanges = true;
+            }
+
             isBorderless = value;
-            ShouldApplyGraphicsChanges = true;
         }
     }
 

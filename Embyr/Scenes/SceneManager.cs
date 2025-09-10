@@ -8,6 +8,8 @@ namespace Embyr.Scenes;
 /// Manager class that deals with all game scenes, is a singleton
 /// </summary>
 public class SceneManager : Singleton<SceneManager>, IResolution {
+    // TODO: combine this with the EngineSettings class for scene management
+
     private Dictionary<string, Scene> scenes;
     private Game game;
     private Action? queuedSceneChangeProc;
@@ -192,8 +194,8 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
 
     /// <inheritdoc/>
     public void ChangeResolution(int width, int height) {
-        if (!IsLoading) {
-            CurrentScene.ChangeResolution(width, height);
+        foreach (Scene scene in Scenes) {
+            scene.ChangeResolution(width, height);
         }
     }
 

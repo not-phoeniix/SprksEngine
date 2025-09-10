@@ -74,7 +74,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     private GameSetupParams setupParams;
 
     private bool isActivePrev;
-    private Point prevWindowedSize;
 
     private Rectangle canvasDestination;
     private float canvasScaling;
@@ -136,20 +135,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         EngineSettings.IsBorderless = setupParams.IsBorderless;
         EngineSettings.WindowTitle = setupParams.WindowTitle;
 
-        graphics.PreferredBackBufferWidth = EngineSettings.GameWindowResolution.X;
-        graphics.PreferredBackBufferHeight = EngineSettings.GameWindowResolution.Y;
-        prevWindowedSize = EngineSettings.GameWindowResolution;
-        graphics.SynchronizeWithVerticalRetrace = EngineSettings.EnableVSync;
-        graphics.HardwareModeSwitch = !EngineSettings.IsBorderless;
-        graphics.IsFullScreen = EngineSettings.IsFullscreen;
-        IsFixedTimeStep = false;
-
         Window.AllowUserResizing = setupParams.AllowWindowResizing;
         Window.ClientSizeChanged += OnResize;
 
-        graphics.ApplyChanges();
-
-        ResizeCanvasDestination();
+        EngineSettings.ShouldApplyGraphicsChanges = true;
 
         base.Initialize();
     }
@@ -246,12 +235,16 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
                 EngineSettings.GameCanvasResolution.X + CanvasExpandSize,
                 EngineSettings.GameCanvasResolution.Y + CanvasExpandSize
             );
-            SetFullscreen(EngineSettings.IsFullscreen, EngineSettings.IsBorderless);
+
+            graphics.HardwareModeSwitch = !EngineSettings.IsBorderless;
+            graphics.IsFullScreen = EngineSettings.IsFullscreen;
             graphics.SynchronizeWithVerticalRetrace = EngineSettings.EnableVSync;
             graphics.PreferredBackBufferWidth = EngineSettings.GameWindowResolution.X;
             graphics.PreferredBackBufferHeight = EngineSettings.GameWindowResolution.Y;
 
             graphics.ApplyChanges();
+
+            ResizeCanvasDestination();
 
             EngineSettings.ShouldApplyGraphicsChanges = false;
         }
@@ -286,56 +279,20 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     #region // Helper methods
 
     /// <summary>
-    /// Sets fullscreen state of game
-    /// </summary>
-    /// <param name="fullscreen">Whether or not to enable fullscreen</param>
-    /// <param name="borderless">Whether or not to make window borderless</param>
-    private void SetFullscreen(bool fullscreen, bool borderless) {
-        graphics.HardwareModeSwitch = !borderless;
-
-        if (fullscreen) {
-            // save previous windowed size
-            prevWindowedSize.X = Window.ClientBounds.Width;
-            prevWindowedSize.Y = Window.ClientBounds.Height;
-
-            // set width and height to be that of the current system screen
-            graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        } else {
-            // set to previous windowed size
-            graphics.PreferredBackBufferWidth = prevWindowedSize.X;
-            graphics.PreferredBackBufferHeight = prevWindowedSize.Y;
-        }
-
-        graphics.IsFullScreen = fullscreen;
-        graphics.ApplyChanges();
-        ResizeCanvasDestination();
-    }
-
-    /// <summary>
     /// Method that is run every time the window is resized
     /// </summary>
     private void OnResize(object? sender, EventArgs? e) {
         if (!isResizing && Window.ClientBounds.Width > 0 && Window.ClientBounds.Height > 0) {
             isResizing = true;
 
-            FixWindow();
+            graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+            graphics.ApplyChanges();
+
             ResizeCanvasDestination();
 
             isResizing = false;
         }
-    }
-
-    private void FixWindow() {
-        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
-
-        // cap width/height to be the size of the screen,
-        //   prevents crashing with really big resolutions
-        graphics.PreferredBackBufferWidth = Math.Clamp(graphics.PreferredBackBufferWidth, 1, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width);
-        graphics.PreferredBackBufferHeight = Math.Clamp(graphics.PreferredBackBufferHeight, 1, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
-
-        graphics.ApplyChanges();
     }
 
     private void ResizeCanvasDestination() {
@@ -364,8 +321,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Renderer?.ChangeResolution(width, height);
 
         OnResolutionChange?.Invoke(width, height);
-
-        ResizeCanvasDestination();
     }
 
     private void DrawCropBars() {
