@@ -41,9 +41,9 @@ public class BloomPPE : PostProcessingEffect {
     /// <param name="luminanceThreshold">HDR luminance threshold to apply bloom to</param>
     /// <param name="numBlurPasses">Number of blur passes to use when blurring bloom</param>
     public BloomPPE(GraphicsDevice gd, float luminanceThreshold = 1.0f, int numBlurPasses = 2) : base(gd) {
-        fxBloomThreshold = ShaderManager.I.LoadShader("PostProcessing/bloom_threshold");
-        fxBlur = ShaderManager.I.LoadShader("Blurs/gaussian_blur_separated");
-        fxBloomCombine = ShaderManager.I.LoadShader("PostProcessing/bloom_combine");
+        fxBloomThreshold = ShaderManager.LoadShader("PostProcessing/bloom_threshold");
+        fxBlur = ShaderManager.LoadShader("Blurs/gaussian_blur_separated");
+        fxBloomCombine = ShaderManager.LoadShader("PostProcessing/bloom_combine");
 
         LuminanceThreshold = luminanceThreshold;
         this.numBlurPasses = numBlurPasses;

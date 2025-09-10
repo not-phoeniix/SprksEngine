@@ -24,7 +24,7 @@ public class ToneMapGammaPPE : PostProcessingEffect {
     /// </summary>
     /// <param name="gd">GraphicsDevice to create effect with</param>
     public ToneMapGammaPPE(GraphicsDevice gd) : base(gd) {
-        fxToneMap = ShaderManager.I.LoadShader("PostProcessing/tone_map_gamma");
+        fxToneMap = ShaderManager.LoadShader("PostProcessing/tone_map_gamma");
         Gamma = 2.2f;
         EnableTonemapping = true;
 

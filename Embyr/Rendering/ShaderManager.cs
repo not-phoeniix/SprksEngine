@@ -5,29 +5,29 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Embyr.Rendering;
 
-internal class ShaderManager : Singleton<ShaderManager> {
+internal static class ShaderManager {
     public enum ShaderProfile {
         OpenGL,
         DirectX
     }
 
-    private readonly Dictionary<string, Effect> shaderCache = new();
-    private GraphicsDevice gd;
-    private ShaderProfile profile;
+    private static readonly Dictionary<string, Effect> shaderCache = new();
+    private static GraphicsDevice gd;
+    private static ShaderProfile profile;
 
     /// <summary>
     /// Gets/sets the current base effect applied to actors when drawn
     /// </summary>
-    public Effect? CurrentActorEffect { get; set; }
+    public static Effect? CurrentActorEffect { get; set; }
 
     /// <summary>
     /// Initializes the shader manager
     /// </summary>
     /// <param name="gd">Graphics device to create shaders with</param>
     /// <param name="profile">Graphics profile of program</param>
-    public void Init(GraphicsDevice gd, ShaderProfile profile) {
-        this.gd = gd;
-        this.profile = profile;
+    public static void Init(GraphicsDevice gd, ShaderProfile profile) {
+        ShaderManager.gd = gd;
+        ShaderManager.profile = profile;
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ internal class ShaderManager : Singleton<ShaderManager> {
     /// </summary>
     /// <param name="shaderName">Name of shader file to load, can include paths</param>
     /// <returns>Reference to newly loaded shader</returns>
-    public Effect LoadShader(string shaderName) {
+    public static Effect LoadShader(string shaderName) {
         string profileSuffix = profile switch {
             ShaderProfile.OpenGL => "gl",
             ShaderProfile.DirectX => "dx",
@@ -60,7 +60,7 @@ internal class ShaderManager : Singleton<ShaderManager> {
     /// <summary>
     /// Clears and unloads/disposes all shader
     /// </summary>
-    public void Unload() {
+    public static void Unload() {
         foreach (Effect e in shaderCache.Values) {
             e?.Dispose();
         }
@@ -74,8 +74,8 @@ internal class ShaderManager : Singleton<ShaderManager> {
     /// <param name="resourceName">Name of compiled shader resource</param>
     /// <returns>A new Effect created from embedded resource</returns>
     /// <exception cref="NullReferenceException">Exception thrown when resource stream returns null</exception>
-    private Effect CreateEmbeddedResourceShader(string resourceName) {
-        Assembly assembly = this.GetType().Assembly;
+    private static Effect CreateEmbeddedResourceShader(string resourceName) {
+        Assembly assembly = typeof(ShaderManager).Assembly;
 
         using Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null) {

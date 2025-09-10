@@ -32,7 +32,7 @@ public class GaussianBlurPPE : PostProcessingEffect {
     /// </summary>
     /// <param name="gd">GraphicsDevice to create effect with</param>
     public GaussianBlurPPE(GraphicsDevice gd) : base(gd) {
-        fxBlur = ShaderManager.I.LoadShader("Blurs/gaussian_blur_separated");
+        fxBlur = ShaderManager.LoadShader("Blurs/gaussian_blur_separated");
         numPasses = 1;
         SetupPasses(numPasses);
     }

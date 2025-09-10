@@ -33,7 +33,7 @@ public class Material3D {
     /// </summary>
     /// <param name="shader">Optional shader to use for rendering this material, defaults to DefaultDiffuseShader</param>
     public Material3D(Effect? shader = null) {
-        this.Shader = ShaderManager.I.LoadShader("3d_forward");
+        this.Shader = ShaderManager.LoadShader("3d_forward");
         SurfaceColor = Color.White;
     }
 

@@ -25,7 +25,7 @@ internal class RendererForward3D : Renderer {
     /// <param name="gd">GraphicsDevice to create renderer with</param>
     public RendererForward3D(RendererSettings settings, GraphicsDevice gd)
     : base(settings, gd) {
-        forward3D = ShaderManager.I.LoadShader("3d_forward");
+        forward3D = ShaderManager.LoadShader("3d_forward");
     }
 
     /// <inheritdoc/>

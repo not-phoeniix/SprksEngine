@@ -47,13 +47,13 @@ internal class RendererDeferred2D : Renderer {
     /// <param name="gd">GraphicsDevice to create renderer with</param>
     public RendererDeferred2D(RendererSettings settings, GraphicsDevice gd)
     : base(settings, gd) {
-        fxLightRender = ShaderManager.I.LoadShader("Deferred2D/light_render");
-        fxLightCombine = ShaderManager.I.LoadShader("Deferred2D/light_combine");
-        fxJumpFloodSeed = ShaderManager.I.LoadShader("Deferred2D/jump_flood_seed");
-        fxJumpFloodStep = ShaderManager.I.LoadShader("Deferred2D/jump_flood_step");
-        fxJumpFloodDistRender = ShaderManager.I.LoadShader("Deferred2D/jump_flood_dist_render");
-        fxRenderGBuffer = ShaderManager.I.LoadShader("Deferred2D/gbuffer_render");
-        fxRenderGBufferClear = ShaderManager.I.LoadShader("Deferred2D/gbuffer_clear");
+        fxLightRender = ShaderManager.LoadShader("Deferred2D/light_render");
+        fxLightCombine = ShaderManager.LoadShader("Deferred2D/light_combine");
+        fxJumpFloodSeed = ShaderManager.LoadShader("Deferred2D/jump_flood_seed");
+        fxJumpFloodStep = ShaderManager.LoadShader("Deferred2D/jump_flood_step");
+        fxJumpFloodDistRender = ShaderManager.LoadShader("Deferred2D/jump_flood_dist_render");
+        fxRenderGBuffer = ShaderManager.LoadShader("Deferred2D/gbuffer_render");
+        fxRenderGBufferClear = ShaderManager.LoadShader("Deferred2D/gbuffer_clear");
 
         sceneMRTTargets = new RenderTargetBinding[3];
 
@@ -84,14 +84,14 @@ internal class RendererDeferred2D : Renderer {
         SpriteBatch.DrawRectFill(new Rectangle(0, 0, albedoBuffer.Width, albedoBuffer.Height), Color.Black);
         SpriteBatch.End();
 
-        ShaderManager.I.CurrentActorEffect = fxRenderGBuffer;
+        ShaderManager.CurrentActorEffect = fxRenderGBuffer;
         fxRenderGBuffer.Parameters["Gamma"].SetValue(Settings.Gamma);
         SpriteBatchBegin(sceneToRender);
 
         DrawSceneActors(SpriteBatch);
 
         SpriteBatch.End();
-        ShaderManager.I.CurrentActorEffect = null;
+        ShaderManager.CurrentActorEffect = null;
 
         if (Settings.EnableLighting) {
             RenderDistanceField(obstructorDistanceField, 0.0f);

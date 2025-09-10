@@ -17,7 +17,7 @@ public static class DrawExtensions {
     }
 
     // private static readonly Transform3D debugRenderTransform = new();
-    // private static readonly Material3D debugMaterial = new(ShaderManager.I.LoadShader("3d_single_color"));
+    // private static readonly Material3D debugMaterial = new(ShaderManager.LoadShader("3d_single_color"));
 
     // TODO: figure out a way to pack the cube model inside the baked DLL
     //   either through embedded resources or just manual
@@ -25,7 +25,7 @@ public static class DrawExtensions {
     // private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
 
     private static void CheckShadersAndReset() {
-        Effect? effect = ShaderManager.I.CurrentActorEffect;
+        Effect? effect = ShaderManager.CurrentActorEffect;
         if (effect != null) {
             EffectParameter useNormals = effect.Parameters["UseNormals"];
             if (useNormals.GetValueBoolean() == true) {

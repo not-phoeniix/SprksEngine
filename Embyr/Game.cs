@@ -147,7 +147,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// Loads game content and initializes shaders, content management, and renderer
     /// </summary>
     protected override sealed void LoadContent() {
-        ShaderManager.I.Init(GraphicsDevice, ShaderManager.ShaderProfile.OpenGL);
+        ShaderManager.Init(GraphicsDevice, ShaderManager.ShaderProfile.OpenGL);
         Assets.Init(this);
 
         RendererSetupParams rParams = SetupRenderer();

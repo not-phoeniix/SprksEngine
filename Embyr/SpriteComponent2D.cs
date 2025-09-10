@@ -108,7 +108,7 @@ public class SpriteComponent2D : ActorComponent2D {
             Vector2.Floor(spriteSize).ToPoint()
         );
 
-        Shader ??= ShaderManager.I.CurrentActorEffect;
+        Shader ??= ShaderManager.CurrentActorEffect;
         if (Shader != null) {
             bool paramsChanged =
                 zIndexParam.GetValueInt32() != Actor.Transform.GlobalZIndex ||

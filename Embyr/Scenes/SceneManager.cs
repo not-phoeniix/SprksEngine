@@ -8,7 +8,8 @@ namespace Embyr.Scenes;
 /// Manager class that deals with all game scenes, is a singleton
 /// </summary>
 public class SceneManager : Singleton<SceneManager>, IResolution {
-    // TODO: combine this with the EngineSettings class for scene management
+    // TODO: refactor this and make it not a singleton <3
+    //   also there's no need for scene caching like why would we need to keep them in memory ??
 
     private Dictionary<string, Scene> scenes;
     private Game game;
