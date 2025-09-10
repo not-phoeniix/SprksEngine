@@ -102,7 +102,7 @@ internal static class ShaderManager {
     //     Debug.WriteLine($"Creating model from resource \"{resourceName}\"...");
 
     //     Model m = new(
-    //         SceneManager.I.GraphicsDevice,
+    //         SceneManager.GraphicsDevice,
 
     //     )
     // }

@@ -7,59 +7,33 @@ namespace Embyr.Scenes;
 /// <summary>
 /// Manager class that deals with all game scenes, is a singleton
 /// </summary>
-public class SceneManager : Singleton<SceneManager>, IResolution {
-    // TODO: refactor this and make it not a singleton <3
-    //   also there's no need for scene caching like why would we need to keep them in memory ??
-
-    private Dictionary<string, Scene> scenes;
-    private Game game;
-    private Action? queuedSceneChangeProc;
+public static class SceneManager {
+    private static Game game;
+    private static Action? queuedSceneChangeProc;
 
     /// <summary>
     /// Gets whether or not the scene manager is currently loading a scene
     /// </summary>
-    public bool IsLoading { get; private set; }
+    public static bool IsLoading { get; private set; }
 
     /// <summary>
     /// Reference to current scene in manager
     /// </summary>
-    public Scene CurrentScene { get; private set; }
-
-    /// <summary>
-    /// Gets an enumerable object to iterate across all currently stored scenes
-    /// </summary>
-    public IEnumerable<Scene> Scenes {
-        get {
-            foreach (Scene scene in scenes.Values) {
-                yield return scene;
-            }
-        }
-    }
+    public static Scene CurrentScene { get; private set; }
 
     /// <summary>
     /// Access to the game renderer, used for batch restarting and other info access
     /// </summary>
-    internal Renderer Renderer => game.Renderer;
+    internal static Renderer Renderer => game.Renderer;
 
     /// <summary>
     /// Initializes the scene manager by loading shaders and setting up scenes. Doesn't load scene content.
     /// </summary>
     /// <param name="game">Game reference to use ContentManager from</param>
-    /// <param name="initialScene">Initial scene to use in game</param>
-    public void Init(Game game, Scene initialScene) {
-        this.game = game;
-
-        scenes = new Dictionary<string, Scene>() {
-            { initialScene.Name, initialScene }
-        };
-
-        CurrentScene = initialScene;
-        initialScene.LoadContent();
-
-        ChangeResolution(
-            EngineSettings.GameCanvasResolution.X + Game.CanvasExpandSize,
-            EngineSettings.GameCanvasResolution.Y + Game.CanvasExpandSize
-        );
+    /// <param name="initialSceneType">Initial scene to use in game</param>
+    public static void Init(Game game, Type initialSceneType) {
+        SceneManager.game = game;
+        ChangeScene(initialSceneType);
     }
 
     #region // Game loop
@@ -68,7 +42,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// Updates the current scene in the manager
     /// </summary>
     /// <param name="dt">Time passed since last frame</param>
-    internal void Update(float dt) {
+    internal static void Update(float dt) {
         if (!IsLoading) {
             CurrentScene.Update(dt);
         }
@@ -78,7 +52,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// Updates physics of the current scene in the scene manager
     /// </summary>
     /// <param name="dt">Time passed since last fixed update</param>
-    internal void PhysicsUpdate(float dt) {
+    internal static void PhysicsUpdate(float dt) {
         if (!IsLoading) {
             CurrentScene.PhysicsUpdate(dt);
         }
@@ -87,7 +61,7 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// <summary>
     /// Changes scene if one was queued to change
     /// </summary>
-    internal void ChangeQueuedScene() {
+    internal static void ChangeQueuedScene() {
         if (queuedSceneChangeProc != null) {
             queuedSceneChangeProc.Invoke();
             queuedSceneChangeProc = null;
@@ -100,21 +74,36 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
     /// Queues a scene change to occur at the end of the update loop, unloading previous and loading scene
     /// </summary>
     /// <typeparam name="T">Type of scene to change to, must inherit from <see cref="Scene"/></typeparam>
-    /// <param name="sceneName">Scene name to switch to</param>
     /// <param name="onChangeSuccess">Action to execute when scene loading succeeds, passes newly loaded scene in as parameter</param>
     /// <param name="onChangeFail">Action to execute when scene loading fails</param>
-    public void QueueChangeScene<T>(string sceneName, Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
-        queuedSceneChangeProc = () => ChangeScene<T>(sceneName, onChangeSuccess, onChangeFail);
+    public static void QueueChangeScene<T>(Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
+        queuedSceneChangeProc = () => ChangeScene<T>(onChangeSuccess, onChangeFail);
     }
 
     /// <summary>
-    /// Unloads current scene and loads the next scene, switching
-    /// after loading is complete
+    /// Change currently active scene, unloading and destroying the previous scene
     /// </summary>
-    /// <param name="sceneName">Scene name to switch to</param>
     /// <param name="onChangeSuccess">Action to execute when scene loading succeeds, passes newly loaded scene in as parameter</param>
     /// <param name="onChangeFail">Action to execute when scene loading fails</param>
-    public void ChangeScene<T>(string sceneName, Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
+    /// <typeparam name="T">Type of scene to change to, must inherit from scene and have an empty constructor</typeparam>
+    public static void ChangeScene<T>(Action<T>? onChangeSuccess = null, Action? onChangeFail = null) where T : Scene {
+        Action<Scene>? onSuccessNonGeneric = null;
+        if (onChangeSuccess != null) {
+            onSuccessNonGeneric = (scene) => {
+                onChangeSuccess.Invoke((scene as T)!);
+            };
+        }
+
+        ChangeScene(typeof(T), onSuccessNonGeneric, onChangeFail);
+    }
+
+    /// <summary>
+    /// Change currently active scene, unloading and destroying the previous scene
+    /// </summary>
+    /// <param name="sceneType">Type of scene to change to, must inherit from scene and have an empty constructor</param>
+    /// <param name="onChangeSuccess">Action to execute when scene loading succeeds, passes newly loaded scene in as parameter</param>
+    /// <param name="onChangeFail">Action to execute when scene loading fails</param>
+    public static void ChangeScene(Type sceneType, Action<Scene>? onChangeSuccess = null, Action? onChangeFail = null) {
         // prevent changing scene while another is already loading
         if (IsLoading) {
             onChangeFail?.Invoke();
@@ -123,21 +112,17 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
 
         IsLoading = true;
 
-        if (!scenes.TryGetValue(sceneName, out Scene? next)) {
-            ConstructorInfo? ctor = typeof(T).GetConstructor([typeof(string)]);
-            if (ctor == null) {
-                throw new Exception("Scene does not contain a valid constructor! Scene cannot be changed!");
-            }
+        ConstructorInfo? ctor = sceneType.GetConstructor([]);
+        if (ctor == null) {
+            throw new Exception("Scene does not contain a valid constructor! Scene cannot be changed!");
+        }
 
-            next = ctor?.Invoke([sceneName]) as Scene;
-            if (next != null) {
-                scenes.Add(sceneName, next);
-            } else {
-                // if scene is null, we know something went wrong...
-                IsLoading = false;
-                onChangeFail?.Invoke();
-                return;
-            }
+        Scene? next = ctor?.Invoke([]) as Scene;
+        if (next == null) {
+            // if scene is null, we know something went wrong...
+            IsLoading = false;
+            onChangeFail?.Invoke();
+            return;
         }
 
         // doesn't switch scene if the next scene is the same as the current one
@@ -170,12 +155,11 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
             // actually clear events in queue
             Input.ClearQueuedEvents();
 
-            onChangeSuccess?.Invoke((T)next);
+            onChangeSuccess?.Invoke(next);
 
         } catch (Exception ex) {
             // if "next" load fails, unload and remove
             next.Unload();
-            scenes.Remove(sceneName);
             CurrentScene = prev;
 
             onChangeFail?.Invoke();
@@ -193,17 +177,10 @@ public class SceneManager : Singleton<SceneManager>, IResolution {
         }
     }
 
-    /// <inheritdoc/>
-    public void ChangeResolution(int width, int height) {
-        foreach (Scene scene in Scenes) {
-            scene.ChangeResolution(width, height);
-        }
-    }
-
     /// <summary>
     /// Exits the entire game
     /// </summary>
-    public void ExitGame() {
+    public static void ExitGame() {
         game.Exit();
     }
 }

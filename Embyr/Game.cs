@@ -25,10 +25,10 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     /// Simple readonly struct that contains all parameters to set up a new Embyr game, should be created in <c>Game.Setup</c>
     /// </summary>
     public readonly struct GameSetupParams {
-        public Scene? InitialScene { get; init; }
+        public required Type InitialSceneType { get; init; }
         public Point CanvasRes { get; init; }
         public Point WindowRes { get; init; }
-        public RenderPipeline? RenderPipeline { get; init; }
+        public required RenderPipeline RenderPipeline { get; init; }
         public string WindowTitle { get; init; }
         public bool EnableVSync { get; init; }
         public bool IsFullscreen { get; init; }
@@ -40,7 +40,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         /// Creates a new SetupParams instance with default values
         /// </summary>
         public GameSetupParams() {
-            InitialScene = null;
             CanvasRes = new Point(480, 270);
             WindowRes = new Point(1280, 720);
             WindowTitle = "Embyr Project";
@@ -48,7 +47,6 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             IsFullscreen = false;
             IsBorderless = false;
             AllowWindowResizing = false;
-            RenderPipeline = null;
             DefaultBindingPreset = null;
         }
     }
@@ -123,8 +121,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         setupParams = SetupGame();
 
-        if (setupParams.InitialScene == null) {
-            throw new NullReferenceException("Cannot set up game with null initial scene!");
+        if (setupParams.InitialSceneType == null) {
+            throw new NullReferenceException("Cannot set up game with null initial scene type!");
         }
 
         EngineSettings.GameCanvasResolution = setupParams.CanvasRes;
@@ -163,7 +161,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         }
 
         // set up scene when loading content !!
-        SceneManager.I.Init(this, setupParams.InitialScene!);
+        SceneManager.Init(this, setupParams.InitialSceneType);
     }
 
     /// <summary>
@@ -196,7 +194,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
         Window.Title = EngineSettings.WindowTitle;
 
         Matrix invertCam2DMat = Matrix.Identity;
-        if (SceneManager.I.CurrentScene is Scene2D scene) {
+        if (SceneManager.CurrentScene is Scene2D scene) {
             invertCam2DMat = scene.Camera.InvertedMatrix;
         }
 
@@ -207,11 +205,11 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
             Performance.DeltaTime
         );
 
-        if (!SceneManager.I.IsLoading) {
+        if (!SceneManager.IsLoading) {
             for (int i = 0; i < Performance.NumPhysicsUpdateToRun; i++) {
-                SceneManager.I.PhysicsUpdate(Performance.FixedDeltaTime);
+                SceneManager.PhysicsUpdate(Performance.FixedDeltaTime);
             }
-            SceneManager.I.Update(Performance.DeltaTime);
+            SceneManager.Update(Performance.DeltaTime);
         }
 
         Gooey.ValidateTree();
@@ -228,7 +226,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
 
         isActivePrev = IsActive;
 
-        SceneManager.I.ChangeQueuedScene();
+        SceneManager.ChangeQueuedScene();
 
         if (EngineSettings.ShouldApplyGraphicsChanges) {
             ChangeResolution(
@@ -261,8 +259,8 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     protected override sealed void Draw(GameTime gameTime) {
         Performance.DrawMeasureStart();
 
-        if (!SceneManager.I.IsLoading) {
-            Renderer.RenderScene(SceneManager.I.CurrentScene);
+        if (!SceneManager.IsLoading) {
+            Renderer.RenderScene(SceneManager.CurrentScene);
         }
 
         Renderer.Render(canvasDestination, canvasScaling);
@@ -317,7 +315,7 @@ public abstract class Game : Microsoft.Xna.Framework.Game {
     }
 
     private void ChangeResolution(int width, int height) {
-        SceneManager.I.ChangeResolution(width, height);
+        SceneManager.CurrentScene?.ChangeResolution(width, height);
         Renderer?.ChangeResolution(width, height);
 
         OnResolutionChange?.Invoke(width, height);

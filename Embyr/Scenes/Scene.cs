@@ -16,11 +16,6 @@ public abstract class Scene : IResolution {
     protected bool Paused { get; set; }
 
     /// <summary>
-    /// Gets the name of this scene
-    /// </summary>
-    public string Name { get; }
-
-    /// <summary>
     /// Gets the gravity strength for this scene
     /// </summary>
     public float Gravity { get; protected set; }
@@ -33,14 +28,8 @@ public abstract class Scene : IResolution {
     /// <summary>
     /// Creates a new unloaded scene
     /// </summary>
-    /// <param name="name">Name of scene</param>
-    public Scene(string name) {
-        if (string.IsNullOrWhiteSpace(name)) {
-            throw new Exception("Cannot create a scene with a null / empty / whitespace name!");
-        }
-
+    public Scene() {
         AmbientColor = Color.Black;
-        Name = name;
         Gravity = 670;
     }
 

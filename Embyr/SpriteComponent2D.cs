@@ -120,7 +120,7 @@ public class SpriteComponent2D : ActorComponent2D {
             //   parameters and restart spritebatch
             if (paramsChanged) {
                 //! NOTE: this isn't super modular for future 2D renderers...
-                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(Actor.Scene as Scene2D);
+                ((RendererDeferred2D)SceneManager.Renderer).RestartSpriteBatch(Actor.Scene as Scene2D);
 
                 zIndexParam.SetValue(Actor.Transform.GlobalZIndex);
                 normalTextureParam.SetValue(Normal);

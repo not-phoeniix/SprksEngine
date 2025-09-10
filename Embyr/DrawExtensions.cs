@@ -22,7 +22,7 @@ public static class DrawExtensions {
     // TODO: figure out a way to pack the cube model inside the baked DLL
     //   either through embedded resources or just manual
     //   drawing using manual buffers in the graphics device
-    // private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.I.GraphicsDevice);
+    // private static readonly GameMesh boxMesh = new(ContentHelper.I.Load<Model>("cube"), SceneManager.GraphicsDevice);
 
     private static void CheckShadersAndReset() {
         Effect? effect = ShaderManager.CurrentActorEffect;
@@ -30,8 +30,8 @@ public static class DrawExtensions {
             EffectParameter useNormals = effect.Parameters["UseNormals"];
             if (useNormals.GetValueBoolean() == true) {
                 //! NOTE: this isn't super modular for future 2D renderers...
-                ((RendererDeferred2D)SceneManager.I.Renderer).RestartSpriteBatch(
-                    SceneManager.I.CurrentScene as Scene2D
+                ((RendererDeferred2D)SceneManager.Renderer).RestartSpriteBatch(
+                    SceneManager.CurrentScene as Scene2D
                 );
 
                 useNormals.SetValue(false);

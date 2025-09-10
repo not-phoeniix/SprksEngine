@@ -22,8 +22,7 @@ public abstract class Scene2D : Scene {
     /// <summary>
     /// Creates a new Scene2D instance
     /// </summary>
-    /// <param name="name">Name of scene to create</param>
-    public Scene2D(string name) : base(name) {
+    public Scene2D() {
         actors = new Quadtree<Actor2D>(new Point(-10_000), new Point(10_000));
         actorsNoCulling = new List<Actor2D>();
         localLights = new Quadtree<Light2D>(new Point(-10_000), new Point(10_000));
