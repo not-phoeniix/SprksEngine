@@ -38,8 +38,12 @@ public sealed class NList<T> {
     /// <summary>
     /// Creates a new negative collection array
     /// </summary>
-    /// <param name="size">Initial size of NList</param>
+    /// <param name="size">Initial capacity</param>
     public NList(int size) {
+        if (size <= 0) {
+            throw new Exception("Cannot initialize an NList with a negative or 0 capacity!");
+        }
+
         data = new T[size];
         offset = size / 2;
     }

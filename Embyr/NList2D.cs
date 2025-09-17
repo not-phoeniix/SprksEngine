@@ -7,7 +7,7 @@ namespace Embyr;
 /// A collection in 2D space, can be indexed negatively
 /// </summary>
 public sealed class NList2D<T> {
-    private T?[,] data;
+    private T?[] data;
     private Point offset;
 
     /// <summary>
@@ -21,14 +21,7 @@ public sealed class NList2D<T> {
     /// <summary>
     /// Size/capacity of negative collection
     /// </summary>
-    public Point Size {
-        get {
-            return new Point(
-                data.GetLength(0),
-                data.GetLength(1)
-            );
-        }
-    }
+    public Point Size { get; private set; }
 
     /// <summary>
     /// Minimum index values in x/y (inclusive)
@@ -45,15 +38,20 @@ public sealed class NList2D<T> {
     /// <summary>
     /// Creates a new negative collection array
     /// </summary>
-    /// <param name="width">Width of collection array</param>
-    /// <param name="height">Height of collection array</param>
+    /// <param name="width">Initial capacity width</param>
+    /// <param name="height">Initial capacity height</param>
     public NList2D(int width, int height) {
-        data = new T[width, height];
+        if (width <= 0 || height <= 0) {
+            throw new Exception("Cannot initialize an NList2D with a negative or 0 capacity!");
+        }
+
+        data = new T[width * height];
         offset = new Point(width / 2, height / 2);
+        Size = new Point(width, height);
     }
 
     /// <summary>
-    /// Creates a new negative collection array (1x1 by default)
+    /// Creates a new negative collection array with a capacity of 1x1
     /// </summary>
     public NList2D() : this(1, 1) { }
 
@@ -69,7 +67,7 @@ public sealed class NList2D<T> {
             throw new Exception($"Index ({x}, {y}) is out of bounds of negative collection!");
         }
 
-        return data[x + offset.X, y + offset.Y];
+        return data[(y + offset.Y) * Size.X + x + offset.X];
     }
 
     /// <summary>
@@ -81,7 +79,7 @@ public sealed class NList2D<T> {
     /// <returns>Whether or not data exists in n list</returns>
     public bool TryGetData(int x, int y, out T? data) {
         if (InBounds(x, y)) {
-            data = this.data[x + offset.X, y + offset.Y];
+            data = this.data[(y + offset.Y) * Size.X + x + offset.X];
             return true;
         }
 
@@ -102,7 +100,7 @@ public sealed class NList2D<T> {
             throw new Exception($"Index ({x}, {y}) is out of bounds of negative collection!");
         }
 
-        data[x + offset.X, y + offset.Y] = item;
+        data[(y + offset.Y) * Size.X + x + offset.X] = item;
     }
 
     /// <summary>
@@ -125,9 +123,9 @@ public sealed class NList2D<T> {
     /// Clears all data in collection
     /// </summary>
     public void Clear() {
-        for (int x = 0; x < data.GetLength(0); x++) {
-            for (int y = 0; y < data.GetLength(1); y++) {
-                data[x, y] = default;
+        for (int x = 0; x < Size.X; x++) {
+            for (int y = 0; y < Size.Y; y++) {
+                data[y * Size.Y + x] = default;
             }
         }
     }
@@ -145,56 +143,56 @@ public sealed class NList2D<T> {
     private bool XInBounds(int x) {
         return
             x + offset.X >= 0 &&
-            x + offset.X < data.GetLength(0);
+            x + offset.X < Size.X;
     }
 
     private bool YInBounds(int y) {
         return
             y + offset.Y >= 0 &&
-            y + offset.Y < data.GetLength(1);
+            y + offset.Y < Size.Y;
     }
 
     private void DoubleWidth() {
-        // double x axis in size
-        int width = data.GetLength(0);
-        int height = data.GetLength(1);
-        int newWidth = width * 2;
+        int newWidth = Size.X * 2;
 
         // create new offset and new array
         Point newOffset = new(newWidth / 2, offset.Y);
-        T?[,] newData = new T[newWidth, height];
+        T?[] newData = new T[newWidth * Size.Y];
 
         // copy old array contents into "center" of new array
-        for (int x = -width / 2; x < Math.Max(width / 2, -width / 2 + 1); x++) {
-            for (int y = -height / 2; y < Math.Max(height / 2, -height / 2 + 1); y++) {
-                newData[x + newOffset.X, y + newOffset.Y] = data[x + offset.X, y + offset.Y];
+        for (int x = -Size.X / 2; x < Math.Max(Size.X / 2, -Size.X / 2 + 1); x++) {
+            for (int y = -Size.Y / 2; y < Math.Max(Size.Y / 2, -Size.Y / 2 + 1); y++) {
+                int oldIndex = (y + offset.Y) * Size.X + x + offset.X;
+                int newIndex = (y + newOffset.Y) * newWidth + x + offset.X;
+                newData[newIndex] = data[oldIndex];
             }
         }
 
         // update internal data fields
         data = newData;
         offset = newOffset;
+        Size = new Point(newWidth, Size.Y);
     }
 
     private void DoubleHeight() {
-        // double y axis in size
-        int width = data.GetLength(0);
-        int height = data.GetLength(1);
-        int newHeight = height * 2;
+        int newHeight = Size.Y * 2;
 
         // create new offset and new array
         Point newOffset = new(offset.X, newHeight / 2);
-        T?[,] newData = new T[width, newHeight];
+        T?[] newData = new T[Size.X * newHeight];
 
         // copy old array contents into "center" of new array
-        for (int x = -width / 2; x < Math.Max(width / 2, -width / 2 + 1); x++) {
-            for (int y = -height / 2; y < Math.Max(height / 2, -height / 2 + 1); y++) {
-                newData[x + newOffset.X, y + newOffset.Y] = data[x + offset.X, y + offset.Y];
+        for (int x = -Size.X / 2; x < Math.Max(Size.X / 2, -Size.X / 2 + 1); x++) {
+            for (int y = -Size.Y / 2; y < Math.Max(Size.Y / 2, -Size.Y / 2 + 1); y++) {
+                int oldIndex = (y + offset.Y) * Size.X + x + offset.X;
+                int newIndex = (y + newOffset.Y) * Size.X + x + offset.X;
+                newData[newIndex] = data[oldIndex];
             }
         }
 
         // update internal data fields
         data = newData;
         offset = newOffset;
+        Size = new Point(Size.X, newHeight);
     }
 }
