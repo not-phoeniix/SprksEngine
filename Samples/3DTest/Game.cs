@@ -13,8 +13,6 @@ public class Game : Embyr.Game {
         EngineSettings.ShowDebugDrawing = true;
         EngineSettings.Gamma = 1.7f;
 
-        MainScene scene = new("main_scene");
-
         ActionBindingPreset binds = ActionBindingPreset.MakeDefault();
         binds.AddActionBind("forward", Keys.W);
         binds.AddActionBind("forward", Buttons.LeftThumbstickUp);
@@ -31,7 +29,7 @@ public class Game : Embyr.Game {
 
         return new GameSetupParams() {
             RenderPipeline = RenderPipeline.Forward3D,
-            InitialScene = scene,
+            InitialSceneType = typeof(MainScene),
             CanvasRes = new Point(300, 200),
             WindowTitle = "3D test !!",
             EnableVSync = true,

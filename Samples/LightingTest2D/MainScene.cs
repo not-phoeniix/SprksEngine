@@ -14,7 +14,7 @@ public enum TileType {
     Tile,
 }
 
-public class MainScene(string name) : Scene2D(name) {
+public class MainScene : Scene2D {
     private static readonly int[,] types = {
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
         { 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1 },

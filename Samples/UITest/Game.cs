@@ -9,10 +9,8 @@ namespace UITest;
 
 public class Game : Embyr.Game {
     protected override GameSetupParams SetupGame() {
-        MainScene scene = new("main_scene");
-
         return new GameSetupParams() {
-            InitialScene = scene,
+            InitialSceneType = typeof(MainScene),
             WindowTitle = "UI Test :D",
             CanvasRes = new Point(480, 270),
             WindowRes = new Point(1280, 720),

@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BoidsDemo;
 
-public class MainScene(string name) : Scene2D(name) {
+public class MainScene : Scene2D {
     public override void LoadContent() {
         Rectangle boidBounds = new(
             -200,

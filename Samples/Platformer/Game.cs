@@ -8,15 +8,13 @@ namespace Platformer;
 
 public class Game : Embyr.Game {
     protected override GameSetupParams SetupGame() {
-        MainScene scene = new("main_scene");
-
         ActionBindingPreset binds = new("default");
         binds.AddActionBind("left", Keys.A);
         binds.AddActionBind("right", Keys.D);
         binds.AddActionBind("jump", Keys.Space);
 
         return new GameSetupParams() {
-            InitialScene = scene,
+            InitialSceneType = typeof(MainScene),
             WindowTitle = "Platformer Sample !!",
             CanvasRes = new Point(300, 200),
             WindowRes = new Point(900, 600),

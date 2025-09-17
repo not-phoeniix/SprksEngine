@@ -10,11 +10,9 @@ public class Game : Embyr.Game {
     private RendererSettings rSettings;
 
     protected override GameSetupParams SetupGame() {
-        MainScene scene = new("main_scene");
-
         return new GameSetupParams() {
             RenderPipeline = RenderPipeline.Deferred2D,
-            InitialScene = scene,
+            InitialSceneType = typeof(MainScene),
             WindowTitle = "Boids :D",
             EnableVSync = true,
         };

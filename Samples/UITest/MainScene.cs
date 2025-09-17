@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace UITest;
 
-public class MainScene(string name) : Scene2D(name) {
+public class MainScene : Scene2D {
     private Font font;
     private ElementStyle textStyle;
     private Texture2D dogImage;

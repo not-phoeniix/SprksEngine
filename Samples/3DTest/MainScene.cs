@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace _3DTest;
 
-public class MainScene(string name) : Scene3D(name) {
+public class MainScene : Scene3D {
     private readonly float cameraLookSpeed = 400;
     private TestActor parentActor;
     private TestActor childActor;
