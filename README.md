@@ -1,5 +1,5 @@
-# Embyr Engine
-Embyr Engine is a small & lightweight free and open source 2D game engine! It aims to make the creation of games in the [MonoGame Framework](https://monogame.net/) much simpler!
+# Sprks Engine
+**Sprks Engine** is a small & lightweight free and open source 2D game engine! It aims to make the creation of games in the [MonoGame Framework](https://monogame.net/) much simpler!
 
 ## Important Notice
 ***!!! THIS ENGINE IS STILL EARLY IN DEVELOPMENT !!!***
@@ -21,12 +21,12 @@ This is my passion project and I do not recommend anyone use this as their engin
 ## Installation
 Clone this repository into a MonoGame project:
 ```
-git clone https://github.com/not-phoeniix/EmbyrEngine.git
+git clone https://github.com/not-phoeniix/SprksEngine.git
 ```
 Add a project reference to the engine in your `.csproj` file
 ```xml
 <ItemGroup>
-  <ProjectReference Include="EmbyrEngine/Embyr/Embyr.csproj" />
+  <ProjectReference Include="SprksEngine/Sprks/Sprks.csproj" />
 </ItemGroup>
 ```
 
@@ -34,4 +34,4 @@ Add a project reference to the engine in your `.csproj` file
 Take a look at the [Samples](Samples) to see how projects are set up. Dotnet project templates are planned but have yet to be made. Documentation exists soley in the C# XML comments.
 
 ## License
-Embyr Engine is licensed under the **MIT License**. Please see the [LICENSE](LICENSE) document for more details.
+Sprks Engine is licensed under the **MIT License**. Please see the [LICENSE](LICENSE) document for more details.
