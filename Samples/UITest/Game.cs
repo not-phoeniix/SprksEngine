@@ -1,13 +1,13 @@
 ﻿using System;
-using Embyr;
-using Embyr.Rendering;
+using Sprks;
+using Sprks.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace UITest;
 
-public class Game : Embyr.Game {
+public class Game : Sprks.Game {
     protected override GameSetupParams SetupGame() {
         return new GameSetupParams() {
             InitialSceneType = typeof(MainScene),

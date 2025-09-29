@@ -1,5 +1,5 @@
-using Embyr;
-using Embyr.Scenes;
+using Sprks;
+using Sprks.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Embyr;
-using Embyr.Scenes;
-using Embyr.UI;
+using Sprks;
+using Sprks.Scenes;
+using Sprks.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

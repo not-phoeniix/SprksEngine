@@ -1,7 +1,7 @@
 using System;
-using Embyr;
-using Embyr.Scenes;
-using Embyr.Tools;
+using Sprks;
+using Sprks.Scenes;
+using Sprks.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 

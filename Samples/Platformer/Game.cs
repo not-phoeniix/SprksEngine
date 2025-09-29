@@ -1,12 +1,12 @@
-using Embyr;
-using Embyr.Rendering;
+using Sprks;
+using Sprks.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace Platformer;
 
-public class Game : Embyr.Game {
+public class Game : Sprks.Game {
     protected override GameSetupParams SetupGame() {
         ActionBindingPreset binds = new("default");
         binds.AddActionBind("left", Keys.A);

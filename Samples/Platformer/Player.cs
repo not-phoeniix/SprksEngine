@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
-using Embyr;
-using Embyr.Physics;
-using Embyr.Scenes;
+using Sprks;
+using Sprks.Physics;
+using Sprks.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

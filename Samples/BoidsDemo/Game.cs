@@ -1,12 +1,12 @@
 using System;
-using Embyr;
-using Embyr.Rendering;
+using Sprks;
+using Sprks.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace BoidsDemo;
 
-public class Game : Embyr.Game {
+public class Game : Sprks.Game {
     private RendererSettings rSettings;
 
     protected override GameSetupParams SetupGame() {

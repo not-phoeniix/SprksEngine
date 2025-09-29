@@ -10,26 +10,7 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:../bin/Debug/net8.0/Embyr.dll
-
 #---------------------------------- Content ---------------------------------#
-
-#begin futuristic-charmap.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:futuristic-charmap.png
-
-#begin futuristic.json
-/importer:JsonImporter
-/processor:FontProcessor
-/build:futuristic.json
 
 #begin normals.png
 /importer:TextureImporter

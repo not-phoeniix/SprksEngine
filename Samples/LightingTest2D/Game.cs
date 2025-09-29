@@ -1,12 +1,12 @@
-﻿using Embyr;
-using Embyr.Rendering;
+﻿using Sprks;
+using Sprks.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace LightingTest2D;
 
-public class Game : Embyr.Game {
+public class Game : Sprks.Game {
     protected override GameSetupParams SetupGame() {
         ActionBindingPreset binds = ActionBindingPreset.MakeDefault();
         binds.AddActionBind("left", Keys.A);

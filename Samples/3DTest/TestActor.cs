@@ -1,6 +1,6 @@
-using Embyr;
-using Embyr.Rendering;
-using Embyr.Scenes;
+using Sprks;
+using Sprks.Rendering;
+using Sprks.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

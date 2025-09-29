@@ -1,8 +1,8 @@
 using System;
-using Embyr;
-using Embyr.Scenes;
-using Embyr.UI;
-using Embyr.Tools;
+using Sprks;
+using Sprks.Scenes;
+using Sprks.UI;
+using Sprks.Tools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -34,7 +34,6 @@ public class MainScene : Scene2D {
     private Light2D greenLight;
     private Light2D globalLight;
     private Light2D miniLight;
-    private Font font;
 
     public override void LoadContent() {
         AmbientColor = Color.Black;
@@ -110,8 +109,6 @@ public class MainScene : Scene2D {
         parallax.Transform.ZIndex = 0;
         parallax.RepeatSize = new Point(4, 4);
         AddActor(parallax);
-
-        font = Assets.Load<Font>("futuristic");
 
         base.LoadContent();
     }
